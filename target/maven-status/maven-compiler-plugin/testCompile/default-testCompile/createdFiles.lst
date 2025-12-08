@@ -1,0 +1,12 @@
+test\PaymentServiceTest.class
+test\OrderServiceTest.class
+test\OrderServiceTest$MockOrderRepository.class
+test\OrderServiceTest$MockPaymentMethodRepository.class
+test\CustomerServiceTest$MockCustomerRepository.class
+test\FoodServiceTest.class
+test\FoodServiceTest$MockFoodRepository.class
+test\OrderServiceTest$MockCustomerRepository.class
+test\OrderServiceTest$MockPaymentService.class
+test\CustomerServiceTest.class
+test\ModelCoverageTest.class
+test\PaymentServiceTest$MockPaymentMethodRepository.class

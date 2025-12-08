@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">service.impl</a> &gt; <span class="el_source">OrderService.java</span></div><h1>OrderService.java</h1><pre class="source lang-java linenums">package service.impl;
+
+import model.*;
+import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IOrderRepository;
+import repository.interfaces.IPaymentMethodRepository;
+import service.interfaces.IOrderService;
+import service.interfaces.IPaymentService;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Order Service Implementation
+ * Contains business logic for order operations
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class OrderService implements IOrderService {
+    
+    private final IOrderRepository orderRepository;
+    private final ICustomerRepository customerRepository;
+    private final IPaymentMethodRepository paymentMethodRepository;
+    private final IPaymentService paymentService;
+    
+<span class="fc" id="L26">    public OrderService(IOrderRepository orderRepository, </span>
+                       ICustomerRepository customerRepository,
+                       IPaymentMethodRepository paymentMethodRepository,
+                       IPaymentService paymentService) {
+<span class="fc" id="L30">        this.orderRepository = orderRepository;</span>
+<span class="fc" id="L31">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L32">        this.paymentMethodRepository = paymentMethodRepository;</span>
+<span class="fc" id="L33">        this.paymentService = paymentService;</span>
+<span class="fc" id="L34">    }</span>
+    
+    @Override
+    public Order createOrder(int customerId, List&lt;OrderDetails&gt; orderDetailsList, 
+                            String paymentType, String cardNumber, String expiryDate) throws IllegalArgumentException {
+        // Validate customer exists
+<span class="fc" id="L40">        Optional&lt;Customer&gt; customerOpt = customerRepository.findById(customerId);</span>
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        if (customerOpt.isEmpty()) {</span>
+<span class="fc" id="L42">            throw new IllegalArgumentException(&quot;Customer not found&quot;);</span>
+        }
+<span class="fc" id="L44">        Customer customer = customerOpt.get();</span>
+        
+        // Validate order details
+<span class="pc bpc" id="L47" title="1 of 4 branches missed.">        if (orderDetailsList == null || orderDetailsList.isEmpty()) {</span>
+<span class="fc" id="L48">            throw new IllegalArgumentException(&quot;Order must contain at least one item&quot;);</span>
+        }
+        
+        // Calculate total price
+<span class="fc" id="L52">        double totalPrice = calculateTotalPrice(orderDetailsList);</span>
+        
+        // Get payment method
+<span class="fc" id="L55">        Optional&lt;PaymentMethod&gt; paymentMethodOpt = paymentMethodRepository.findByCustomerIdAndType(customerId, paymentType);</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (paymentMethodOpt.isEmpty()) {</span>
+<span class="nc" id="L57">            throw new IllegalArgumentException(&quot;Payment method not found&quot;);</span>
+        }
+<span class="fc" id="L59">        PaymentMethod paymentMethod = paymentMethodOpt.get();</span>
+        
+        // Process payment
+        try {
+<span class="fc" id="L63">            paymentService.processPayment(customerId, paymentType, totalPrice, cardNumber, expiryDate);</span>
+<span class="pc" id="L64">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L65">            throw new IllegalArgumentException(&quot;Payment failed: &quot; + e.getMessage());</span>
+        }
+        
+        // Create order
+<span class="fc" id="L69">        Order order = new Order(new Date(), customer, orderDetailsList, totalPrice, paymentMethod);</span>
+<span class="fc" id="L70">        order.setStatus(&quot;COMPLETED&quot;);</span>
+        
+        // Save order
+<span class="fc" id="L73">        return orderRepository.save(order);</span>
+    }
+    
+    @Override
+    public List&lt;Order&gt; getAllOrders() {
+<span class="fc" id="L78">        return orderRepository.findAll();</span>
+    }
+    
+    @Override
+    public List&lt;Order&gt; getOrdersByCustomerId(int customerId) {
+<span class="fc" id="L83">        return orderRepository.findByCustomerId(customerId);</span>
+    }
+    
+    @Override
+    public double calculateTotalPrice(List&lt;OrderDetails&gt; orderDetailsList) {
+<span class="fc" id="L88">        double total = 0.0;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        for (OrderDetails detail : orderDetailsList) {</span>
+<span class="fc" id="L90">            total += detail.getSubtotal();</span>
+        }
+<span class="fc" id="L92">        return total;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

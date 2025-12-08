@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderDetails.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">OrderDetails.java</span></div><h1>OrderDetails.java</h1><pre class="source lang-java linenums">package model;  
+
+import java.math.BigDecimal;
+import java.util.Objects;
+
+/**
+ * OrderDetails Model Class
+ * Represents order detail (line item) entity
+ * Follows OOP principles: Encapsulation, Composition
+ */
+public class OrderDetails {
+    
+    private int orderDetailId;
+    private Food food;
+    private int quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal subtotal;
+    
+    // Constructor
+<span class="fc" id="L20">    public OrderDetails(Food food, int quantity) {</span>
+<span class="fc" id="L21">        this.food = food;</span>
+<span class="fc" id="L22">        this.quantity = quantity;</span>
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        this.unitPrice = food != null ? food.getFoodPriceDecimal() : BigDecimal.ZERO;</span>
+<span class="fc" id="L24">        calculateSubtotal();</span>
+<span class="fc" id="L25">    }</span>
+    
+    // Full constructor
+<span class="nc" id="L28">    public OrderDetails(int orderDetailId, Food food, int quantity, BigDecimal unitPrice) {</span>
+<span class="nc" id="L29">        this.orderDetailId = orderDetailId;</span>
+<span class="nc" id="L30">        this.food = food;</span>
+<span class="nc" id="L31">        this.quantity = quantity;</span>
+<span class="nc" id="L32">        this.unitPrice = unitPrice;</span>
+<span class="nc" id="L33">        calculateSubtotal();</span>
+<span class="nc" id="L34">    }</span>
+    
+    /**
+     * Calculate subtotal for this order detail
+     * Follows DRY principle - single method for calculation
+     */
+    public void calculateSubtotal() {
+<span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (food != null &amp;&amp; quantity &gt; 0) {</span>
+<span class="fc" id="L42">            this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));</span>
+<span class="fc" id="L43">        } else {</span>
+<span class="fc" id="L44">            this.subtotal = BigDecimal.ZERO;</span>
+        }
+<span class="fc" id="L46">    }</span>
+    
+    /**
+     * Get calculated total price
+     * 
+     * @return total price as double
+     */
+    public double calculateEachTotalPrice() {
+<span class="fc" id="L54">        return subtotal.doubleValue();</span>
+    }
+    
+    // Getters
+    public int getOrderDetailId() {
+<span class="fc" id="L59">        return orderDetailId;</span>
+    }
+    
+    public Food getFood() {
+<span class="nc" id="L63">        return food;</span>
+    }
+    
+    public int getQuantity() {
+<span class="nc" id="L67">        return quantity;</span>
+    }
+    
+    public double getUnitPrice() {
+<span class="fc" id="L71">        return unitPrice.doubleValue();</span>
+    }
+    
+    public BigDecimal getUnitPriceDecimal() {
+<span class="nc" id="L75">        return unitPrice;</span>
+    }
+    
+    public double getSubtotal() {
+<span class="fc" id="L79">        return subtotal.doubleValue();</span>
+    }
+    
+    public BigDecimal getSubtotalDecimal() {
+<span class="nc" id="L83">        return subtotal;</span>
+    }
+    
+    // Setters
+    public void setOrderDetailId(int orderDetailId) {
+<span class="fc" id="L88">        this.orderDetailId = orderDetailId;</span>
+<span class="fc" id="L89">    }</span>
+    
+    public void setFood(Food food) {
+<span class="fc" id="L92">        this.food = food;</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (food != null) {</span>
+<span class="fc" id="L94">            this.unitPrice = food.getFoodPriceDecimal();</span>
+<span class="fc" id="L95">            calculateSubtotal();</span>
+        }
+<span class="fc" id="L97">    }</span>
+    
+    public void setQuantity(int quantity) {
+<span class="fc" id="L100">        this.quantity = quantity;</span>
+<span class="fc" id="L101">        calculateSubtotal();</span>
+<span class="fc" id="L102">    }</span>
+    
+    public void setUnitPrice(BigDecimal unitPrice) {
+<span class="fc" id="L105">        this.unitPrice = unitPrice;</span>
+<span class="fc" id="L106">        calculateSubtotal();</span>
+<span class="fc" id="L107">    }</span>
+    
+    @Override
+    public boolean equals(Object o) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L112" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="nc" id="L113">        OrderDetails that = (OrderDetails) o;</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        return orderDetailId == that.orderDetailId;</span>
+    }
+    
+    @Override
+    public int hashCode() {
+<span class="nc" id="L119">        return Objects.hash(orderDetailId);</span>
+    }
+    
+    @Override
+    public String toString() {
+<span class="pc bpc" id="L124" title="1 of 4 branches missed.">        if (food == null || quantity &lt; 1) {</span>
+<span class="fc" id="L125">            return &quot;&quot;;</span>
+        }
+<span class="fc" id="L127">        return String.format(&quot;%d\t %s\t\t %.2f\t %d\t\t %.2f&quot;,</span>
+<span class="fc" id="L128">                food.getFoodId(),</span>
+<span class="fc" id="L129">                food.getFoodName(),</span>
+<span class="fc" id="L130">                unitPrice.doubleValue(),</span>
+<span class="fc" id="L131">                quantity,</span>
+<span class="fc" id="L132">                subtotal.doubleValue());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

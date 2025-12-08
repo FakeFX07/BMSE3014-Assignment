@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">service.impl</a> &gt; <span class="el_source">CustomerService.java</span></div><h1>CustomerService.java</h1><pre class="source lang-java linenums">package service.impl;
+
+import model.Customer;
+import repository.interfaces.ICustomerRepository;
+import service.interfaces.ICustomerService;
+
+import java.util.Optional;
+
+/**
+ * Customer Service Implementation
+ * Contains business logic for customer operations
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class CustomerService implements ICustomerService {
+    
+    private final ICustomerRepository customerRepository;
+    
+    // Validation constants
+    private static final int MIN_AGE = 18;
+    private static final int MAX_AGE = 79;
+    private static final int MIN_PASSWORD_LENGTH = 5;
+    private static final int PHONE_MIN_LENGTH = 10;
+    private static final int PHONE_MAX_LENGTH = 11;
+    
+<span class="fc" id="L25">    public CustomerService(ICustomerRepository customerRepository) {</span>
+<span class="fc" id="L26">        this.customerRepository = customerRepository;</span>
+<span class="fc" id="L27">    }</span>
+    
+    @Override
+    public Customer registerCustomer(Customer customer) throws IllegalArgumentException {
+        // Validate all fields
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        if (!validateName(customer.getName())) {</span>
+<span class="fc" id="L33">            throw new IllegalArgumentException(&quot;Name must contain only letters&quot;);</span>
+        }
+<span class="pc bpc" id="L35" title="1 of 2 branches missed.">        if (!validateAge(customer.getAge())) {</span>
+<span class="nc" id="L36">            throw new IllegalArgumentException(&quot;Age must be between &quot; + MIN_AGE + &quot; and &quot; + MAX_AGE);</span>
+        }
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">        if (!validatePhoneNumber(customer.getPhoneNumber())) {</span>
+<span class="nc" id="L39">            throw new IllegalArgumentException(&quot;Phone number must be &quot; + PHONE_MIN_LENGTH + &quot; or &quot; + PHONE_MAX_LENGTH + &quot; digits&quot;);</span>
+        }
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">        if (!validateGender(customer.getGender())) {</span>
+<span class="nc" id="L42">            throw new IllegalArgumentException(&quot;Gender must be 'Male' or 'Female'&quot;);</span>
+        }
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">        if (!validatePassword(customer.getPassword())) {</span>
+<span class="nc" id="L45">            throw new IllegalArgumentException(&quot;Password must be at least &quot; + MIN_PASSWORD_LENGTH + &quot; characters&quot;);</span>
+        }
+        
+        // Check if phone number already exists
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {</span>
+<span class="fc" id="L50">            throw new IllegalArgumentException(&quot;Phone number already registered&quot;);</span>
+        }
+        
+        // Generate customer ID
+<span class="fc" id="L54">        customer.setCustomerId(customerRepository.getNextCustomerId());</span>
+        
+        // Save customer
+<span class="fc" id="L57">        return customerRepository.save(customer);</span>
+    }
+    
+    @Override
+    public Optional&lt;Customer&gt; login(int customerId, String password) {
+<span class="fc" id="L62">        return customerRepository.authenticate(customerId, password);</span>
+    }
+    
+    @Override
+    public boolean validateName(String name) {
+<span class="pc bpc" id="L67" title="1 of 4 branches missed.">        if (name == null || name.trim().isEmpty()) {</span>
+<span class="fc" id="L68">            return false;</span>
+        }
+        // Check if name contains only letters and spaces
+<span class="fc" id="L71">        return name.matches(&quot;^[a-zA-Z\\s]+$&quot;);</span>
+    }
+    
+    @Override
+    public boolean validateAge(int age) {
+<span class="fc bfc" id="L76" title="All 4 branches covered.">        return age &gt;= MIN_AGE &amp;&amp; age &lt;= MAX_AGE;</span>
+    }
+    
+    @Override
+    public boolean validatePhoneNumber(String phoneNumber) {
+<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (phoneNumber == null) {</span>
+<span class="fc" id="L82">            return false;</span>
+        }
+<span class="fc" id="L84">        int length = phoneNumber.length();</span>
+<span class="fc bfc" id="L85" title="All 4 branches covered.">        return length == PHONE_MIN_LENGTH || length == PHONE_MAX_LENGTH;</span>
+    }
+    
+    @Override
+    public boolean validateGender(String gender) {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (gender == null) {</span>
+<span class="fc" id="L91">            return false;</span>
+        }
+<span class="fc bfc" id="L93" title="All 4 branches covered.">        return &quot;Male&quot;.equalsIgnoreCase(gender) || &quot;Female&quot;.equalsIgnoreCase(gender);</span>
+    }
+    
+    @Override
+    public boolean validatePassword(String password) {
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">        return password != null &amp;&amp; password.length() &gt;= MIN_PASSWORD_LENGTH;</span>
+    }
+    
+    @Override
+    public boolean validatePasswordConfirmation(String password, String confirmPassword) {
+<span class="pc bpc" id="L103" title="1 of 4 branches missed.">        return password != null &amp;&amp; password.equals(confirmPassword);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

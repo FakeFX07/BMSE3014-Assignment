@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">service.impl</a> &gt; <span class="el_source">PaymentService.java</span></div><h1>PaymentService.java</h1><pre class="source lang-java linenums">package service.impl;
+
+import model.*;
+import repository.interfaces.IPaymentMethodRepository;
+import service.interfaces.IPaymentService;
+
+import java.util.Optional;
+
+/**
+ * Payment Service Implementation
+ * Contains business logic for payment operations
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle, Open/Closed Principle
+ */
+public class PaymentService implements IPaymentService {
+    
+    private final IPaymentMethodRepository paymentMethodRepository;
+    
+<span class="fc" id="L18">    public PaymentService(IPaymentMethodRepository paymentMethodRepository) {</span>
+<span class="fc" id="L19">        this.paymentMethodRepository = paymentMethodRepository;</span>
+<span class="fc" id="L20">    }</span>
+    
+    @Override
+    public Payment processPayment(int customerId, String paymentType, double amount, 
+                                  String cardNumber, String expiryDate) throws IllegalArgumentException {
+        // Get payment method
+<span class="fc" id="L26">        Optional&lt;PaymentMethod&gt; paymentMethodOpt = paymentMethodRepository.findByCustomerIdAndType(customerId, paymentType);</span>
+        
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        if (paymentMethodOpt.isEmpty()) {</span>
+<span class="nc" id="L29">            throw new IllegalArgumentException(&quot;Payment method not found for customer&quot;);</span>
+        }
+        
+<span class="fc" id="L32">        PaymentMethod paymentMethod = paymentMethodOpt.get();</span>
+        
+        // Validate card details for Bank payment
+<span class="fc bfc" id="L35" title="All 2 branches covered.">        if (&quot;Bank&quot;.equalsIgnoreCase(paymentType)) {</span>
+<span class="pc bpc" id="L36" title="1 of 4 branches missed.">            if (cardNumber == null || cardNumber.length() != 16) {</span>
+<span class="fc" id="L37">                throw new IllegalArgumentException(&quot;Invalid card number. Must be 16 digits&quot;);</span>
+            }
+<span class="pc bpc" id="L39" title="2 of 4 branches missed.">            if (expiryDate == null || expiryDate.length() != 4) {</span>
+<span class="nc" id="L40">                throw new IllegalArgumentException(&quot;Invalid expiry date. Must be 4 digits (MMYY)&quot;);</span>
+            }
+        }
+        
+        // Create payment instance
+<span class="fc" id="L45">        Payment payment = createPayment(paymentMethod);</span>
+        
+        // Check if balance is sufficient
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (!payment.checkAmount(amount)) {</span>
+<span class="fc" id="L49">            throw new IllegalArgumentException(&quot;Insufficient balance&quot;);</span>
+        }
+        
+        // Process payment
+<span class="fc" id="L53">        double newBalance = payment.makePayment(amount);</span>
+        
+        // Update balance in database
+<span class="fc" id="L56">        paymentMethodRepository.updateBalance(paymentMethod.getPaymentMethodId(), newBalance);</span>
+        
+<span class="fc" id="L58">        return payment;</span>
+    }
+    
+    @Override
+    public Optional&lt;PaymentMethod&gt; getPaymentMethod(int customerId, String paymentType) {
+<span class="fc" id="L63">        return paymentMethodRepository.findByCustomerIdAndType(customerId, paymentType);</span>
+    }
+    
+    @Override
+    public Payment createPayment(PaymentMethod paymentMethod) {
+<span class="fc" id="L68">        String paymentType = paymentMethod.getPaymentType();</span>
+<span class="fc" id="L69">        double balance = paymentMethod.getBalance();</span>
+        
+        // Factory pattern - create appropriate payment instance
+        // Follows Open/Closed Principle - easy to extend with new payment types
+<span class="pc bpc" id="L73" title="1 of 4 branches missed.">        switch (paymentType.toUpperCase()) {</span>
+            case &quot;TNG&quot;:
+<span class="fc" id="L75">                return new TNGPayment(balance);</span>
+            case &quot;GRAB&quot;:
+<span class="fc" id="L77">                return new GrabPayment(balance);</span>
+            case &quot;BANK&quot;:
+<span class="fc" id="L79">                return new BankPayment(balance);</span>
+            default:
+<span class="nc" id="L81">                throw new IllegalArgumentException(&quot;Unknown payment type: &quot; + paymentType);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
