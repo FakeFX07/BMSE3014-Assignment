@@ -1,27 +1,27 @@
-package main.java.presentation;
+package presentation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import main.java.controller.*;
-import main.java.model.*;
-import main.java.repository.impl.CustomerRepository;
-import main.java.repository.impl.FoodRepository;
-import main.java.repository.impl.OrderRepository;
-import main.java.repository.impl.PaymentMethodRepository;
-import main.java.repository.interfaces.ICustomerRepository;
-import main.java.repository.interfaces.IFoodRepository;
-import main.java.repository.interfaces.IOrderRepository;
-import main.java.repository.interfaces.IPaymentMethodRepository;
-import main.java.service.impl.CustomerService;
-import main.java.service.impl.FoodService;
-import main.java.service.impl.OrderService;
-import main.java.service.impl.PaymentService;
-import main.java.service.interfaces.ICustomerService;
-import main.java.service.interfaces.IFoodService;
-import main.java.service.interfaces.IOrderService;
-import main.java.service.interfaces.IPaymentService;
+import controller.*;
+import model.*;
+import repository.impl.CustomerRepository;
+import repository.impl.FoodRepository;
+import repository.impl.OrderRepository;
+import repository.impl.PaymentMethodRepository;
+import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IFoodRepository;
+import repository.interfaces.IOrderRepository;
+import repository.interfaces.IPaymentMethodRepository;
+import service.impl.CustomerService;
+import service.impl.FoodService;
+import service.impl.OrderService;
+import service.impl.PaymentService;
+import service.interfaces.ICustomerService;
+import service.interfaces.IFoodService;
+import service.interfaces.IOrderService;
+import service.interfaces.IPaymentService;
 
 /**
  * Main Application Class
@@ -37,7 +37,7 @@ public class Application {
     private final CustomerController customerController;
     private final FoodController foodController;
     private final OrderController orderController;
-    private Customer currentCustomer;
+    Customer currentCustomer; // Package-private for testing
     
     public Application() {
         this.scanner = new Scanner(System.in);
@@ -110,8 +110,9 @@ public class Application {
     
     /**
      * Handle customer login
+     * Package-private for testing
      */
-    private void handleLogin() {
+    void handleLogin() {
         System.out.println("================================================================================");
         System.out.println("[] Hi,dearly customer please enter your customer id and password before Login []");
         System.out.println("================================================================================\n");
@@ -138,8 +139,9 @@ public class Application {
     
     /**
      * Handle customer registration
+     * Package-private for testing
      */
-    private void handleRegister() {
+    void handleRegister() {
         if (!inputHandler.readYesNo("Are u confirm want to register ? (Y/N) : ")) {
             System.out.println("....Quit From Register....\n");
             return;
@@ -231,8 +233,9 @@ public class Application {
     
     /**
      * Handle order process
+     * Package-private for testing
      */
-    private void handleOrder() {
+    void handleOrder() {
         if (currentCustomer == null) {
             System.out.println("Please login first");
             return;
@@ -295,8 +298,9 @@ public class Application {
     
     /**
      * Process order and payment
+     * Package-private for testing
      */
-    private void processOrder(List<OrderDetails> orderDetailsList) {
+    void processOrder(List<OrderDetails> orderDetailsList) {
         if (orderDetailsList.isEmpty()) {
             System.out.println("No items in order");
             return;
@@ -365,8 +369,9 @@ public class Application {
     
     /**
      * Handle admin menu
+     * Package-private for testing
      */
-    private void handleAdminMenu() {
+    void handleAdminMenu() {
         boolean backMainMenu = true;
         
         do {
@@ -401,8 +406,9 @@ public class Application {
     
     /**
      * Handle food registration
+     * Package-private for testing
      */
-    private void handleRegisterFood() {
+    void handleRegisterFood() {
         if (!inputHandler.readYesNo("Are you sure want to add new food (Y/N) : ")) {
             System.out.println("====== Quit From Register New Food ====== \n");
             return;
@@ -452,8 +458,9 @@ public class Application {
     
     /**
      * Handle food editing
+     * Package-private for testing
      */
-    private void handleEditFood() {
+    void handleEditFood() {
         if (!inputHandler.readYesNo("Are you sure want to edit Y(YES) / N (No): ")) {
             System.out.println("....Quit From Edit....\n");
             return;
@@ -534,8 +541,9 @@ public class Application {
     
     /**
      * Handle food deletion
+     * Package-private for testing
      */
-    private void handleDeleteFood() {
+    void handleDeleteFood() {
         if (!inputHandler.readYesNo("Do you want to delete a food (Y / N ) : ")) {
             System.out.println("====== Quit From Delete Function ======\n");
             return;
@@ -554,16 +562,18 @@ public class Application {
     
     /**
      * Handle display all foods
+     * Package-private for testing
      */
-    private void handleDisplayAllFoods() {
+    void handleDisplayAllFoods() {
         List<Food> foods = foodController.getAllFoods();
         MenuDisplay.displayAllFoods(foods);
     }
     
     /**
      * Handle order report
+     * Package-private for testing
      */
-    private void handleOrderReport() {
+    void handleOrderReport() {
         List<Order> orders = orderController.getAllOrders();
         MenuDisplay.displayOrderReport(orders);
     }

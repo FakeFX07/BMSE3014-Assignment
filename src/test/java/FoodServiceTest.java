@@ -1,4 +1,4 @@
-package test;
+// Tests for FoodService
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -150,6 +150,64 @@ public class FoodServiceTest {
         mockRepository.addFood(new Food(2001, "Food 2", 15.00, "A la carte"));
         
         assertEquals(2, foodService.getAllFoods().size());
+    }
+    
+    @Test
+    @DisplayName("Test registerFood - invalid name")
+    void testRegisterFood_InvalidName() {
+        Food food = new Food("Food123", 10.50, "Set");
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            foodService.registerFood(food);
+        });
+    }
+    
+    @Test
+    @DisplayName("Test registerFood - invalid type")
+    void testRegisterFood_InvalidType() {
+        Food food = new Food("Chicken Rice", 10.50, "Invalid");
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            foodService.registerFood(food);
+        });
+    }
+    
+    @Test
+    @DisplayName("Test registerFood - boundary price values")
+    void testRegisterFood_BoundaryPrices() {
+        Food food1 = new Food("Food One", 1.00, "Set");
+        Food registered1 = foodService.registerFood(food1);
+        assertNotNull(registered1);
+        
+        Food food2 = new Food("Food Two", 69.99, "Set");
+        Food registered2 = foodService.registerFood(food2);
+        assertNotNull(registered2);
+    }
+    
+    @Test
+    @DisplayName("Test updateFood - not found")
+    void testUpdateFood_NotFound() {
+        Food food = new Food(9999, "Non-existent", 10.50, "Set");
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            foodService.updateFood(food);
+        });
+    }
+    
+    @Test
+    @DisplayName("Test getFoodById - not found")
+    void testGetFoodById_NotFound() {
+        assertFalse(foodService.getFoodById(9999).isPresent());
+    }
+    
+    @Test
+    @DisplayName("Test validateFoodPrice - boundary values")
+    void testValidateFoodPrice_BoundaryValues() {
+        assertTrue(foodService.validateFoodPrice(1.00));
+        assertTrue(foodService.validateFoodPrice(69.99));
+        assertFalse(foodService.validateFoodPrice(0.00));
+        assertFalse(foodService.validateFoodPrice(-1.00));
+        assertFalse(foodService.validateFoodPrice(100.00));
     }
     
     // Mock repository for testing

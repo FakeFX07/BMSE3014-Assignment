@@ -30,8 +30,8 @@ public class PaymentMethod {
 <span class="fc" id="L30">    }</span>
     
     // Full constructor (for Bank with card details)
-<span class="fc" id="L33">    public PaymentMethod(int paymentMethodId, int customerId, String paymentType, </span>
-                        double balance, String cardNumber, String expiryDate) {
+    public PaymentMethod(int paymentMethodId, int customerId, String paymentType, 
+<span class="fc" id="L34">                        double balance, String cardNumber, String expiryDate) {</span>
 <span class="fc" id="L35">        this.paymentMethodId = paymentMethodId;</span>
 <span class="fc" id="L36">        this.customerId = customerId;</span>
 <span class="fc" id="L37">        this.paymentType = paymentType;</span>
@@ -114,10 +114,10 @@ public class PaymentMethod {
     @Override
     public String toString() {
 <span class="fc" id="L116">        return &quot;PaymentMethod{&quot; +</span>
-<span class="fc" id="L117">                &quot;paymentMethodId=&quot; + paymentMethodId +</span>
-<span class="fc" id="L118">                &quot;, customerId=&quot; + customerId +</span>
-<span class="fc" id="L119">                &quot;, paymentType='&quot; + paymentType + '\'' +</span>
-<span class="fc" id="L120">                &quot;, balance=&quot; + balance +</span>
+                &quot;paymentMethodId=&quot; + paymentMethodId +
+                &quot;, customerId=&quot; + customerId +
+                &quot;, paymentType='&quot; + paymentType + '\'' +
+                &quot;, balance=&quot; + balance +
                 '}';
     }
 }

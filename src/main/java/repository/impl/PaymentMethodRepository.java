@@ -1,4 +1,4 @@
-package main.java.repository.impl;
+package repository.impl;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import main.java.config.DatabaseConnection;
-import main.java.model.PaymentMethod;
-import main.java.repository.interfaces.IPaymentMethodRepository;
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.PaymentMethod;
+import repository.interfaces.IPaymentMethodRepository;
 
 /**
  * Payment Method Repository Implementation
@@ -26,9 +27,28 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     private static final String UPDATE_BALANCE = 
             "UPDATE payment_methods SET balance = ? WHERE payment_method_id = ?";
     
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+    public PaymentMethodRepository(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public PaymentMethodRepository() {
+        this(DatabaseConnection.getInstance());
+    }
+    
     @Override
     public Optional<PaymentMethod> findById(int paymentMethodId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {
             
             stmt.setInt(1, paymentMethodId);
@@ -46,7 +66,7 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     @Override
     public List<PaymentMethod> findByCustomerId(int customerId) {
         List<PaymentMethod> paymentMethods = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_ID)) {
             
             stmt.setInt(1, customerId);
@@ -63,7 +83,7 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     @Override
     public Optional<PaymentMethod> findByCustomerIdAndType(int customerId, String paymentType) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_AND_TYPE)) {
             
             stmt.setInt(1, customerId);
@@ -81,7 +101,7 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     @Override
     public PaymentMethod save(PaymentMethod paymentMethod) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setInt(1, paymentMethod.getCustomerId());
@@ -107,7 +127,7 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     @Override
     public boolean updateBalance(int paymentMethodId, double newBalance) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(UPDATE_BALANCE)) {
             
             stmt.setBigDecimal(1, BigDecimal.valueOf(newBalance));

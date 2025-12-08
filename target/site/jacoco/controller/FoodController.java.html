@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FoodController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">FoodController.java</span></div><h1>FoodController.java</h1><pre class="source lang-java linenums">package controller;
+
+import java.util.List;
+import java.util.Optional;
+
+import model.Food;
+import service.interfaces.IFoodService;
+
+/**
+ * Food Controller
+ * Handles food-related user interactions
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class FoodController {
+    
+    private final IFoodService foodService;
+    
+<span class="fc" id="L18">    public FoodController(IFoodService foodService) {</span>
+<span class="fc" id="L19">        this.foodService = foodService;</span>
+<span class="fc" id="L20">    }</span>
+    
+    /**
+     * Register a new food item
+     * 
+     * @param food Food to register
+     * @return Registered food if successful, null if validation fails
+     */
+    public Food registerFood(Food food) {
+        try {
+<span class="fc" id="L30">            return foodService.registerFood(food);</span>
+<span class="fc" id="L31">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L32">            System.out.println(&quot;Registration failed: &quot; + e.getMessage());</span>
+<span class="fc" id="L33">            return null;</span>
+        }
+    }
+    
+    /**
+     * Update an existing food item
+     * 
+     * @param food Food to update
+     * @return Updated food if successful, null if validation fails
+     */
+    public Food updateFood(Food food) {
+        try {
+<span class="fc" id="L45">            return foodService.updateFood(food);</span>
+<span class="nc" id="L46">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L47">            System.out.println(&quot;Update failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L48">            return null;</span>
+        }
+    }
+    
+    /**
+     * Delete a food item
+     * 
+     * @param foodId Food ID to delete
+     * @return true if deleted successfully
+     */
+    public boolean deleteFood(int foodId) {
+<span class="fc" id="L59">        boolean deleted = foodService.deleteFood(foodId);</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        if (!deleted) {</span>
+<span class="fc" id="L61">            System.out.println(&quot;Food with ID &quot; + foodId + &quot; not found or could not be deleted&quot;);</span>
+        }
+<span class="fc" id="L63">        return deleted;</span>
+    }
+    
+    /**
+     * Get all food items
+     * 
+     * @return List of all foods
+     */
+    public List&lt;Food&gt; getAllFoods() {
+<span class="fc" id="L72">        return foodService.getAllFoods();</span>
+    }
+    
+    /**
+     * Get food by ID
+     * 
+     * @param foodId Food ID
+     * @return Food if found, null otherwise
+     */
+    public Food getFoodById(int foodId) {
+<span class="fc" id="L82">        Optional&lt;Food&gt; foodOpt = foodService.getFoodById(foodId);</span>
+<span class="fc" id="L83">        return foodOpt.orElse(null);</span>
+    }
+    
+    /**
+     * Validate food name
+     * 
+     * @param foodName Food name to validate
+     * @return true if valid
+     */
+    public boolean validateFoodName(String foodName) {
+<span class="fc" id="L93">        return foodService.validateFoodName(foodName);</span>
+    }
+    
+    /**
+     * Validate food price
+     * 
+     * @param foodPrice Food price to validate
+     * @return true if valid
+     */
+    public boolean validateFoodPrice(double foodPrice) {
+<span class="fc" id="L103">        return foodService.validateFoodPrice(foodPrice);</span>
+    }
+    
+    /**
+     * Validate food type
+     * 
+     * @param foodType Food type to validate
+     * @return true if valid
+     */
+    public boolean validateFoodType(String foodType) {
+<span class="fc" id="L113">        return foodService.validateFoodType(foodType);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,8 +1,8 @@
-package main.java.repository.interfaces;
+package repository.interfaces;
 
 import java.util.Optional;
 
-import main.java.model.Customer;
+import model.Customer;
 
 /**
  * Customer Repository Interface

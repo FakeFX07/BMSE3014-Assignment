@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">OrderController.java</span></div><h1>OrderController.java</h1><pre class="source lang-java linenums">package controller;
+
+import java.util.List;
+
+import model.Order;
+import model.OrderDetails;
+import service.interfaces.IOrderService;
+
+/**
+ * Order Controller
+ * Handles order-related user interactions
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class OrderController {
+    
+    private final IOrderService orderService;
+    
+<span class="fc" id="L18">    public OrderController(IOrderService orderService) {</span>
+<span class="fc" id="L19">        this.orderService = orderService;</span>
+<span class="fc" id="L20">    }</span>
+    
+    /**
+     * Create a new order
+     * 
+     * @param customerId Customer ID
+     * @param orderDetailsList List of order details
+     * @param paymentType Payment type
+     * @param cardNumber Card number (for Bank, null for others)
+     * @param expiryDate Expiry date (for Bank, null for others)
+     * @return Created order if successful, null if creation fails
+     */
+    public Order createOrder(int customerId, List&lt;OrderDetails&gt; orderDetailsList, 
+                           String paymentType, String cardNumber, String expiryDate) {
+        try {
+<span class="fc" id="L35">            return orderService.createOrder(customerId, orderDetailsList, paymentType, cardNumber, expiryDate);</span>
+<span class="fc" id="L36">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L37">            System.out.println(&quot;Order creation failed: &quot; + e.getMessage());</span>
+<span class="fc" id="L38">            return null;</span>
+        }
+    }
+    
+    /**
+     * Get all orders
+     * 
+     * @return List of all orders
+     */
+    public List&lt;Order&gt; getAllOrders() {
+<span class="fc" id="L48">        return orderService.getAllOrders();</span>
+    }
+    
+    /**
+     * Get orders by customer ID
+     * 
+     * @param customerId Customer ID
+     * @return List of orders
+     */
+    public List&lt;Order&gt; getOrdersByCustomerId(int customerId) {
+<span class="fc" id="L58">        return orderService.getOrdersByCustomerId(customerId);</span>
+    }
+    
+    /**
+     * Calculate total price for order details
+     * 
+     * @param orderDetailsList List of order details
+     * @return Total price
+     */
+    public double calculateTotalPrice(List&lt;OrderDetails&gt; orderDetailsList) {
+<span class="fc" id="L68">        return orderService.calculateTotalPrice(orderDetailsList);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,10 +1,10 @@
-package main.java.service.impl;
+package service.impl;
 
 import java.util.Optional;
 
-import main.java.model.*;
-import main.java.repository.interfaces.IPaymentMethodRepository;
-import main.java.service.interfaces.IPaymentService;
+import model.*;
+import repository.interfaces.IPaymentMethodRepository;
+import service.interfaces.IPaymentService;
 
 /**
  * Payment Service Implementation

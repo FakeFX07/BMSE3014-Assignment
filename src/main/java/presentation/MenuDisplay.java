@@ -1,11 +1,11 @@
-package main.java.presentation;
+package presentation;
 
 import java.util.List;
 
-import main.java.model.Food;
-import main.java.model.Order;
-import main.java.model.OrderDetails;
-import main.java.model.PaymentMethod;
+import model.Food;
+import model.Order;
+import model.OrderDetails;
+import model.PaymentMethod;
 
 /**
  * Menu Display Utility

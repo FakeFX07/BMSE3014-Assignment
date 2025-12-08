@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderDetails.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">OrderDetails.java</span></div><h1>OrderDetails.java</h1><pre class="source lang-java linenums">package model;  
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderDetails.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">OrderDetails.java</span></div><h1>OrderDetails.java</h1><pre class="source lang-java linenums">package model;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -25,22 +25,22 @@ public class OrderDetails {
 <span class="fc" id="L25">    }</span>
     
     // Full constructor
-<span class="nc" id="L28">    public OrderDetails(int orderDetailId, Food food, int quantity, BigDecimal unitPrice) {</span>
-<span class="nc" id="L29">        this.orderDetailId = orderDetailId;</span>
-<span class="nc" id="L30">        this.food = food;</span>
-<span class="nc" id="L31">        this.quantity = quantity;</span>
-<span class="nc" id="L32">        this.unitPrice = unitPrice;</span>
-<span class="nc" id="L33">        calculateSubtotal();</span>
-<span class="nc" id="L34">    }</span>
+<span class="fc" id="L28">    public OrderDetails(int orderDetailId, Food food, int quantity, BigDecimal unitPrice) {</span>
+<span class="fc" id="L29">        this.orderDetailId = orderDetailId;</span>
+<span class="fc" id="L30">        this.food = food;</span>
+<span class="fc" id="L31">        this.quantity = quantity;</span>
+<span class="fc" id="L32">        this.unitPrice = unitPrice;</span>
+<span class="fc" id="L33">        calculateSubtotal();</span>
+<span class="fc" id="L34">    }</span>
     
     /**
      * Calculate subtotal for this order detail
      * Follows DRY principle - single method for calculation
      */
     public void calculateSubtotal() {
-<span class="pc bpc" id="L41" title="1 of 4 branches missed.">        if (food != null &amp;&amp; quantity &gt; 0) {</span>
+<span class="fc bfc" id="L41" title="All 4 branches covered.">        if (food != null &amp;&amp; quantity &gt; 0) {</span>
 <span class="fc" id="L42">            this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));</span>
-<span class="fc" id="L43">        } else {</span>
+        } else {
 <span class="fc" id="L44">            this.subtotal = BigDecimal.ZERO;</span>
         }
 <span class="fc" id="L46">    }</span>
@@ -60,11 +60,11 @@ public class OrderDetails {
     }
     
     public Food getFood() {
-<span class="nc" id="L63">        return food;</span>
+<span class="fc" id="L63">        return food;</span>
     }
     
     public int getQuantity() {
-<span class="nc" id="L67">        return quantity;</span>
+<span class="fc" id="L67">        return quantity;</span>
     }
     
     public double getUnitPrice() {
@@ -72,7 +72,7 @@ public class OrderDetails {
     }
     
     public BigDecimal getUnitPriceDecimal() {
-<span class="nc" id="L75">        return unitPrice;</span>
+<span class="fc" id="L75">        return unitPrice;</span>
     }
     
     public double getSubtotal() {
@@ -80,7 +80,7 @@ public class OrderDetails {
     }
     
     public BigDecimal getSubtotalDecimal() {
-<span class="nc" id="L83">        return subtotal;</span>
+<span class="fc" id="L83">        return subtotal;</span>
     }
     
     // Setters
@@ -90,7 +90,7 @@ public class OrderDetails {
     
     public void setFood(Food food) {
 <span class="fc" id="L92">        this.food = food;</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">        if (food != null) {</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (food != null) {</span>
 <span class="fc" id="L94">            this.unitPrice = food.getFoodPriceDecimal();</span>
 <span class="fc" id="L95">            calculateSubtotal();</span>
         }
@@ -108,15 +108,15 @@ public class OrderDetails {
     
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L112" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
-<span class="nc" id="L113">        OrderDetails that = (OrderDetails) o;</span>
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        return orderDetailId == that.orderDetailId;</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L112" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="fc" id="L113">        OrderDetails that = (OrderDetails) o;</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">        return orderDetailId == that.orderDetailId;</span>
     }
     
     @Override
     public int hashCode() {
-<span class="nc" id="L119">        return Objects.hash(orderDetailId);</span>
+<span class="fc" id="L119">        return Objects.hash(orderDetailId);</span>
     }
     
     @Override

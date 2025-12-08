@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserInputHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">UserInputHandler.java</span></div><h1>UserInputHandler.java</h1><pre class="source lang-java linenums">package presentation;
+
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+/**
+ * User Input Handler
+ * Handles user input validation and reading
+ * Follows SOLID: Single Responsibility Principle, DRY principle
+ */
+public class UserInputHandler {
+    
+    private final Scanner scanner;
+    
+<span class="fc" id="L15">    public UserInputHandler(Scanner scanner) {</span>
+<span class="fc" id="L16">        this.scanner = scanner;</span>
+<span class="fc" id="L17">    }</span>
+    
+    /**
+     * Read integer input with validation
+     * 
+     * @param prompt Prompt message
+     * @return Integer value
+     */
+    public int readInt(String prompt) {
+        while (true) {
+            try {
+<span class="fc" id="L28">                System.out.print(prompt);</span>
+<span class="fc" id="L29">                int value = scanner.nextInt();</span>
+<span class="fc" id="L30">                scanner.nextLine(); // Consume newline</span>
+<span class="fc" id="L31">                return value;</span>
+<span class="fc" id="L32">            } catch (InputMismatchException e) {</span>
+<span class="fc" id="L33">                System.out.println(&quot;Invalid input. Please enter an integer.&quot;);</span>
+<span class="fc" id="L34">                scanner.next(); // Consume invalid input</span>
+<span class="fc" id="L35">            }</span>
+        }
+    }
+    
+    /**
+     * Read double input with validation
+     * 
+     * @param prompt Prompt message
+     * @return Double value
+     */
+    public double readDouble(String prompt) {
+        while (true) {
+            try {
+<span class="fc" id="L48">                System.out.print(prompt);</span>
+<span class="fc" id="L49">                double value = scanner.nextDouble();</span>
+<span class="fc" id="L50">                scanner.nextLine(); // Consume newline</span>
+<span class="fc" id="L51">                return value;</span>
+<span class="nc" id="L52">            } catch (InputMismatchException e) {</span>
+<span class="nc" id="L53">                System.out.println(&quot;Invalid input. Please enter a number.&quot;);</span>
+<span class="nc" id="L54">                scanner.next(); // Consume invalid input</span>
+<span class="nc" id="L55">            }</span>
+        }
+    }
+    
+    /**
+     * Read string input
+     * 
+     * @param prompt Prompt message
+     * @return String value
+     */
+    public String readString(String prompt) {
+<span class="fc" id="L66">        System.out.print(prompt);</span>
+<span class="fc" id="L67">        return scanner.nextLine();</span>
+    }
+    
+    /**
+     * Read yes/no confirmation
+     * 
+     * @param prompt Prompt message
+     * @return true if Yes, false if No
+     */
+    public boolean readYesNo(String prompt) {
+        while (true) {
+<span class="fc" id="L78">            System.out.print(prompt);</span>
+<span class="fc" id="L79">            String input = scanner.nextLine().trim().toUpperCase();</span>
+<span class="pc bpc" id="L80" title="1 of 4 branches missed.">            if (&quot;Y&quot;.equals(input) || &quot;YES&quot;.equals(input)) {</span>
+<span class="fc" id="L81">                return true;</span>
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">            } else if (&quot;N&quot;.equals(input) || &quot;NO&quot;.equals(input)) {</span>
+<span class="fc" id="L83">                return false;</span>
+            } else {
+<span class="fc" id="L85">                System.out.println(&quot;Please enter Y (Yes) or N (No) only.&quot;);</span>
+            }
+<span class="fc" id="L87">        }</span>
+    }
+    
+    /**
+     * Read character input
+     * 
+     * @param prompt Prompt message
+     * @return Character value
+     */
+    public char readChar(String prompt) {
+<span class="fc" id="L97">        System.out.print(prompt);</span>
+<span class="fc" id="L98">        String input = scanner.nextLine();</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">        return input.isEmpty() ? ' ' : input.charAt(0);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

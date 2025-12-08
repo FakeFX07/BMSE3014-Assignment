@@ -1,11 +1,11 @@
-package main.java.service.impl;
+package service.impl;
 
 import java.util.List;
 import java.util.Optional;
 
-import main.java.model.Food;
-import main.java.repository.interfaces.IFoodRepository;
-import main.java.service.interfaces.IFoodService;
+import model.Food;
+import repository.interfaces.IFoodRepository;
+import service.interfaces.IFoodService;
 
 /**
  * Food Service Implementation

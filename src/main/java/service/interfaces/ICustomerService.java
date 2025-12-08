@@ -1,8 +1,8 @@
-package main.java.service.interfaces;
+package service.interfaces;
 
 import java.util.Optional;
 
-import main.java.model.Customer;
+import model.Customer;
 
 /**
  * Customer Service Interface

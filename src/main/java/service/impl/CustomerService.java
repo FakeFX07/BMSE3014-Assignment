@@ -1,10 +1,10 @@
-package main.java.service.impl;
+package service.impl;
 
 import java.util.Optional;
 
-import main.java.model.Customer;
-import main.java.repository.interfaces.ICustomerRepository;
-import main.java.service.interfaces.ICustomerService;
+import model.Customer;
+import repository.interfaces.ICustomerRepository;
+import service.interfaces.ICustomerService;
 
 /**
  * Customer Service Implementation

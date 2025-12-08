@@ -1,10 +1,10 @@
-package main.java.controller;     
+package controller;
 
 import java.util.List;
 
-import main.java.model.Order;
-import main.java.model.OrderDetails;
-import main.java.service.interfaces.IOrderService;
+import model.Order;
+import model.OrderDetails;
+import service.interfaces.IOrderService;
 
 /**
  * Order Controller

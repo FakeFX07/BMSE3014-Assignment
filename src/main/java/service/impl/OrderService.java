@@ -1,15 +1,15 @@
-package main.java.service.impl;
+package service.impl;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import main.java.model.*;
-import main.java.repository.interfaces.ICustomerRepository;
-import main.java.repository.interfaces.IOrderRepository;
-import main.java.repository.interfaces.IPaymentMethodRepository;
-import main.java.service.interfaces.IOrderService;
-import main.java.service.interfaces.IPaymentService;
+import model.*;
+import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IOrderRepository;
+import repository.interfaces.IPaymentMethodRepository;
+import service.interfaces.IOrderService;
+import service.interfaces.IPaymentService;
 
 /**
  * Order Service Implementation

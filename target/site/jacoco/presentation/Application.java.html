@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Application.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">presentation</a> &gt; <span class="el_source">Application.java</span></div><h1>Application.java</h1><pre class="source lang-java linenums">package presentation;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import controller.*;
+import model.*;
+import repository.impl.CustomerRepository;
+import repository.impl.FoodRepository;
+import repository.impl.OrderRepository;
+import repository.impl.PaymentMethodRepository;
+import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IFoodRepository;
+import repository.interfaces.IOrderRepository;
+import repository.interfaces.IPaymentMethodRepository;
+import service.impl.CustomerService;
+import service.impl.FoodService;
+import service.impl.OrderService;
+import service.impl.PaymentService;
+import service.interfaces.ICustomerService;
+import service.interfaces.IFoodService;
+import service.interfaces.IOrderService;
+import service.interfaces.IPaymentService;
+
+/**
+ * Main Application Class
+ * Entry point for the POS system
+ * Follows N-Tier Architecture pattern
+ */
+public class Application {
+    
+    private final Scanner scanner;
+    private final UserInputHandler inputHandler;
+    
+    // Controllers
+    private final CustomerController customerController;
+    private final FoodController foodController;
+    private final OrderController orderController;
+    Customer currentCustomer; // Package-private for testing
+    
+<span class="fc" id="L42">    public Application() {</span>
+<span class="fc" id="L43">        this.scanner = new Scanner(System.in);</span>
+<span class="fc" id="L44">        this.inputHandler = new UserInputHandler(scanner);</span>
+        
+        // Initialize repositories
+<span class="fc" id="L47">        ICustomerRepository customerRepository = new CustomerRepository();</span>
+<span class="fc" id="L48">        IFoodRepository foodRepository = new FoodRepository();</span>
+<span class="fc" id="L49">        IPaymentMethodRepository paymentMethodRepository = new PaymentMethodRepository();</span>
+<span class="fc" id="L50">        IOrderRepository orderRepository = new OrderRepository();</span>
+        
+        // Initialize services
+<span class="fc" id="L53">        ICustomerService customerService = new CustomerService(customerRepository);</span>
+<span class="fc" id="L54">        IFoodService foodService = new FoodService(foodRepository);</span>
+<span class="fc" id="L55">        IPaymentService paymentService = new PaymentService(paymentMethodRepository);</span>
+<span class="fc" id="L56">        IOrderService orderService = new OrderService(orderRepository, customerRepository, </span>
+                                                      paymentMethodRepository, paymentService);
+        
+        // Initialize controllers
+<span class="fc" id="L60">        this.customerController = new CustomerController(customerService);</span>
+<span class="fc" id="L61">        this.foodController = new FoodController(foodService);</span>
+<span class="fc" id="L62">        this.orderController = new OrderController(orderService);</span>
+<span class="fc" id="L63">        new PaymentController(paymentService);</span>
+<span class="fc" id="L64">    }</span>
+    
+    /**
+     * Main method - entry point
+     */
+    public static void main(String[] args) {
+<span class="nc" id="L70">        Application app = new Application();</span>
+<span class="nc" id="L71">        app.run();</span>
+<span class="nc" id="L72">    }</span>
+    
+    /**
+     * Run the application
+     */
+    public void run() {
+<span class="fc" id="L78">        final int EXIT_PASSWORD = 1890;</span>
+<span class="fc" id="L79">        int exitPassword = 0;</span>
+        
+        do {
+<span class="fc" id="L82">            MenuDisplay.displayMainMenu();</span>
+<span class="fc" id="L83">            int choice = inputHandler.readInt(&quot;Your choice : &quot;);</span>
+            
+<span class="fc bfc" id="L85" title="All 5 branches covered.">            switch (choice) {</span>
+                case 1:
+<span class="fc" id="L87">                    handleLogin();</span>
+<span class="fc" id="L88">                    break;</span>
+                case 2:
+<span class="fc" id="L90">                    handleRegister();</span>
+<span class="fc" id="L91">                    break;</span>
+                case 3:
+<span class="fc" id="L93">                    handleAdminMenu();</span>
+<span class="fc" id="L94">                    break;</span>
+                case 4:
+<span class="fc" id="L96">                    exitPassword = inputHandler.readInt(&quot;Enter the correct pin to exit program : &quot;);</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">                    if (exitPassword == EXIT_PASSWORD) {</span>
+<span class="fc" id="L98">                        System.out.println(&quot;......Exiting Program......\n&quot;);</span>
+                    } else {
+<span class="fc" id="L100">                        System.out.println(&quot;......Unable Exit Program......\n&quot;);</span>
+                    }
+<span class="fc" id="L102">                    break;</span>
+                default:
+<span class="fc" id="L104">                    System.out.println(&quot;Enter Only 1 until 4 !!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        } while (exitPassword != EXIT_PASSWORD);</span>
+        
+<span class="fc" id="L108">        scanner.close();</span>
+<span class="fc" id="L109">    }</span>
+    
+    /**
+     * Handle customer login
+     * Package-private for testing
+     */
+    void handleLogin() {
+<span class="fc" id="L116">        System.out.println(&quot;================================================================================&quot;);</span>
+<span class="fc" id="L117">        System.out.println(&quot;[] Hi,dearly customer please enter your customer id and password before Login []&quot;);</span>
+<span class="fc" id="L118">        System.out.println(&quot;================================================================================\n&quot;);</span>
+        
+<span class="fc" id="L120">        int customerId = inputHandler.readInt(&quot;Customer id : &quot;);</span>
+<span class="fc" id="L121">        String password = inputHandler.readString(&quot;Password : &quot;);</span>
+        
+<span class="fc" id="L123">        Customer customer = customerController.login(customerId, password);</span>
+        
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (customer != null) {</span>
+<span class="nc" id="L126">            this.currentCustomer = customer;</span>
+<span class="nc" id="L127">            System.out.println(&quot;[]=========================================[]&quot;);</span>
+<span class="nc" id="L128">            System.out.println(&quot;\t\tWelcome &quot; + customer.getName());</span>
+<span class="nc" id="L129">            System.out.println(&quot;\tHave a great time placing an order&quot;);</span>
+<span class="nc" id="L130">            System.out.println(&quot;[]=========================================[]&quot;);</span>
+            
+<span class="nc bnc" id="L132" title="All 2 branches missed.">            if (inputHandler.readYesNo(&quot;Do you want to start Order (Y/N) : &quot;)) {</span>
+<span class="nc" id="L133">                handleOrder();</span>
+            }
+        } else {
+<span class="fc" id="L136">            System.out.println(&quot;Wrong id or password&quot;);</span>
+        }
+<span class="fc" id="L138">    }</span>
+    
+    /**
+     * Handle customer registration
+     * Package-private for testing
+     */
+    void handleRegister() {
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        if (!inputHandler.readYesNo(&quot;Are u confirm want to register ? (Y/N) : &quot;)) {</span>
+<span class="fc" id="L146">            System.out.println(&quot;....Quit From Register....\n&quot;);</span>
+<span class="fc" id="L147">            return;</span>
+        }
+        
+<span class="fc" id="L150">        System.out.println(&quot;==========================--=&quot;);</span>
+<span class="fc" id="L151">        System.out.println(&quot;[]      Enter Details      []&quot;);</span>
+<span class="fc" id="L152">        System.out.println(&quot;==========================--=&quot;);</span>
+        
+<span class="fc" id="L154">        Customer customer = new Customer();</span>
+        
+        // Name validation
+        String name;
+        do {
+<span class="fc" id="L159">            name = inputHandler.readString(&quot;Enter your name: &quot;);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">            if (!customerController.validateName(name)) {</span>
+<span class="fc" id="L161">                System.out.println(&quot;Enter letters only!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        } while (!customerController.validateName(name));</span>
+<span class="fc" id="L164">        customer.setName(name);</span>
+        
+        // Age validation
+        int age;
+        do {
+<span class="fc" id="L169">            age = inputHandler.readInt(&quot;Enter your age (between 18 and 79): &quot;);</span>
+<span class="fc bfc" id="L170" title="All 2 branches covered.">            if (!customerController.validateAge(age)) {</span>
+<span class="fc" id="L171">                System.out.println(&quot;Enter in the range of 18 to 79 only !!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        } while (!customerController.validateAge(age));</span>
+<span class="fc" id="L174">        customer.setAge(age);</span>
+        
+        // Phone number validation
+        String phoneNumber;
+        do {
+<span class="fc" id="L179">            phoneNumber = inputHandler.readString(&quot;Enter your phone number : &quot;);</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">            if (!customerController.validatePhoneNumber(phoneNumber)) {</span>
+<span class="fc" id="L181">                System.out.println(&quot;Please Follow Malaysia Format 10 or 11 digit number !!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        } while (!customerController.validatePhoneNumber(phoneNumber));</span>
+<span class="fc" id="L184">        customer.setPhoneNumber(phoneNumber);</span>
+        
+        // Gender validation
+        String gender;
+        do {
+<span class="fc" id="L189">            gender = inputHandler.readString(&quot;Enter your gender (Male or Female): &quot;);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">            if (!customerController.validateGender(gender)) {</span>
+<span class="fc" id="L191">                System.out.println(&quot;Only enter Male and Female!!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L193" title="All 2 branches covered.">        } while (!customerController.validateGender(gender));</span>
+<span class="fc" id="L194">        customer.setGender(gender);</span>
+        
+        // Password validation
+        String password;
+        do {
+<span class="fc" id="L199">            password = inputHandler.readString(&quot;Enter your password : &quot;);</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">            if (!customerController.validatePassword(password)) {</span>
+<span class="fc" id="L201">                System.out.println(&quot;Please Enter At Least Five Character or Digit\n&quot;);</span>
+            }
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        } while (!customerController.validatePassword(password));</span>
+        
+        // Password confirmation
+        String confirmPassword;
+        do {
+<span class="fc" id="L208">            confirmPassword = inputHandler.readString(&quot;Confirm your password again : &quot;);</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">            if (!customerController.validatePasswordConfirmation(password, confirmPassword)) {</span>
+<span class="fc" id="L210">                System.out.println(&quot;Password and confirm password must be same\n&quot;);</span>
+            }
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        } while (!customerController.validatePasswordConfirmation(password, confirmPassword));</span>
+<span class="fc" id="L213">        customer.setPassword(password);</span>
+        
+        // Final confirmation
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (inputHandler.readYesNo(&quot;Are you sure want to register (Y/N) :&quot;)) {</span>
+<span class="fc" id="L217">            Customer registeredCustomer = customerController.registerCustomer(customer);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">            if (registeredCustomer != null) {</span>
+<span class="nc" id="L219">                System.out.println(&quot;\n======================\n&quot;);</span>
+<span class="nc" id="L220">                System.out.println(&quot;[] Customer Details []\n&quot;);</span>
+<span class="nc" id="L221">                System.out.println(&quot;======================\n&quot;);</span>
+<span class="nc" id="L222">                System.out.println(&quot;Id :&quot; + registeredCustomer.getCustomerId() + &quot;\n&quot;);</span>
+<span class="nc" id="L223">                System.out.println(&quot;Name : &quot; + registeredCustomer.getName() + &quot;\n&quot;);</span>
+<span class="nc" id="L224">                System.out.println(&quot;Age : &quot; + registeredCustomer.getAge() + &quot;\n&quot;);</span>
+<span class="nc" id="L225">                System.out.println(&quot;Phone No : &quot; + registeredCustomer.getPhoneNumber() + &quot;\n&quot;);</span>
+<span class="nc" id="L226">                System.out.println(&quot;Gender : &quot; + registeredCustomer.getGender() + &quot;\n&quot;);</span>
+<span class="nc" id="L227">                System.out.println(&quot;======================\n&quot;);</span>
+            }
+<span class="fc" id="L229">        } else {</span>
+<span class="fc" id="L230">            System.out.println(&quot;..............Quit From Register .............&quot;);</span>
+        }
+<span class="fc" id="L232">    }</span>
+    
+    /**
+     * Handle order process
+     * Package-private for testing
+     */
+    void handleOrder() {
+<span class="fc bfc" id="L239" title="All 2 branches covered.">        if (currentCustomer == null) {</span>
+<span class="fc" id="L240">            System.out.println(&quot;Please login first&quot;);</span>
+<span class="fc" id="L241">            return;</span>
+        }
+        
+<span class="fc" id="L244">        List&lt;Food&gt; foods = foodController.getAllFoods();</span>
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">        if (foods.isEmpty()) {</span>
+<span class="nc" id="L246">            System.out.println(&quot;No food items available&quot;);</span>
+<span class="nc" id="L247">            return;</span>
+        }
+        
+<span class="fc" id="L250">        List&lt;OrderDetails&gt; orderDetailsList = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L251">        char newOrder = 'Y';</span>
+        
+<span class="pc bpc" id="L253" title="1 of 2 branches missed.">        while (newOrder == 'Y') {</span>
+<span class="fc" id="L254">            MenuDisplay.displayFoodMenu(foods);</span>
+<span class="fc" id="L255">            int foodChoice = inputHandler.readInt(&quot;Choose a food item (1 to &quot; + foods.size() + &quot;): &quot;);</span>
+            
+<span class="fc bfc" id="L257" title="All 2 branches covered.">            if (foodChoice == 0) {</span>
+<span class="fc" id="L258">                System.out.println(&quot;==========&quot;);</span>
+<span class="fc" id="L259">                System.out.println(&quot;Stop order&quot;);</span>
+<span class="fc" id="L260">                System.out.println(&quot;==========\n&quot;);</span>
+<span class="fc" id="L261">                break;</span>
+            }
+            
+<span class="pc bpc" id="L264" title="1 of 4 branches missed.">            if (foodChoice &lt; 1 || foodChoice &gt; foods.size()) {</span>
+<span class="fc" id="L265">                System.out.println(&quot;Invalid choice. Please enter a valid number.\n&quot;);</span>
+<span class="fc" id="L266">                continue;</span>
+            }
+            
+<span class="fc" id="L269">            Food selectedFood = foods.get(foodChoice - 1);</span>
+            int quantity;
+            
+            do {
+<span class="fc" id="L273">                quantity = inputHandler.readInt(&quot;Quantity: &quot;);</span>
+<span class="fc bfc" id="L274" title="All 2 branches covered.">                if (quantity &lt;= 0) {</span>
+<span class="fc" id="L275">                    System.out.println(&quot;===== Quantity should be greater than 0! =====\n&quot;);</span>
+                }
+<span class="fc bfc" id="L277" title="All 2 branches covered.">            } while (quantity &lt;= 0);</span>
+            
+<span class="fc bfc" id="L279" title="All 2 branches covered.">            if (inputHandler.readYesNo(&quot;Are you want to order &quot; + selectedFood.getFoodName() + &quot; (Y/N): &quot;)) {</span>
+<span class="fc" id="L280">                OrderDetails orderDetail = new OrderDetails(selectedFood, quantity);</span>
+<span class="fc" id="L281">                orderDetailsList.add(orderDetail);</span>
+<span class="fc" id="L282">                System.out.print(&quot;Order placed for &quot; + selectedFood.getFoodName() + &quot;: &quot; + quantity + &quot; qty(s) \n&quot;);</span>
+            }
+            
+<span class="fc bfc" id="L285" title="All 2 branches covered.">            if (inputHandler.readYesNo(&quot;Complete Ordering ? (Y/N): &quot;)) {</span>
+<span class="fc" id="L286">                processOrder(orderDetailsList);</span>
+<span class="fc" id="L287">                orderDetailsList.clear();</span>
+                
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                if (inputHandler.readYesNo(&quot;Do you want to proceed another order (Y/N) : &quot;)) {</span>
+<span class="nc" id="L290">                    newOrder = 'Y';</span>
+                } else {
+<span class="nc" id="L292">                    System.out.println(&quot;Thank You. Please Come Again&quot;);</span>
+<span class="nc" id="L293">                    newOrder = 'N';</span>
+                }
+            }
+<span class="fc" id="L296">        }</span>
+<span class="fc" id="L297">    }</span>
+    
+    /**
+     * Process order and payment
+     * Package-private for testing
+     */
+    void processOrder(List&lt;OrderDetails&gt; orderDetailsList) {
+<span class="fc bfc" id="L304" title="All 2 branches covered.">        if (orderDetailsList.isEmpty()) {</span>
+<span class="fc" id="L305">            System.out.println(&quot;No items in order&quot;);</span>
+<span class="fc" id="L306">            return;</span>
+        }
+        
+        // Display order summary
+<span class="fc" id="L310">        System.out.println(&quot;============ Double Confirm Item ===========&quot;);</span>
+<span class="fc bfc" id="L311" title="All 2 branches covered.">        for (OrderDetails detail : orderDetailsList) {</span>
+<span class="fc" id="L312">            System.out.println(&quot;\nFood Id: &quot; + detail.getFood().getFoodId());</span>
+<span class="fc" id="L313">            System.out.println(&quot;Name :&quot; + detail.getFood().getFoodName());</span>
+<span class="fc" id="L314">            System.out.println(&quot;QTY(s): &quot; + detail.getQuantity());</span>
+<span class="fc" id="L315">            System.out.println(&quot;Per price : &quot; + detail.getFood().getFoodPrice());</span>
+<span class="fc" id="L316">            System.out.println(&quot;Each Total Price : RM &quot; + String.format(&quot;%.2f&quot;, detail.getSubtotal()));</span>
+<span class="fc" id="L317">            detail.getSubtotal();</span>
+<span class="fc" id="L318">        }</span>
+<span class="fc" id="L319">        System.out.println(&quot;===========================================&quot;);</span>
+        
+        // Payment selection
+<span class="fc" id="L322">        MenuDisplay.displayPaymentOptions();</span>
+<span class="fc" id="L323">        int paymentChoice = inputHandler.readInt(&quot;Please Select a Payment Method :&quot;);</span>
+        
+<span class="fc" id="L325">        String paymentType = null;</span>
+<span class="fc" id="L326">        String cardNumber = null;</span>
+<span class="fc" id="L327">        String expiryDate = null;</span>
+        
+<span class="fc bfc" id="L329" title="All 4 branches covered.">        switch (paymentChoice) {</span>
+            case 1:
+<span class="fc" id="L331">                paymentType = &quot;TNG&quot;;</span>
+<span class="fc" id="L332">                break;</span>
+            case 2:
+<span class="fc" id="L334">                paymentType = &quot;Grab&quot;;</span>
+<span class="fc" id="L335">                break;</span>
+            case 3:
+<span class="fc" id="L337">                paymentType = &quot;Bank&quot;;</span>
+                String cardInput;
+                do {
+<span class="fc" id="L340">                    cardInput = inputHandler.readString(&quot;Enter your card number (16 digit) : &quot;);</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">                    if (cardInput.length() != 16) {</span>
+<span class="fc" id="L342">                        System.out.println(&quot;Please Enter Card Number Again : &quot;);</span>
+                    }
+<span class="fc bfc" id="L344" title="All 2 branches covered.">                } while (cardInput.length() != 16);</span>
+<span class="fc" id="L345">                cardNumber = cardInput;</span>
+                
+                String expiryInput;
+                do {
+<span class="fc" id="L349">                    expiryInput = inputHandler.readString(&quot;Enter expired date (4 digit): &quot;);</span>
+<span class="fc bfc" id="L350" title="All 2 branches covered.">                    if (expiryInput.length() != 4) {</span>
+<span class="fc" id="L351">                        System.out.println(&quot;Please Enter Expiry Date Again : &quot;);</span>
+                    }
+<span class="fc bfc" id="L353" title="All 2 branches covered.">                } while (expiryInput.length() != 4);</span>
+<span class="fc" id="L354">                expiryDate = expiryInput;</span>
+<span class="fc" id="L355">                break;</span>
+            default:
+<span class="fc" id="L357">                System.out.println(&quot;Wrong Choice !\n&quot;);</span>
+<span class="fc" id="L358">                return;</span>
+        }
+        
+        // Create order
+<span class="fc" id="L362">        Order order = orderController.createOrder(currentCustomer.getCustomerId(), orderDetailsList, </span>
+                                                  paymentType, cardNumber, expiryDate);
+        
+<span class="pc bpc" id="L365" title="1 of 2 branches missed.">        if (order != null) {</span>
+<span class="nc" id="L366">            MenuDisplay.displayReceipt(order);</span>
+        }
+<span class="fc" id="L368">    }</span>
+    
+    /**
+     * Handle admin menu
+     * Package-private for testing
+     */
+    void handleAdminMenu() {
+<span class="fc" id="L375">        boolean backMainMenu = true;</span>
+        
+        do {
+<span class="fc" id="L378">            MenuDisplay.displayAdminMenu();</span>
+<span class="fc" id="L379">            int adminChoice = inputHandler.readInt(&quot;Enter your choice : &quot;);</span>
+            
+<span class="fc bfc" id="L381" title="All 7 branches covered.">            switch (adminChoice) {</span>
+                case 0:
+<span class="fc" id="L383">                    backMainMenu = false;</span>
+<span class="fc" id="L384">                    System.out.println(&quot;[]===== Back main menu =====[]\n&quot;);</span>
+<span class="fc" id="L385">                    break;</span>
+                case 1:
+<span class="fc" id="L387">                    handleRegisterFood();</span>
+<span class="fc" id="L388">                    break;</span>
+                case 2:
+<span class="fc" id="L390">                    handleEditFood();</span>
+<span class="fc" id="L391">                    break;</span>
+                case 3:
+<span class="fc" id="L393">                    handleDeleteFood();</span>
+<span class="fc" id="L394">                    break;</span>
+                case 4:
+<span class="fc" id="L396">                    handleDisplayAllFoods();</span>
+<span class="fc" id="L397">                    break;</span>
+                case 5:
+<span class="fc" id="L399">                    handleOrderReport();</span>
+<span class="fc" id="L400">                    break;</span>
+                default:
+<span class="fc" id="L402">                    System.out.println(&quot;Choose 0 Until 5 Only !!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L404" title="All 2 branches covered.">        } while (backMainMenu);</span>
+<span class="fc" id="L405">    }</span>
+    
+    /**
+     * Handle food registration
+     * Package-private for testing
+     */
+    void handleRegisterFood() {
+<span class="fc bfc" id="L412" title="All 2 branches covered.">        if (!inputHandler.readYesNo(&quot;Are you sure want to add new food (Y/N) : &quot;)) {</span>
+<span class="fc" id="L413">            System.out.println(&quot;====== Quit From Register New Food ====== \n&quot;);</span>
+<span class="fc" id="L414">            return;</span>
+        }
+        
+        String foodName;
+        do {
+<span class="fc" id="L419">            foodName = inputHandler.readString(&quot;Enter your food name: &quot;);</span>
+<span class="fc bfc" id="L420" title="All 2 branches covered.">            if (!foodController.validateFoodName(foodName)) {</span>
+<span class="fc" id="L421">                System.out.println(&quot;Enter letters only!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L423" title="All 2 branches covered.">        } while (!foodController.validateFoodName(foodName));</span>
+        
+        double foodPrice;
+        do {
+<span class="fc" id="L427">            foodPrice = inputHandler.readDouble(&quot;Enter your food price RM (1-69) : RM&quot;);</span>
+<span class="fc bfc" id="L428" title="All 2 branches covered.">            if (!foodController.validateFoodPrice(foodPrice)) {</span>
+<span class="fc" id="L429">                System.out.println(&quot;Price are not able to be 0 or negative and not more than RM 70 !!!\n&quot;);</span>
+            }
+<span class="fc bfc" id="L431" title="All 2 branches covered.">        } while (!foodController.validateFoodPrice(foodPrice));</span>
+        
+        String foodType;
+        do {
+<span class="fc" id="L435">            foodType = inputHandler.readString(&quot;Enter your food type (Set / A la carte : &quot;);</span>
+<span class="fc bfc" id="L436" title="All 2 branches covered.">            if (!foodController.validateFoodType(foodType)) {</span>
+<span class="fc" id="L437">                System.out.println(&quot;Type can be only Set or A la carte\n&quot;);</span>
+            }
+<span class="fc bfc" id="L439" title="All 2 branches covered.">        } while (!foodController.validateFoodType(foodType));</span>
+        
+<span class="fc bfc" id="L441" title="All 2 branches covered.">        if (inputHandler.readYesNo(&quot;Are you want to proceed to add (Y/N) : &quot;)) {</span>
+<span class="fc" id="L442">            Food food = new Food(foodName, foodPrice, foodType);</span>
+<span class="fc" id="L443">            Food registeredFood = foodController.registerFood(food);</span>
+<span class="pc bpc" id="L444" title="1 of 2 branches missed.">            if (registeredFood != null) {</span>
+<span class="fc" id="L445">                System.out.println(&quot;\n======================\n&quot;);</span>
+<span class="fc" id="L446">                System.out.println(&quot;[] Food Details []\n&quot;);</span>
+<span class="fc" id="L447">                System.out.println(&quot;======================\n&quot;);</span>
+<span class="fc" id="L448">                System.out.println(&quot;Id :&quot; + registeredFood.getFoodId() + &quot;\n&quot;);</span>
+<span class="fc" id="L449">                System.out.println(&quot;Name : &quot; + registeredFood.getFoodName() + &quot;\n&quot;);</span>
+<span class="fc" id="L450">                System.out.println(&quot;Food Price : &quot; + registeredFood.getFoodPrice() + &quot;\n&quot;);</span>
+<span class="fc" id="L451">                System.out.println(&quot;Food type : &quot; + registeredFood.getFoodType() + &quot;\n&quot;);</span>
+<span class="fc" id="L452">                System.out.println(&quot;======================\n&quot;);</span>
+            }
+<span class="fc" id="L454">        } else {</span>
+<span class="fc" id="L455">            System.out.println(&quot;You have cancel registered !&quot;);</span>
+        }
+<span class="fc" id="L457">    }</span>
+    
+    /**
+     * Handle food editing
+     * Package-private for testing
+     */
+    void handleEditFood() {
+<span class="fc bfc" id="L464" title="All 2 branches covered.">        if (!inputHandler.readYesNo(&quot;Are you sure want to edit Y(YES) / N (No): &quot;)) {</span>
+<span class="fc" id="L465">            System.out.println(&quot;....Quit From Edit....\n&quot;);</span>
+<span class="fc" id="L466">            return;</span>
+        }
+        
+<span class="fc" id="L469">        int editFoodId = inputHandler.readInt(&quot;Enter the food id that want to edit : &quot;);</span>
+<span class="fc" id="L470">        Food food = foodController.getFoodById(editFoodId);</span>
+        
+<span class="pc bpc" id="L472" title="1 of 2 branches missed.">        if (food == null) {</span>
+<span class="fc" id="L473">            System.out.println(&quot;Unable to find id in the database\n&quot;);</span>
+<span class="fc" id="L474">            return;</span>
+        }
+        
+<span class="nc" id="L477">        System.out.println(&quot;===========================&quot;);</span>
+<span class="nc" id="L478">        System.out.println(&quot;[]        DETAILS        []&quot;);</span>
+<span class="nc" id="L479">        System.out.println(&quot;===========================&quot;);</span>
+<span class="nc" id="L480">        System.out.println(&quot;         ID : &quot; + food.getFoodId());</span>
+<span class="nc" id="L481">        System.out.println(&quot;         Name : &quot; + food.getFoodName());</span>
+<span class="nc" id="L482">        System.out.println(&quot;         Price : &quot; + food.getFoodPrice());</span>
+<span class="nc" id="L483">        System.out.println(&quot;         Type : &quot; + food.getFoodType());</span>
+<span class="nc" id="L484">        System.out.println(&quot;===========================\n&quot;);</span>
+        
+<span class="nc" id="L486">        char continueEdit = 'Y';</span>
+        do {
+<span class="nc" id="L488">            System.out.println(&quot;=====================&quot;);</span>
+<span class="nc" id="L489">            System.out.println(&quot;[]       EDIT      []&quot;);</span>
+<span class="nc" id="L490">            System.out.println(&quot;=====================&quot;);</span>
+<span class="nc" id="L491">            System.out.println(&quot;      1.Food Name    &quot;);</span>
+<span class="nc" id="L492">            System.out.println(&quot;      2.Food Price   &quot;);</span>
+<span class="nc" id="L493">            System.out.println(&quot;      3.Food Type    &quot;);</span>
+<span class="nc" id="L494">            System.out.println(&quot;=====================&quot;);</span>
+            
+<span class="nc" id="L496">            int editChoice = inputHandler.readInt(&quot;Select your choice : &quot;);</span>
+            
+<span class="nc bnc" id="L498" title="All 4 branches missed.">            switch (editChoice) {</span>
+                case 1:
+                    String foodName;
+                    do {
+<span class="nc" id="L502">                        foodName = inputHandler.readString(&quot;Enter food name : &quot;);</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">                        if (!foodController.validateFoodName(foodName)) {</span>
+<span class="nc" id="L504">                            System.out.println(&quot;Enter letters only!\n&quot;);</span>
+                        }
+<span class="nc bnc" id="L506" title="All 2 branches missed.">                    } while (!foodController.validateFoodName(foodName));</span>
+<span class="nc" id="L507">                    food.setFoodName(foodName);</span>
+<span class="nc" id="L508">                    break;</span>
+                case 2:
+                    double foodPrice;
+                    do {
+<span class="nc" id="L512">                        foodPrice = inputHandler.readDouble(&quot;Enter food price : &quot;);</span>
+<span class="nc bnc" id="L513" title="All 2 branches missed.">                        if (!foodController.validateFoodPrice(foodPrice)) {</span>
+<span class="nc" id="L514">                            System.out.println(&quot;Price are not able to be 0 or negative and not more than RM 70 !!!\n&quot;);</span>
+                        }
+<span class="nc bnc" id="L516" title="All 2 branches missed.">                    } while (!foodController.validateFoodPrice(foodPrice));</span>
+<span class="nc" id="L517">                    food.setFoodPrice(foodPrice);</span>
+<span class="nc" id="L518">                    break;</span>
+                case 3:
+                    String foodType;
+                    do {
+<span class="nc" id="L522">                        foodType = inputHandler.readString(&quot;Enter food type (Set / A la carte): &quot;);</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">                        if (!foodController.validateFoodType(foodType)) {</span>
+<span class="nc" id="L524">                            System.out.println(&quot;Type can be only Set or A la carte\n&quot;);</span>
+                        }
+<span class="nc bnc" id="L526" title="All 2 branches missed.">                    } while (!foodController.validateFoodType(foodType));</span>
+<span class="nc" id="L527">                    food.setFoodType(foodType);</span>
+<span class="nc" id="L528">                    break;</span>
+                default:
+<span class="nc" id="L530">                    System.out.println(&quot;Other than 1 and 3 is invalid !!!! \n&quot;);</span>
+            }
+            
+<span class="nc" id="L533">            continueEdit = inputHandler.readChar(&quot;Do you want to continue edit id: &quot; + food.getFoodId() + &quot;( Y / N ) : &quot;);</span>
+<span class="nc bnc" id="L534" title="All 4 branches missed.">        } while (continueEdit == 'Y' || continueEdit == 'y');</span>
+        
+<span class="nc" id="L536">        Food updatedFood = foodController.updateFood(food);</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">        if (updatedFood != null) {</span>
+<span class="nc" id="L538">            System.out.println(&quot;File updated successfully&quot;);</span>
+        }
+<span class="nc" id="L540">    }</span>
+    
+    /**
+     * Handle food deletion
+     * Package-private for testing
+     */
+    void handleDeleteFood() {
+<span class="fc bfc" id="L547" title="All 2 branches covered.">        if (!inputHandler.readYesNo(&quot;Do you want to delete a food (Y / N ) : &quot;)) {</span>
+<span class="fc" id="L548">            System.out.println(&quot;====== Quit From Delete Function ======\n&quot;);</span>
+<span class="fc" id="L549">            return;</span>
+        }
+        
+<span class="fc" id="L552">        int deleteFoodId = inputHandler.readInt(&quot;Enter the food id want to delete : &quot;);</span>
+        
+<span class="fc bfc" id="L554" title="All 2 branches covered.">        if (inputHandler.readYesNo(&quot;Are you sure want to delete id : &quot; + deleteFoodId + &quot; (Y/N) :&quot;)) {</span>
+<span class="pc bpc" id="L555" title="1 of 2 branches missed.">            if (foodController.deleteFood(deleteFoodId)) {</span>
+<span class="nc" id="L556">                System.out.println(&quot;Food deleted successfully&quot;);</span>
+            }
+        } else {
+<span class="fc" id="L559">            System.out.println(&quot;==== You have cancel to delete id :&quot; + deleteFoodId + &quot; !!!!! ===\n&quot;);</span>
+        }
+<span class="fc" id="L561">    }</span>
+    
+    /**
+     * Handle display all foods
+     * Package-private for testing
+     */
+    void handleDisplayAllFoods() {
+<span class="fc" id="L568">        List&lt;Food&gt; foods = foodController.getAllFoods();</span>
+<span class="fc" id="L569">        MenuDisplay.displayAllFoods(foods);</span>
+<span class="fc" id="L570">    }</span>
+    
+    /**
+     * Handle order report
+     * Package-private for testing
+     */
+    void handleOrderReport() {
+<span class="fc" id="L577">        List&lt;Order&gt; orders = orderController.getAllOrders();</span>
+<span class="fc" id="L578">        MenuDisplay.displayOrderReport(orders);</span>
+<span class="fc" id="L579">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

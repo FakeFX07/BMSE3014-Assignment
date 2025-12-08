@@ -6,6 +6,7 @@ repository\impl\PaymentMethodRepository.class
 service\interfaces\ICustomerService.class
 repository\interfaces\IOrderRepository.class
 service\impl\CustomerService.class
+config\ConnectionProvider.class
 model\PaymentMethod.class
 presentation\MenuDisplay.class
 service\impl\FoodService.class

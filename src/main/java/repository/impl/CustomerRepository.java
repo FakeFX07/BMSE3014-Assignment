@@ -1,11 +1,12 @@
-package main.java.repository.impl;
+package repository.impl;
 
 import java.sql.*;
 import java.util.Optional;
 
-import main.java.config.DatabaseConnection;
-import main.java.model.Customer;
-import main.java.repository.interfaces.ICustomerRepository;
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.Customer;
+import repository.interfaces.ICustomerRepository;
 
 /**
  * Customer Repository Implementation
@@ -21,9 +22,28 @@ public class CustomerRepository implements ICustomerRepository {
     private static final String GET_MAX_ID = "SELECT MAX(customer_id) as max_id FROM customers";
     private static final String EXISTS_BY_PHONE = "SELECT COUNT(*) FROM customers WHERE phone_number = ?";
     
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+    public CustomerRepository(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public CustomerRepository() {
+        this(DatabaseConnection.getInstance());
+    }
+    
     @Override
     public Optional<Customer> findById(int customerId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {
             
             stmt.setInt(1, customerId);
@@ -40,7 +60,7 @@ public class CustomerRepository implements ICustomerRepository {
     
     @Override
     public Optional<Customer> findByPhoneNumber(String phoneNumber) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_PHONE)) {
             
             stmt.setString(1, phoneNumber);
@@ -57,7 +77,7 @@ public class CustomerRepository implements ICustomerRepository {
     
     @Override
     public Optional<Customer> authenticate(int customerId, String password) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(AUTHENTICATE)) {
             
             stmt.setInt(1, customerId);
@@ -75,7 +95,7 @@ public class CustomerRepository implements ICustomerRepository {
     
     @Override
     public Customer save(Customer customer) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, customer.getName());
@@ -101,7 +121,7 @@ public class CustomerRepository implements ICustomerRepository {
     
     @Override
     public int getNextCustomerId() {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(GET_MAX_ID);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -117,7 +137,7 @@ public class CustomerRepository implements ICustomerRepository {
     
     @Override
     public boolean existsByPhoneNumber(String phoneNumber) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(EXISTS_BY_PHONE)) {
             
             stmt.setString(1, phoneNumber);

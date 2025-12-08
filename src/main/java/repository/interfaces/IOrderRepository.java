@@ -1,9 +1,9 @@
-package main.java.repository.interfaces;
+package repository.interfaces;
 
 import java.util.List;
 import java.util.Optional;
 
-import main.java.model.Order;
+import model.Order;
 
 /**
  * Order Repository Interface

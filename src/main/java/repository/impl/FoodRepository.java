@@ -1,13 +1,14 @@
-package main.java.repository.impl;
+package repository.impl;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import main.java.config.DatabaseConnection;
-import main.java.model.Food;
-import main.java.repository.interfaces.IFoodRepository;
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.Food;
+import repository.interfaces.IFoodRepository;
 
 /**
  * Food Repository Implementation
@@ -24,9 +25,28 @@ public class FoodRepository implements IFoodRepository {
     private static final String GET_MAX_ID = "SELECT MAX(food_id) as max_id FROM foods";
     private static final String EXISTS = "SELECT COUNT(*) FROM foods WHERE food_id = ?";
     
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+    public FoodRepository(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public FoodRepository() {
+        this(DatabaseConnection.getInstance());
+    }
+    
     @Override
     public Optional<Food> findById(int foodId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {
             
             stmt.setInt(1, foodId);
@@ -44,7 +64,7 @@ public class FoodRepository implements IFoodRepository {
     @Override
     public List<Food> findAll() {
         List<Food> foods = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_ALL);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -59,7 +79,7 @@ public class FoodRepository implements IFoodRepository {
     
     @Override
     public Food save(Food food) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setString(1, food.getFoodName());
@@ -83,7 +103,7 @@ public class FoodRepository implements IFoodRepository {
     
     @Override
     public Food update(Food food) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(UPDATE)) {
             
             stmt.setString(1, food.getFoodName());
@@ -101,7 +121,7 @@ public class FoodRepository implements IFoodRepository {
     
     @Override
     public boolean deleteById(int foodId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(DELETE)) {
             
             stmt.setInt(1, foodId);
@@ -114,7 +134,7 @@ public class FoodRepository implements IFoodRepository {
     
     @Override
     public int getNextFoodId() {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(GET_MAX_ID);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -130,7 +150,7 @@ public class FoodRepository implements IFoodRepository {
     
     @Override
     public boolean existsById(int foodId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(EXISTS)) {
             
             stmt.setInt(1, foodId);

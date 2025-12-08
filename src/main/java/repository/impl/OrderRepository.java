@@ -1,17 +1,18 @@
-package main.java.repository.impl;
+package repository.impl;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import main.java.config.DatabaseConnection;
-import main.java.model.Customer;
-import main.java.model.Food;
-import main.java.model.Order;
-import main.java.model.OrderDetails;
-import main.java.model.PaymentMethod;
-import main.java.repository.interfaces.IOrderRepository;
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.Customer;
+import model.Food;
+import model.Order;
+import model.OrderDetails;
+import model.PaymentMethod;
+import repository.interfaces.IOrderRepository;
 
 /**
  * Order Repository Implementation
@@ -32,9 +33,28 @@ public class OrderRepository implements IOrderRepository {
             "SELECT od.*, f.food_name, f.food_price, f.food_type FROM order_details od " +
             "INNER JOIN foods f ON od.food_id = f.food_id WHERE od.order_id = ?";
     
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+    public OrderRepository(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public OrderRepository() {
+        this(DatabaseConnection.getInstance());
+    }
+    
     @Override
     public Optional<Order> findById(int orderId) {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {
             
             stmt.setInt(1, orderId);
@@ -54,7 +74,7 @@ public class OrderRepository implements IOrderRepository {
     @Override
     public List<Order> findByCustomerId(int customerId) {
         List<Order> orders = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_ID)) {
             
             stmt.setInt(1, customerId);
@@ -74,7 +94,7 @@ public class OrderRepository implements IOrderRepository {
     @Override
     public List<Order> findAll() {
         List<Order> orders = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_ALL);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -93,7 +113,7 @@ public class OrderRepository implements IOrderRepository {
     public Order save(Order order) {
         Connection conn = null;
         try {
-            conn = DatabaseConnection.getInstance().getConnection();
+            conn = connectionProvider.getConnection();
             conn.setAutoCommit(false);
             
             // Insert order
@@ -142,6 +162,7 @@ public class OrderRepository implements IOrderRepository {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
+                    conn.close();
                 } catch (SQLException e) {
                     System.err.println("Error resetting auto-commit: " + e.getMessage());
                 }
@@ -152,7 +173,7 @@ public class OrderRepository implements IOrderRepository {
     
     @Override
     public int getNextOrderId() {
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(GET_MAX_ID);
              ResultSet rs = stmt.executeQuery()) {
             
@@ -197,7 +218,7 @@ public class OrderRepository implements IOrderRepository {
      */
     private List<OrderDetails> findOrderDetails(int orderId) throws SQLException {
         List<OrderDetails> details = new ArrayList<>();
-        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+        try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(FIND_ORDER_DETAILS)) {
             
             stmt.setInt(1, orderId);

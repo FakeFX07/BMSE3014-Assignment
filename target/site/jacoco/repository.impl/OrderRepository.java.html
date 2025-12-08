@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OrderRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">repository.impl</a> &gt; <span class="el_source">OrderRepository.java</span></div><h1>OrderRepository.java</h1><pre class="source lang-java linenums">package repository.impl;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.Customer;
+import model.Food;
+import model.Order;
+import model.OrderDetails;
+import model.PaymentMethod;
+import repository.interfaces.IOrderRepository;
+
+/**
+ * Order Repository Implementation
+ * Handles database operations for Order entity
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class OrderRepository implements IOrderRepository {
+    
+    private static final String FIND_BY_ID = &quot;SELECT * FROM orders WHERE order_id = ?&quot;;
+    private static final String FIND_BY_CUSTOMER_ID = &quot;SELECT * FROM orders WHERE customer_id = ? ORDER BY order_date DESC&quot;;
+    private static final String FIND_ALL = &quot;SELECT * FROM orders ORDER BY order_date DESC&quot;;
+    private static final String INSERT_ORDER = 
+            &quot;INSERT INTO orders (customer_id, total_price, payment_method_id, payment_type, status) VALUES (?, ?, ?, ?, ?)&quot;;
+    private static final String INSERT_ORDER_DETAIL = 
+            &quot;INSERT INTO order_details (order_id, food_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)&quot;;
+    private static final String GET_MAX_ID = &quot;SELECT MAX(order_id) as max_id FROM orders&quot;;
+    private static final String FIND_ORDER_DETAILS = 
+            &quot;SELECT od.*, f.food_name, f.food_price, f.food_type FROM order_details od &quot; +
+            &quot;INNER JOIN foods f ON od.food_id = f.food_id WHERE od.order_id = ?&quot;;
+    
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+<span class="fc" id="L43">    public OrderRepository(ConnectionProvider connectionProvider) {</span>
+<span class="fc" id="L44">        this.connectionProvider = connectionProvider;</span>
+<span class="fc" id="L45">    }</span>
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public OrderRepository() {
+<span class="fc" id="L52">        this(DatabaseConnection.getInstance());</span>
+<span class="fc" id="L53">    }</span>
+    
+    @Override
+    public Optional&lt;Order&gt; findById(int orderId) {
+<span class="fc" id="L57">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L58">             PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {</span>
+            
+<span class="fc" id="L60">            stmt.setInt(1, orderId);</span>
+<span class="fc" id="L61">            ResultSet rs = stmt.executeQuery();</span>
+            
+<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L64">                Order order = mapResultSetToOrder(rs);</span>
+<span class="fc" id="L65">                order.setOrderDetails(findOrderDetails(orderId));</span>
+<span class="fc" id="L66">                return Optional.of(order);</span>
+            }
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L69">            System.err.println(&quot;Error finding order by ID: &quot; + e.getMessage());</span>
+<span class="fc" id="L70">        }</span>
+<span class="fc" id="L71">        return Optional.empty();</span>
+    }
+    
+    @Override
+    public List&lt;Order&gt; findByCustomerId(int customerId) {
+<span class="fc" id="L76">        List&lt;Order&gt; orders = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L77">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L78">             PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_ID)) {</span>
+            
+<span class="fc" id="L80">            stmt.setInt(1, customerId);</span>
+<span class="fc" id="L81">            ResultSet rs = stmt.executeQuery();</span>
+            
+<span class="fc bfc" id="L83" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L84">                Order order = mapResultSetToOrder(rs);</span>
+<span class="fc" id="L85">                order.setOrderDetails(findOrderDetails(order.getOrderId()));</span>
+<span class="fc" id="L86">                orders.add(order);</span>
+<span class="fc" id="L87">            }</span>
+<span class="fc" id="L88">        } catch (SQLException e) {</span>
+<span class="fc" id="L89">            System.err.println(&quot;Error finding orders by customer ID: &quot; + e.getMessage());</span>
+<span class="fc" id="L90">        }</span>
+<span class="fc" id="L91">        return orders;</span>
+    }
+    
+    @Override
+    public List&lt;Order&gt; findAll() {
+<span class="fc" id="L96">        List&lt;Order&gt; orders = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L97">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L98">             PreparedStatement stmt = conn.prepareStatement(FIND_ALL);</span>
+<span class="fc" id="L99">             ResultSet rs = stmt.executeQuery()) {</span>
+            
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L102">                Order order = mapResultSetToOrder(rs);</span>
+<span class="fc" id="L103">                order.setOrderDetails(findOrderDetails(order.getOrderId()));</span>
+<span class="fc" id="L104">                orders.add(order);</span>
+<span class="fc" id="L105">            }</span>
+<span class="fc" id="L106">        } catch (SQLException e) {</span>
+<span class="fc" id="L107">            System.err.println(&quot;Error finding all orders: &quot; + e.getMessage());</span>
+<span class="fc" id="L108">        }</span>
+<span class="fc" id="L109">        return orders;</span>
+    }
+    
+    @Override
+    public Order save(Order order) {
+<span class="fc" id="L114">        Connection conn = null;</span>
+        try {
+<span class="fc" id="L116">            conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L117">            conn.setAutoCommit(false);</span>
+            
+            // Insert order
+<span class="fc" id="L120">            try (PreparedStatement orderStmt = conn.prepareStatement(INSERT_ORDER, Statement.RETURN_GENERATED_KEYS)) {</span>
+<span class="fc" id="L121">                orderStmt.setInt(1, order.getCustomer().getCustomerId());</span>
+<span class="fc" id="L122">                orderStmt.setBigDecimal(2, order.getTotalPriceDecimal());</span>
+<span class="fc" id="L123">                orderStmt.setInt(3, order.getPaymentMethod().getPaymentMethodId());</span>
+<span class="fc" id="L124">                orderStmt.setString(4, order.getPaymentMethod().getPaymentType());</span>
+<span class="fc" id="L125">                orderStmt.setString(5, order.getStatus());</span>
+                
+<span class="fc" id="L127">                orderStmt.executeUpdate();</span>
+                
+<span class="fc" id="L129">                ResultSet generatedKeys = orderStmt.getGeneratedKeys();</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">                if (generatedKeys.next()) {</span>
+<span class="fc" id="L131">                    order.setOrderId(generatedKeys.getInt(1));</span>
+                }
+            }
+            
+            // Insert order details
+<span class="fc bfc" id="L136" title="All 2 branches covered.">            if (order.getOrderDetails() != null) {</span>
+<span class="fc" id="L137">                try (PreparedStatement detailStmt = conn.prepareStatement(INSERT_ORDER_DETAIL)) {</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">                    for (OrderDetails detail : order.getOrderDetails()) {</span>
+<span class="fc" id="L139">                        detailStmt.setInt(1, order.getOrderId());</span>
+<span class="fc" id="L140">                        detailStmt.setInt(2, detail.getFood().getFoodId());</span>
+<span class="fc" id="L141">                        detailStmt.setInt(3, detail.getQuantity());</span>
+<span class="fc" id="L142">                        detailStmt.setBigDecimal(4, detail.getUnitPriceDecimal());</span>
+<span class="fc" id="L143">                        detailStmt.setBigDecimal(5, detail.getSubtotalDecimal());</span>
+<span class="fc" id="L144">                        detailStmt.addBatch();</span>
+<span class="fc" id="L145">                    }</span>
+<span class="fc" id="L146">                    detailStmt.executeBatch();</span>
+                }
+            }
+            
+<span class="fc" id="L150">            conn.commit();</span>
+<span class="nc" id="L151">        } catch (SQLException e) {</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">            if (conn != null) {</span>
+                try {
+<span class="nc" id="L154">                    conn.rollback();</span>
+<span class="nc" id="L155">                } catch (SQLException rollbackEx) {</span>
+<span class="nc" id="L156">                    System.err.println(&quot;Error rolling back transaction: &quot; + rollbackEx.getMessage());</span>
+<span class="nc" id="L157">                }</span>
+            }
+<span class="nc" id="L159">            System.err.println(&quot;Error saving order: &quot; + e.getMessage());</span>
+<span class="nc" id="L160">            throw new RuntimeException(&quot;Failed to save order&quot;, e);</span>
+        } finally {
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">            if (conn != null) {</span>
+                try {
+<span class="fc" id="L164">                    conn.setAutoCommit(true);</span>
+<span class="fc" id="L165">                    conn.close();</span>
+<span class="nc" id="L166">                } catch (SQLException e) {</span>
+<span class="nc" id="L167">                    System.err.println(&quot;Error resetting auto-commit: &quot; + e.getMessage());</span>
+<span class="fc" id="L168">                }</span>
+            }
+        }
+<span class="fc" id="L171">        return order;</span>
+    }
+    
+    @Override
+    public int getNextOrderId() {
+<span class="fc" id="L176">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L177">             PreparedStatement stmt = conn.prepareStatement(GET_MAX_ID);</span>
+<span class="fc" id="L178">             ResultSet rs = stmt.executeQuery()) {</span>
+            
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc" id="L181">                int maxId = rs.getInt(&quot;max_id&quot;);</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">                return maxId &gt;= 1 ? maxId + 1 : 1;</span>
+            }
+<span class="pc bpc" id="L184" title="3 of 6 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L185">            System.err.println(&quot;Error getting next order ID: &quot; + e.getMessage());</span>
+<span class="nc" id="L186">        }</span>
+<span class="nc" id="L187">        return 1;</span>
+    }
+    
+    /**
+     * Map ResultSet to Order object
+     * Follows DRY principle - single method for mapping
+     */
+    private Order mapResultSetToOrder(ResultSet rs) throws SQLException {
+<span class="fc" id="L195">        Order order = new Order();</span>
+<span class="fc" id="L196">        order.setOrderId(rs.getInt(&quot;order_id&quot;));</span>
+<span class="fc" id="L197">        order.setOrderDate(rs.getTimestamp(&quot;order_date&quot;));</span>
+        
+        // Set customer (minimal info)
+<span class="fc" id="L200">        Customer customer = new Customer();</span>
+<span class="fc" id="L201">        customer.setCustomerId(rs.getInt(&quot;customer_id&quot;));</span>
+<span class="fc" id="L202">        order.setCustomer(customer);</span>
+        
+<span class="fc" id="L204">        order.setTotalPrice(rs.getBigDecimal(&quot;total_price&quot;).doubleValue());</span>
+<span class="fc" id="L205">        order.setStatus(rs.getString(&quot;status&quot;));</span>
+        
+        // Set payment method (minimal info)
+<span class="fc" id="L208">        PaymentMethod paymentMethod = new PaymentMethod();</span>
+<span class="fc" id="L209">        paymentMethod.setPaymentMethodId(rs.getInt(&quot;payment_method_id&quot;));</span>
+<span class="fc" id="L210">        paymentMethod.setPaymentType(rs.getString(&quot;payment_type&quot;));</span>
+<span class="fc" id="L211">        order.setPaymentMethod(paymentMethod);</span>
+        
+<span class="fc" id="L213">        return order;</span>
+    }
+    
+    /**
+     * Find order details for an order
+     */
+    private List&lt;OrderDetails&gt; findOrderDetails(int orderId) throws SQLException {
+<span class="fc" id="L220">        List&lt;OrderDetails&gt; details = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L221">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L222">             PreparedStatement stmt = conn.prepareStatement(FIND_ORDER_DETAILS)) {</span>
+            
+<span class="fc" id="L224">            stmt.setInt(1, orderId);</span>
+<span class="fc" id="L225">            ResultSet rs = stmt.executeQuery();</span>
+            
+<span class="fc bfc" id="L227" title="All 2 branches covered.">            while (rs.next()) {</span>
+                // Build Food domain object from joined columns
+<span class="fc" id="L229">                Food food = new Food();</span>
+<span class="fc" id="L230">                food.setFoodId(rs.getInt(&quot;food_id&quot;));</span>
+<span class="fc" id="L231">                food.setFoodName(rs.getString(&quot;food_name&quot;));</span>
+<span class="fc" id="L232">                food.setFoodPrice(rs.getBigDecimal(&quot;food_price&quot;).doubleValue());</span>
+<span class="fc" id="L233">                food.setFoodType(rs.getString(&quot;food_type&quot;));</span>
+                
+                // Create OrderDetails
+<span class="fc" id="L236">                OrderDetails detail = new OrderDetails(</span>
+<span class="fc" id="L237">                    rs.getInt(&quot;order_detail_id&quot;),</span>
+                    food,
+<span class="fc" id="L239">                    rs.getInt(&quot;quantity&quot;),</span>
+<span class="fc" id="L240">                    rs.getBigDecimal(&quot;unit_price&quot;)</span>
+                );
+<span class="fc" id="L242">                details.add(detail);</span>
+<span class="fc" id="L243">            }</span>
+        }
+<span class="fc" id="L245">        return details;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

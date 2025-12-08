@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: repository.impl.CustomerRepositoryTest
+-------------------------------------------------------------------------------
+Tests run: 42, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.392 s -- in repository.impl.CustomerRepositoryTest

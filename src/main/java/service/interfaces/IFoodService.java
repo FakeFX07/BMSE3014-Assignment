@@ -1,9 +1,9 @@
-package main.java.service.interfaces;
+package service.interfaces;
 
 import java.util.List;
 import java.util.Optional;
 
-import main.java.model.Food;
+import model.Food;
 
 /**
  * Food Service Interface

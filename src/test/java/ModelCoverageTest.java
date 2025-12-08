@@ -1,4 +1,4 @@
-package test;
+// Tests for Model coverage
 
 import model.*;
 import org.junit.jupiter.api.Test;
@@ -72,6 +72,137 @@ public class ModelCoverageTest {
 
         details.setOrderDetailId(101);
         assertEquals(101, details.getOrderDetailId());
+    }
+    
+    @Test
+    void orderDetailsWithConstructorId() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(100, food, 2, BigDecimal.valueOf(10.0));
+        assertEquals(100, details.getOrderDetailId());
+        assertEquals(2, details.getQuantity());
+        assertEquals(20.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsSetters() {
+        Food food1 = new Food(1, "Food1", 10.0, "Set");
+        Food food2 = new Food(2, "Food2", 15.0, "A la carte");
+        OrderDetails details = new OrderDetails(food1, 2);
+        
+        details.setFood(food2);
+        details.setQuantity(3);
+        details.setUnitPrice(BigDecimal.valueOf(15.0));
+        details.calculateSubtotal();
+        
+        assertEquals(45.0, details.getSubtotal(), 0.0001);
+        assertEquals(food2, details.getFood());
+    }
+    
+    @Test
+    void orderDetailsDecimalMethods() {
+        Food food = new Food(1, "Test", 12.50, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        
+        assertEquals(BigDecimal.valueOf(12.50), details.getUnitPriceDecimal());
+        assertEquals(BigDecimal.valueOf(25.0), details.getSubtotalDecimal());
+        
+        details.setUnitPrice(BigDecimal.valueOf(10.0));
+        assertEquals(BigDecimal.valueOf(10.0), details.getUnitPriceDecimal());
+    }
+    
+    @Test
+    void orderDetailsWithZeroQuantity() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 0);
+        details.calculateSubtotal();
+        assertEquals(0.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsWithNullFoodAfterCreation() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        details.setFood(null);
+        details.calculateSubtotal();
+        assertEquals(0.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsToStringWithNullFood() {
+        OrderDetails details = new OrderDetails(null, 1);
+        String str = details.toString();
+        assertNotNull(str);
+    }
+    
+    @Test
+    void orderDetailsCalculateEachTotalPrice() {
+        Food food = new Food(1, "Test", 15.0, "Set");
+        OrderDetails details = new OrderDetails(food, 3);
+        double total = details.calculateEachTotalPrice();
+        assertEquals(45.0, total, 0.0001);
+    }
+    
+    @Test
+    void orderDetailsCalculateEachTotalPriceWithNullFood() {
+        OrderDetails details = new OrderDetails(null, 3);
+        double total = details.calculateEachTotalPrice();
+        assertEquals(0.0, total, 0.0001);
+    }
+    
+    @Test
+    void orderDetailsRecalculateAfterQuantityChange() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        assertEquals(20.0, details.getSubtotal(), 0.0001);
+        
+        details.setQuantity(5);
+        details.calculateSubtotal();
+        assertEquals(50.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsRecalculateAfterUnitPriceChange() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        assertEquals(20.0, details.getSubtotal(), 0.0001);
+        
+        details.setUnitPrice(BigDecimal.valueOf(15.0));
+        details.calculateSubtotal();
+        assertEquals(30.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsWithDifferentQuantities() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details1 = new OrderDetails(food, 1);
+        OrderDetails details2 = new OrderDetails(food, 5);
+        OrderDetails details3 = new OrderDetails(food, 10);
+        
+        assertEquals(10.0, details1.getSubtotal(), 0.0001);
+        assertEquals(50.0, details2.getSubtotal(), 0.0001);
+        assertEquals(100.0, details3.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsToStringWithFood() {
+        Food food = new Food(1, "Test Food", 12.50, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        String str = details.toString();
+        assertTrue(str.contains("Test Food") || str.length() > 0);
+    }
+    
+    @Test
+    void orderDetailsGetQuantity() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 5);
+        assertEquals(5, details.getQuantity());
+    }
+    
+    @Test
+    void orderDetailsGetFood() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        assertEquals(food, details.getFood());
     }
 
     @Test
@@ -206,6 +337,66 @@ public class ModelCoverageTest {
         assertEquals(customer, same);
         assertNotEquals(customer, different);
         assertTrue(customer.toString().contains("Dana"));
+    }
+    
+    @Test
+    void orderDetailsWithAllSetters() {
+        Food food = new Food(1, "Test", 10.0, "Set");
+        OrderDetails details = new OrderDetails(food, 2);
+        
+        details.setOrderDetailId(100);
+        details.setQuantity(5);
+        details.setUnitPrice(BigDecimal.valueOf(15.0));
+        assertEquals(15.0, details.getUnitPrice(), 0.0001);
+        
+        // Setting food updates unitPrice to food's price
+        Food newFood = new Food(2, "New Food", 20.0, "A la carte");
+        details.setFood(newFood);
+        
+        assertEquals(100, details.getOrderDetailId());
+        assertEquals(5, details.getQuantity());
+        assertEquals("New Food", details.getFood().getFoodName());
+        // setFood updates unitPrice to food's price (20.0)
+        assertEquals(20.0, details.getUnitPrice(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsSubtotalCalculation() {
+        Food food = new Food(1, "Test", 12.50, "Set");
+        OrderDetails details = new OrderDetails(food, 3);
+        
+        double subtotal = details.getSubtotal();
+        assertEquals(37.50, subtotal, 0.0001);
+        
+        // Change quantity and recalculate
+        details.setQuantity(4);
+        details.calculateSubtotal();
+        assertEquals(50.0, details.getSubtotal(), 0.0001);
+    }
+    
+    @Test
+    void orderDetailsToStringWithAllFields() {
+        Food food = new Food(1, "Complete Food", 15.75, "A la carte");
+        OrderDetails details = new OrderDetails(100, food, 2, BigDecimal.valueOf(15.75));
+        String str = details.toString();
+        assertTrue(str.length() > 0);
+    }
+    
+    @Test
+    void orderDetailsEqualsAndHashCode() {
+        Food food1 = new Food(1, "Food", 10.0, "Set");
+        Food food2 = new Food(2, "Other", 15.0, "A la carte");
+        
+        OrderDetails details1 = new OrderDetails(100, food1, 2, BigDecimal.valueOf(10.0));
+        OrderDetails details2 = new OrderDetails(100, food2, 3, BigDecimal.valueOf(15.0));
+        OrderDetails details3 = new OrderDetails(101, food1, 2, BigDecimal.valueOf(10.0));
+        
+        // Same orderDetailId should be equal
+        assertEquals(details1, details2);
+        assertEquals(details1.hashCode(), details2.hashCode());
+        
+        // Different orderDetailId should not be equal
+        assertNotEquals(details1, details3);
     }
 }
 

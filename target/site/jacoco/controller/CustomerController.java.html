@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">controller</a> &gt; <span class="el_source">CustomerController.java</span></div><h1>CustomerController.java</h1><pre class="source lang-java linenums">package controller;
+
+import java.util.Optional;
+
+import model.Customer;
+import service.interfaces.ICustomerService;
+
+/**
+ * Customer Controller
+ * Handles customer-related user interactions
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class CustomerController {
+    
+    private final ICustomerService customerService;
+    
+<span class="fc" id="L17">    public CustomerController(ICustomerService customerService) {</span>
+<span class="fc" id="L18">        this.customerService = customerService;</span>
+<span class="fc" id="L19">    }</span>
+    
+    /**
+     * Register a new customer
+     * 
+     * @param customer Customer to register
+     * @return Registered customer if successful, null if validation fails
+     */
+    public Customer registerCustomer(Customer customer) {
+        try {
+<span class="fc" id="L29">            return customerService.registerCustomer(customer);</span>
+<span class="fc" id="L30">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L31">            System.out.println(&quot;Registration failed: &quot; + e.getMessage());</span>
+<span class="fc" id="L32">            return null;</span>
+        }
+    }
+    
+    /**
+     * Login customer
+     * 
+     * @param customerId Customer ID
+     * @param password Password
+     * @return Customer if authenticated, null otherwise
+     */
+    public Customer login(int customerId, String password) {
+<span class="fc" id="L44">        Optional&lt;Customer&gt; customerOpt = customerService.login(customerId, password);</span>
+<span class="fc" id="L45">        return customerOpt.orElse(null);</span>
+    }
+    
+    /**
+     * Validate customer name
+     * 
+     * @param name Name to validate
+     * @return true if valid
+     */
+    public boolean validateName(String name) {
+<span class="fc" id="L55">        return customerService.validateName(name);</span>
+    }
+    
+    /**
+     * Validate customer age
+     * 
+     * @param age Age to validate
+     * @return true if valid
+     */
+    public boolean validateAge(int age) {
+<span class="fc" id="L65">        return customerService.validateAge(age);</span>
+    }
+    
+    /**
+     * Validate phone number
+     * 
+     * @param phoneNumber Phone number to validate
+     * @return true if valid
+     */
+    public boolean validatePhoneNumber(String phoneNumber) {
+<span class="fc" id="L75">        return customerService.validatePhoneNumber(phoneNumber);</span>
+    }
+    
+    /**
+     * Validate gender
+     * 
+     * @param gender Gender to validate
+     * @return true if valid
+     */
+    public boolean validateGender(String gender) {
+<span class="fc" id="L85">        return customerService.validateGender(gender);</span>
+    }
+    
+    /**
+     * Validate password
+     * 
+     * @param password Password to validate
+     * @return true if valid
+     */
+    public boolean validatePassword(String password) {
+<span class="fc" id="L95">        return customerService.validatePassword(password);</span>
+    }
+    
+    /**
+     * Validate password confirmation
+     * 
+     * @param password Password
+     * @param confirmPassword Confirmation password
+     * @return true if matches
+     */
+    public boolean validatePasswordConfirmation(String password, String confirmPassword) {
+<span class="fc" id="L106">        return customerService.validatePasswordConfirmation(password, confirmPassword);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

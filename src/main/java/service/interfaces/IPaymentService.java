@@ -1,9 +1,9 @@
-package main.java.service.interfaces;
+package service.interfaces;
 
 import java.util.Optional;
 
-import main.java.model.Payment;
-import main.java.model.PaymentMethod;
+import model.Payment;
+import model.PaymentMethod;
 
 /**
  * Payment Service Interface

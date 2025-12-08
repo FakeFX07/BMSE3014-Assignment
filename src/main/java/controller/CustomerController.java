@@ -1,9 +1,9 @@
-package main.java.controller;
+package controller;
 
 import java.util.Optional;
 
-import main.java.model.Customer;
-import main.java.service.interfaces.ICustomerService;
+import model.Customer;
+import service.interfaces.ICustomerService;
 
 /**
  * Customer Controller

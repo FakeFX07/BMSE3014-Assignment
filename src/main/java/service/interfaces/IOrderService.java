@@ -1,9 +1,9 @@
-package main.java.service.interfaces;
+package service.interfaces;
 
 import java.util.List;
 
-import main.java.model.Order;
-import main.java.model.OrderDetails;
+import model.Order;
+import model.OrderDetails;
 
 /**
  * Order Service Interface

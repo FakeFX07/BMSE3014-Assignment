@@ -1,10 +1,10 @@
-package main.java.controller;
+package controller;
 
 import java.util.List;
 import java.util.Optional;
 
-import main.java.model.Food;
-import main.java.service.interfaces.IFoodService;
+import model.Food;
+import service.interfaces.IFoodService;
 
 /**
  * Food Controller

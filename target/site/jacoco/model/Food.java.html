@@ -16,8 +16,8 @@ public class Food {
     private String foodType;
     
     // Default constructor
-<span class="nc" id="L19">    public Food() {</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L19">    public Food() {</span>
+<span class="fc" id="L20">    }</span>
     
     // Constructor without ID (for registration)
 <span class="fc" id="L23">    public Food(String foodName, double foodPrice, String foodType) {</span>
@@ -74,7 +74,7 @@ public class Food {
     
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L77" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (this == o) return true;</span>
 <span class="pc bpc" id="L78" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
 <span class="fc" id="L79">        Food food = (Food) o;</span>
 <span class="pc bpc" id="L80" title="1 of 2 branches missed.">        return foodId == food.foodId;</span>
@@ -88,10 +88,10 @@ public class Food {
     @Override
     public String toString() {
 <span class="fc" id="L90">        return &quot;Food{&quot; +</span>
-<span class="fc" id="L91">                &quot;foodId=&quot; + foodId +</span>
-<span class="fc" id="L92">                &quot;, foodName='&quot; + foodName + '\'' +</span>
-<span class="fc" id="L93">                &quot;, foodPrice=&quot; + foodPrice +</span>
-<span class="fc" id="L94">                &quot;, foodType='&quot; + foodType + '\'' +</span>
+                &quot;foodId=&quot; + foodId +
+                &quot;, foodName='&quot; + foodName + '\'' +
+                &quot;, foodPrice=&quot; + foodPrice +
+                &quot;, foodType='&quot; + foodType + '\'' +
                 '}';
     }
 }

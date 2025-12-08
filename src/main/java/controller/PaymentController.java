@@ -1,10 +1,10 @@
-package main.java.controller; 
+package controller;
 
 import java.util.Optional;
 
-import main.java.model.Payment;
-import main.java.model.PaymentMethod;
-import main.java.service.interfaces.IPaymentService;
+import model.Payment;
+import model.PaymentMethod;
+import service.interfaces.IPaymentService;
 
 /**
  * Payment Controller

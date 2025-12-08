@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FoodRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bmse3014-assignment</a> &gt; <a href="index.source.html" class="el_package">repository.impl</a> &gt; <span class="el_source">FoodRepository.java</span></div><h1>FoodRepository.java</h1><pre class="source lang-java linenums">package repository.impl;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import config.ConnectionProvider;
+import config.DatabaseConnection;
+import model.Food;
+import repository.interfaces.IFoodRepository;
+
+/**
+ * Food Repository Implementation
+ * Handles database operations for Food entity
+ * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ */
+public class FoodRepository implements IFoodRepository {
+    
+    private static final String FIND_BY_ID = &quot;SELECT * FROM foods WHERE food_id = ?&quot;;
+    private static final String FIND_ALL = &quot;SELECT * FROM foods ORDER BY food_id&quot;;
+    private static final String INSERT = &quot;INSERT INTO foods (food_name, food_price, food_type) VALUES (?, ?, ?)&quot;;
+    private static final String UPDATE = &quot;UPDATE foods SET food_name = ?, food_price = ?, food_type = ? WHERE food_id = ?&quot;;
+    private static final String DELETE = &quot;DELETE FROM foods WHERE food_id = ?&quot;;
+    private static final String GET_MAX_ID = &quot;SELECT MAX(food_id) as max_id FROM foods&quot;;
+    private static final String EXISTS = &quot;SELECT COUNT(*) FROM foods WHERE food_id = ?&quot;;
+    
+    private final ConnectionProvider connectionProvider;
+    
+    /**
+     * Constructor with ConnectionProvider for dependency injection
+     * 
+     * @param connectionProvider Connection provider
+     */
+<span class="fc" id="L35">    public FoodRepository(ConnectionProvider connectionProvider) {</span>
+<span class="fc" id="L36">        this.connectionProvider = connectionProvider;</span>
+<span class="fc" id="L37">    }</span>
+    
+    /**
+     * Default constructor using singleton DatabaseConnection
+     * Maintains backward compatibility
+     */
+    public FoodRepository() {
+<span class="fc" id="L44">        this(DatabaseConnection.getInstance());</span>
+<span class="fc" id="L45">    }</span>
+    
+    @Override
+    public Optional&lt;Food&gt; findById(int foodId) {
+<span class="fc" id="L49">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L50">             PreparedStatement stmt = conn.prepareStatement(FIND_BY_ID)) {</span>
+            
+<span class="fc" id="L52">            stmt.setInt(1, foodId);</span>
+<span class="fc" id="L53">            ResultSet rs = stmt.executeQuery();</span>
+            
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (rs.next()) {</span>
+<span class="fc" id="L56">                return Optional.of(mapResultSetToFood(rs));</span>
+            }
+<span class="pc bpc" id="L58" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L59">            System.err.println(&quot;Error finding food by ID: &quot; + e.getMessage());</span>
+<span class="fc" id="L60">        }</span>
+<span class="fc" id="L61">        return Optional.empty();</span>
+    }
+    
+    @Override
+    public List&lt;Food&gt; findAll() {
+<span class="fc" id="L66">        List&lt;Food&gt; foods = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L67">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L68">             PreparedStatement stmt = conn.prepareStatement(FIND_ALL);</span>
+<span class="fc" id="L69">             ResultSet rs = stmt.executeQuery()) {</span>
+            
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            while (rs.next()) {</span>
+<span class="fc" id="L72">                foods.add(mapResultSetToFood(rs));</span>
+            }
+<span class="nc" id="L74">        } catch (SQLException e) {</span>
+<span class="nc" id="L75">            System.err.println(&quot;Error finding all foods: &quot; + e.getMessage());</span>
+<span class="fc" id="L76">        }</span>
+<span class="fc" id="L77">        return foods;</span>
+    }
+    
+    @Override
+    public Food save(Food food) {
+<span class="fc" id="L82">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L83">             PreparedStatement stmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {</span>
+            
+<span class="fc" id="L85">            stmt.setString(1, food.getFoodName());</span>
+<span class="fc" id="L86">            stmt.setBigDecimal(2, food.getFoodPriceDecimal());</span>
+<span class="fc" id="L87">            stmt.setString(3, food.getFoodType());</span>
+            
+<span class="fc" id="L89">            int affectedRows = stmt.executeUpdate();</span>
+            
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (affectedRows &gt; 0) {</span>
+<span class="fc" id="L92">                ResultSet generatedKeys = stmt.getGeneratedKeys();</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                if (generatedKeys.next()) {</span>
+<span class="fc" id="L94">                    food.setFoodId(generatedKeys.getInt(1));</span>
+                }
+            }
+<span class="nc" id="L97">        } catch (SQLException e) {</span>
+<span class="nc" id="L98">            System.err.println(&quot;Error saving food: &quot; + e.getMessage());</span>
+<span class="nc" id="L99">            throw new RuntimeException(&quot;Failed to save food&quot;, e);</span>
+<span class="fc" id="L100">        }</span>
+<span class="fc" id="L101">        return food;</span>
+    }
+    
+    @Override
+    public Food update(Food food) {
+<span class="fc" id="L106">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L107">             PreparedStatement stmt = conn.prepareStatement(UPDATE)) {</span>
+            
+<span class="fc" id="L109">            stmt.setString(1, food.getFoodName());</span>
+<span class="fc" id="L110">            stmt.setBigDecimal(2, food.getFoodPriceDecimal());</span>
+<span class="fc" id="L111">            stmt.setString(3, food.getFoodType());</span>
+<span class="fc" id="L112">            stmt.setInt(4, food.getFoodId());</span>
+            
+<span class="fc" id="L114">            stmt.executeUpdate();</span>
+<span class="nc" id="L115">        } catch (SQLException e) {</span>
+<span class="nc" id="L116">            System.err.println(&quot;Error updating food: &quot; + e.getMessage());</span>
+<span class="nc" id="L117">            throw new RuntimeException(&quot;Failed to update food&quot;, e);</span>
+<span class="fc" id="L118">        }</span>
+<span class="fc" id="L119">        return food;</span>
+    }
+    
+    @Override
+    public boolean deleteById(int foodId) {
+<span class="fc" id="L124">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L125">             PreparedStatement stmt = conn.prepareStatement(DELETE)) {</span>
+            
+<span class="fc" id="L127">            stmt.setInt(1, foodId);</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">            return stmt.executeUpdate() &gt; 0;</span>
+<span class="nc" id="L129">        } catch (SQLException e) {</span>
+<span class="nc" id="L130">            System.err.println(&quot;Error deleting food: &quot; + e.getMessage());</span>
+<span class="nc" id="L131">            return false;</span>
+        }
+    }
+    
+    @Override
+    public int getNextFoodId() {
+<span class="fc" id="L137">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L138">             PreparedStatement stmt = conn.prepareStatement(GET_MAX_ID);</span>
+<span class="fc" id="L139">             ResultSet rs = stmt.executeQuery()) {</span>
+            
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc" id="L142">                int maxId = rs.getInt(&quot;max_id&quot;);</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">                return maxId &gt;= 2000 ? maxId + 1 : 2000;</span>
+            }
+<span class="pc bpc" id="L145" title="3 of 6 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L146">            System.err.println(&quot;Error getting next food ID: &quot; + e.getMessage());</span>
+<span class="nc" id="L147">        }</span>
+<span class="nc" id="L148">        return 2000;</span>
+    }
+    
+    @Override
+    public boolean existsById(int foodId) {
+<span class="fc" id="L153">        try (Connection conn = connectionProvider.getConnection();</span>
+<span class="fc" id="L154">             PreparedStatement stmt = conn.prepareStatement(EXISTS)) {</span>
+            
+<span class="fc" id="L156">            stmt.setInt(1, foodId);</span>
+<span class="fc" id="L157">            ResultSet rs = stmt.executeQuery();</span>
+            
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">            if (rs.next()) {</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">                return rs.getInt(1) &gt; 0;</span>
+            }
+<span class="pc bpc" id="L162" title="2 of 4 branches missed.">        } catch (SQLException e) {</span>
+<span class="nc" id="L163">            System.err.println(&quot;Error checking food existence: &quot; + e.getMessage());</span>
+<span class="nc" id="L164">        }</span>
+<span class="nc" id="L165">        return false;</span>
+    }
+    
+    /**
+     * Map ResultSet to Food object
+     * Follows DRY principle - single method for mapping
+     */
+    private Food mapResultSetToFood(ResultSet rs) throws SQLException {
+<span class="fc" id="L173">        Food food = new Food();</span>
+<span class="fc" id="L174">        food.setFoodId(rs.getInt(&quot;food_id&quot;));</span>
+<span class="fc" id="L175">        food.setFoodName(rs.getString(&quot;food_name&quot;));</span>
+<span class="fc" id="L176">        food.setFoodPrice(rs.getBigDecimal(&quot;food_price&quot;).doubleValue());</span>
+<span class="fc" id="L177">        food.setFoodType(rs.getString(&quot;food_type&quot;));</span>
+<span class="fc" id="L178">        return food;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
