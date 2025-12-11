@@ -119,4 +119,14 @@ public class FoodController {
     public boolean validateFoodType(String foodType) {
         return foodService.validateFoodType(foodType);
     }
+    
+    /**
+     * Check if food name is unique (case-insensitive)
+     * 
+     * @param foodName Food name to check
+     * @return true if unique, false if already exists
+     */
+    public boolean isFoodNameUnique(String foodName) {
+        return foodService.isFoodNameUnique(foodName);
+    }
 }

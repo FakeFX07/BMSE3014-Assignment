@@ -37,7 +37,7 @@ public class MenuDisplay {
         System.out.println("\n[]===============================[]");
         System.out.println("[]        Food Management        []");
         System.out.println("[]===============================[]");
-        for (FoodAdminOption option : FoodAdminOption.values()) {
+        for (FoodManagementOption option : FoodManagementOption.values()) {
             String optionText = option.getCode() + "." + option.getLabel();
             String formattedLine = String.format("        %-25s", optionText);
             System.out.println(formattedLine);

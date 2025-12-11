@@ -24,6 +24,7 @@ public class FoodRepository implements IFoodRepository {
     private static final String DELETE = "DELETE FROM foods WHERE food_id = ?";
     private static final String GET_MAX_ID = "SELECT MAX(food_id) as max_id FROM foods";
     private static final String EXISTS = "SELECT COUNT(*) FROM foods WHERE food_id = ?";
+    private static final String EXISTS_BY_NAME = "SELECT COUNT(*) FROM foods WHERE LOWER(food_name) = LOWER(?)";
     
     private final ConnectionProvider connectionProvider;
     
@@ -44,6 +45,12 @@ public class FoodRepository implements IFoodRepository {
         this(DatabaseConnection.getInstance());
     }
     
+    /**
+     * Find food by ID
+     * 
+     * @param foodId Food ID to search for
+     * @return Optional containing food if found, empty otherwise
+     */
     @Override
     public Optional<Food> findById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -61,6 +68,11 @@ public class FoodRepository implements IFoodRepository {
         return Optional.empty();
     }
     
+    /**
+     * Find all foods in the database
+     * 
+     * @return List of all foods, empty list if none found
+     */
     @Override
     public List<Food> findAll() {
         List<Food> foods = new ArrayList<>();
@@ -77,6 +89,14 @@ public class FoodRepository implements IFoodRepository {
         return foods;
     }
     
+    /**
+     * Save new food to database
+     * Generates and assigns a new food ID
+     * 
+     * @param food Food object to save
+     * @return Saved food with generated ID
+     * @throws RuntimeException if save operation fails
+     */
     @Override
     public Food save(Food food) {
         try (Connection conn = connectionProvider.getConnection();
@@ -101,6 +121,13 @@ public class FoodRepository implements IFoodRepository {
         return food;
     }
     
+    /**
+     * Update existing food in database
+     * 
+     * @param food Food object with updated values
+     * @return Updated food object
+     * @throws RuntimeException if update operation fails
+     */
     @Override
     public Food update(Food food) {
         try (Connection conn = connectionProvider.getConnection();
@@ -119,6 +146,12 @@ public class FoodRepository implements IFoodRepository {
         return food;
     }
     
+    /**
+     * Delete food by ID
+     * 
+     * @param foodId Food ID to delete
+     * @return true if deleted successfully, false otherwise
+     */
     @Override
     public boolean deleteById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -132,6 +165,12 @@ public class FoodRepository implements IFoodRepository {
         }
     }
     
+    /**
+     * Get next available food ID
+     * Returns minimum of 2000 or max ID + 1
+     * 
+     * @return Next food ID to use
+     */
     @Override
     public int getNextFoodId() {
         try (Connection conn = connectionProvider.getConnection();
@@ -148,6 +187,12 @@ public class FoodRepository implements IFoodRepository {
         return 2000;
     }
     
+    /**
+     * Check if food exists by ID
+     * 
+     * @param foodId Food ID to check
+     * @return true if exists, false otherwise
+     */
     @Override
     public boolean existsById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -161,6 +206,29 @@ public class FoodRepository implements IFoodRepository {
             }
         } catch (SQLException e) {
             System.err.println("Error checking food existence: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    /**
+     * Check if food exists by name (case-insensitive)
+     * 
+     * @param foodName Food name to check
+     * @return true if exists, false otherwise
+     */
+    @Override
+    public boolean existsByName(String foodName) {
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(EXISTS_BY_NAME)) {
+            
+            stmt.setString(1, foodName);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking food name existence: " + e.getMessage());
         }
         return false;
     }

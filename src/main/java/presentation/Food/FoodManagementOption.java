@@ -3,7 +3,7 @@ package presentation.Food;
 /**
  * Admin menu options related to Food management.
  */
-public enum FoodAdminOption {
+public enum FoodManagementOption {
     REGISTER_FOOD(1, "Register New Food"),
     EDIT_FOOD(2, "Edit Food"),
     DELETE_FOOD(3, "Delete Food"),
@@ -12,7 +12,7 @@ public enum FoodAdminOption {
     private final int code;
     private final String label;
 
-    FoodAdminOption(int code, String label) {
+    FoodManagementOption(int code, String label) {
         this.code = code;
         this.label = label;
     }
@@ -25,8 +25,8 @@ public enum FoodAdminOption {
         return label;
     }
 
-    public static FoodAdminOption fromCode(int code) {
-        for (FoodAdminOption opt : values()) {
+    public static FoodManagementOption fromCode(int code) {
+        for (FoodManagementOption opt : values()) {
             if (opt.code == code) {
                 return opt;
             }

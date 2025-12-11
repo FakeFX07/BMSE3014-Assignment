@@ -255,6 +255,12 @@ public class FoodServiceTest {
             return foods.containsKey(foodId);
         }
         
+        @Override
+        public boolean existsByName(String foodName) {
+            return foods.values().stream()
+                    .anyMatch(f -> f.getFoodName().equalsIgnoreCase(foodName));
+        }
+        
         public void addFood(Food food) {
             foods.put(food.getFoodId(), food);
         }

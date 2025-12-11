@@ -65,4 +65,12 @@ public interface IFoodRepository {
      * @return true if exists, false otherwise
      */
     boolean existsById(int foodId);
+    
+    /**
+     * Check if food name exists (case-insensitive)
+     * 
+     * @param foodName Food name to check
+     * @return true if exists, false otherwise
+     */
+    boolean existsByName(String foodName);
 }

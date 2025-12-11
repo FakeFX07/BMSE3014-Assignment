@@ -113,4 +113,12 @@ public class FoodService implements IFoodService {
         }
         return "Set".equalsIgnoreCase(foodType) || "A la carte".equalsIgnoreCase(foodType);
     }
+    
+    @Override
+    public boolean isFoodNameUnique(String foodName) {
+        if (foodName == null || foodName.trim().isEmpty()) {
+            return false;
+        }
+        return !foodRepository.existsByName(foodName);
+    }
 }

@@ -2,7 +2,7 @@ package presentation.Admin;
 
 import controller.OrderController;
 import presentation.Food.FoodHandler;
-import presentation.Food.FoodAdminOption;
+import presentation.Food.FoodManagementOption;
 import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 import presentation.General.UserInputHandler;
@@ -63,7 +63,7 @@ public class AdminHandler {
         do {
             MenuDisplay.displayFoodAdminMenu();
             int choice = inputHandler.readInt("Enter your choice : ");
-            FoodAdminOption option = FoodAdminOption.fromCode(choice);
+            FoodManagementOption option = FoodManagementOption.fromCode(choice);
             if (option == null) {
                 System.out.println("Choose 0 Until 4 Only !!!\n");
                 continue;

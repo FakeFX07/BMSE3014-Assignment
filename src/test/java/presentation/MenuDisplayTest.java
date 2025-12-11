@@ -150,5 +150,36 @@ public class MenuDisplayTest {
     public static void displayPaymentOptions() {
         PaymentOption.displayMenu();
     }
+
+            /**
+     * Display order receipt
+     * 
+     * @param order Order to display
+     */
+    public static void displayReceipt(Order order) {
+        System.out.println("======================================================================");
+        System.out.println("                                 RECEIPT                              ");
+        System.out.println("======================================================================");
+        System.out.println("Order Id : " + order.getOrderId() + "\t\t\tDate : " + order.getOrderDate());
+        System.out.println("==============");
+        System.out.println("Cust ID : " + order.getCustomer().getCustomerId());
+        System.out.println("======================================================================");
+        
+        System.out.println("Food Id \t Food Name\t     Food Price  Qty \t\tTotal Price");
+        for (OrderDetails detail : order.getOrderDetails()) {
+            System.out.println(detail.toString());
+        }
+        System.out.println("======================================================================");
+        
+        System.out.println("Subtotal :\t\t\t\t\t\tRM " + String.format("%.2f", order.getTotalPrice()));
+        System.out.println("======================================================================");
+        
+        PaymentMethod paymentMethod = order.getPaymentMethod();
+        System.out.println(paymentMethod.getPaymentType() + "      : \t\t\t\t\t\tRM " + 
+                         String.format("%.2f", paymentMethod.getBalance()));
+        
+        // Calculate exchange (this would need payment processing info)
+        System.out.println("======================================================================");
+    }
 }
 

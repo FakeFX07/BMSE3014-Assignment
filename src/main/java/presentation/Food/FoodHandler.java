@@ -9,7 +9,6 @@ import java.util.List;
 /**
  * Food Handler Class
  * Handles all food CRUD operations (Create, Read, Update, Delete)
- * Follows SOLID: Single Responsibility Principle
  */
 public class FoodHandler {
     
@@ -32,9 +31,11 @@ public class FoodHandler {
      */
     public void handleRegisterFood() {
         
+        System.out.println("\n=== Register New Food ===");
+
         String foodName = readValidFoodName("Enter your food name: ");
         double foodPrice = readValidFoodPrice("Enter your food price : RM ");
-        String foodType = readValidFoodType("Enter your food type (Set / A la carte) : ");
+        String foodType = readValidFoodType("Enter your food type (S=Set / A=A la carte) : ");
         
         if (inputHandler.readYesNo("Are you want to proceed to add (Y/N) : ")) {
             Food food = new Food(foodName, foodPrice, foodType);
@@ -47,37 +48,83 @@ public class FoodHandler {
         }
     }
 
+    /**
+     * Read and validate food name from user input
+     * Validates format (letters only) and checks for duplicates
+     * 
+     * @param prompt The prompt message to display
+     * @return Valid and unique food name
+     */
     private String readValidFoodName(String prompt) {
         String foodName;
         do {
             foodName = inputHandler.readString(prompt);
             if (!foodController.validateFoodName(foodName)) {
                 System.out.println("Enter letters only!\n");
+            } else if (!foodController.isFoodNameUnique(foodName)) {
+                System.out.println("Food name already exists! Please enter a different name.\n");
             }
-        } while (!foodController.validateFoodName(foodName));
+        } while (!foodController.validateFoodName(foodName) || !foodController.isFoodNameUnique(foodName));
         return foodName;
     }
 
+    /**
+     * Read and validate food price from user input
+     * Ensures price is positive and greater than zero
+     * 
+     * @param prompt The prompt message to display
+     * @return Valid food price
+     */
     private double readValidFoodPrice(String prompt) {
         double foodPrice;
         do {
             foodPrice = inputHandler.readDouble(prompt);
             if (!foodController.validateFoodPrice(foodPrice)) {
-                System.out.println("Price are not able to be 0 or negative and not more than RM 70 !!!\n");
+                System.out.println("Price are not able to be 0 or negative !!!\n");
             }
         } while (!foodController.validateFoodPrice(foodPrice));
         return foodPrice;
     }
 
+    /**
+     * Read and validate food type from user input
+     * Accepts shortcuts: S for Set, A for A la carte
+     * 
+     * @param prompt The prompt message to display
+     * @return Valid food type (Set or A la carte)
+     */
     private String readValidFoodType(String prompt) {
         String foodType;
+        String convertedType;
         do {
             foodType = inputHandler.readString(prompt);
-            if (!foodController.validateFoodType(foodType)) {
-                System.out.println("Type can be only Set or A la carte\n");
+            convertedType = convertFoodType(foodType);
+            if (!foodController.validateFoodType(convertedType)) {
+                System.out.println("Type can be only S (Set) or A (A la carte)\n");
             }
-        } while (!foodController.validateFoodType(foodType));
-        return foodType;
+        } while (!foodController.validateFoodType(convertedType));
+        return convertedType;
+    }
+
+    /**
+     * Convert food type shortcuts to full names
+     * S or s -> Set
+     * A or a -> A la carte
+     * 
+     * @param input User input string
+     * @return Converted food type or original input
+     */
+    private String convertFoodType(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return input;
+        }
+        String trimmed = input.trim();
+        if (trimmed.equalsIgnoreCase("S")) {
+            return "Set";
+        } else if (trimmed.equalsIgnoreCase("A")) {
+            return "A la carte";
+        }
+        return input;
     }
     
     /**
@@ -116,7 +163,7 @@ public class FoodHandler {
                         food.setFoodPrice(readValidFoodPrice("Enter food price : "));
                         break;
                     case TYPE:
-                        food.setFoodType(readValidFoodType("Enter food type (Set / A la carte): "));
+                        food.setFoodType(readValidFoodType("Enter food type (S=Set / A=A la carte): "));
                         break;
                     default:
                         System.out.println("Other than 1, 2 and 3 is invalid !!!! \n");
@@ -171,6 +218,9 @@ public class FoodHandler {
         } while (input != 'X' && input != 'x');
     }
 
+    /**
+     * Display the food edit menu options
+     */
     private void printEditMenu() {
         System.out.println("=====================");
         System.out.println("[]       EDIT      []");
@@ -181,6 +231,11 @@ public class FoodHandler {
         System.out.println("=====================");
     }
 
+    /**
+     * Display food details in formatted view
+     * 
+     * @param food The food object to display
+     */
     private void printFoodDetails(Food food) {
         System.out.println("\n======================\n");
         System.out.println("[] Food Details []\n");
