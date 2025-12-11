@@ -6,22 +6,21 @@ import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import controller.AdminController;
 import controller.OrderController;
 import presentation.Food.FoodHandler;
 import presentation.Order.OrderHandler;
 import presentation.General.UserInputHandler;
-import service.interfaces.IAdminService;
 
 import java.util.ArrayList;
 
 class AdminHandlerTest {
 
     @Mock
-    private IAdminService adminService;
+    private AdminController adminController;
 
     @Mock
     private FoodHandler foodHandler;
@@ -35,12 +34,12 @@ class AdminHandlerTest {
     @Mock
     private OrderHandler orderHandler; // Dependency for method arg
 
-    @InjectMocks
     private AdminHandler adminHandler;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        adminHandler = new AdminHandler(adminController, foodHandler, orderController, inputHandler);
     }
 
     // ==========================================
@@ -54,14 +53,14 @@ class AdminHandlerTest {
         when(inputHandler.readString(contains("Username"))).thenReturn("wrongUser");
         when(inputHandler.readString(contains("Password"))).thenReturn("wrongPass");
 
-        // 2. Mock Service to return false
-        when(adminService.login("wrongUser", "wrongPass")).thenReturn(false);
+        // 2. Mock Controller to return false
+        when(adminController.login("wrongUser", "wrongPass")).thenReturn(false);
 
         // 3. Execute
         adminHandler.handleAdminMenu(orderHandler, null);
 
-        // 4. Verify service called
-        verify(adminService).login("wrongUser", "wrongPass");
+        // 4. Verify controller called
+        verify(adminController).login("wrongUser", "wrongPass");
         // 5. Verify NO menu interaction happened (Early exit)
         verify(inputHandler, never()).readInt(anyString());
     }
@@ -72,7 +71,7 @@ class AdminHandlerTest {
         // 1. Mock Login Success
         when(inputHandler.readString(contains("Username"))).thenReturn("admin");
         when(inputHandler.readString(contains("Password"))).thenReturn("123");
-        when(adminService.login("admin", "123")).thenReturn(true);
+        when(adminController.login("admin", "123")).thenReturn(true);
 
         // 2. Mock Menu Input: 0 (Back Main Menu)
         // Assuming 0 is BACK_MAIN_MENU based on your enum logic
@@ -82,7 +81,7 @@ class AdminHandlerTest {
         adminHandler.handleAdminMenu(orderHandler, null);
 
         // 4. Verify login and menu interaction
-        verify(adminService).login("admin", "123");
+        verify(adminController).login("admin", "123");
         verify(inputHandler, times(1)).readInt(anyString());
     }
 
@@ -95,7 +94,7 @@ class AdminHandlerTest {
     void testHandleFoodManagement_FullFlow() {
         // --- Setup Login ---
         when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminService.login(anyString(), anyString())).thenReturn(true);
+        when(adminController.login(anyString(), anyString())).thenReturn(true);
 
         // --- Setup Menu Sequence ---
         // 1. Main Menu: Select 1 (Food Management)
@@ -129,7 +128,7 @@ class AdminHandlerTest {
     void testHandleFoodManagement_InvalidInput() {
         // Login
         when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminService.login(anyString(), anyString())).thenReturn(true);
+        when(adminController.login(anyString(), anyString())).thenReturn(true);
 
         // Menu Sequence:
         // 1. Enter Food Mgmt (1)
@@ -154,7 +153,7 @@ class AdminHandlerTest {
     void testHandleOrderReport() {
         // Login
         when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminService.login(anyString(), anyString())).thenReturn(true);
+        when(adminController.login(anyString(), anyString())).thenReturn(true);
 
         // Mock Order Data
         when(orderController.getAllOrders()).thenReturn(new ArrayList<>());
@@ -179,7 +178,7 @@ class AdminHandlerTest {
     void testHandleAdminMenu_InvalidInput() {
         // Login
         when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminService.login(anyString(), anyString())).thenReturn(true);
+        when(adminController.login(anyString(), anyString())).thenReturn(true);
 
         // Sequence: -1 (Invalid) -> 99 (Invalid) -> 0 (Exit)
         when(inputHandler.readInt(anyString()))

@@ -16,7 +16,15 @@ public class FoodController {
     private final IFoodService foodService;
     
     /**
-     * Constructor with dependency injection
+     * Default constructor - handles dependency injection internally
+     * Follows same pattern as CustomerController and AdminController
+     */
+    public FoodController() {
+        this.foodService = new service.impl.FoodService(new repository.impl.FoodRepository());
+    }
+    
+    /**
+     * Constructor with dependency injection (for testing)
      * 
      * @param foodService Food service implementation (injected)
      */

@@ -20,11 +20,11 @@ public class AdminHandler {
     private final UserInputHandler inputHandler;
 
     // 2. Update Constructor to accept IAdminService
-    public AdminHandler(AdminController adminController, // <--- 接收 Controller
+    public AdminHandler(AdminController adminController,
                         FoodHandler foodHandler,
                         OrderController orderController,
                         UserInputHandler inputHandler) {
-        this.adminController = adminController; // <--- 赋值
+        this.adminController = adminController; 
         this.foodHandler = foodHandler;
         this.orderController = orderController;
         this.inputHandler = inputHandler;
@@ -37,10 +37,6 @@ public class AdminHandler {
             System.out.println("\n!!! Access Denied: Wrong Username or Password !!!\n");
             return; // Exit this method immediately, returning to Main Menu
         }
-
-        System.out.println("\n===========================================");
-        System.out.println("[]    Login Successful! Welcome Admin    []");
-        System.out.println("===========================================\n");
 
         // 4. If login passed, show the menu loop
         boolean backMainMenu = true;

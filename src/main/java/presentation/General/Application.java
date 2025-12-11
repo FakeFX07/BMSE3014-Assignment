@@ -19,18 +19,6 @@ import presentation.Food.FoodHandler;
 import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 
-<<<<<<< Updated upstream
-import repository.impl.FoodRepository;
-import service.impl.FoodService;
-import service.interfaces.IFoodService;
-=======
-// --- IMPORTS FOR ADMIN DB CONNECTION ---
-import repository.impl.AdminRepository;
-import repository.interfaces.IAdminRepository;
-
-// ---------------------------------------
->>>>>>> Stashed changes
-
 /**
  * Main Application Class
  * Entry point for the POS system
@@ -58,35 +46,17 @@ public class Application {
     public Application() {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new UserInputHandler(scanner);
-<<<<<<< Updated upstream
         
-        // Wire dependencies following N-layered architecture
-        // Repository → Service → Controller
-        IFoodService foodService = new FoodService(new FoodRepository());
-        this.foodController = new FoodController(foodService);
-        
-=======
-
-        // 1. Initialize Controllers
-        // (Assuming these manage their own services internally as per your request)
->>>>>>> Stashed changes
+        // Initialize controllers (they handle their own dependency injection)
+        this.foodController = new FoodController();
         this.customerController = new CustomerController();
         this.orderController = new OrderController();
-<<<<<<< Updated upstream
-        
-=======
         this.adminController = new AdminController();
-
-        // 2. Initialize Admin Service Stack (REQUIRED for DB Login)
-        IAdminRepository adminRepository = new AdminRepository();
-
-        // 3. Initialize Handlers
->>>>>>> Stashed changes
+        
+        // Initialize handlers
         this.foodHandler = new FoodHandler(foodController, inputHandler);
         this.customerHandler = new CustomerHandler(customerController, inputHandler);
         this.orderHandler = new OrderHandler(foodController, orderController, inputHandler);
-        
-        // 4. Initialize AdminHandler with the AdminService
         this.adminHandler = new AdminHandler(adminController, foodHandler, orderController, inputHandler);
     }
         
@@ -121,10 +91,8 @@ public class Application {
                     adminHandler.handleAdminMenu(orderHandler, currentCustomer);
                     break;
                 case EXIT:
-                    System.out.println("\n=========================");
-                    System.out.println("[]   Exiting Program   []");
-                    System.out.println("=========================\n");
-                    isRunning = false; // Stop the loop
+                    System.out.println("Exiting Program....");
+                    isRunning = false; 
                     break;
                 default:
                     System.out.println("Enter Only 1 until 4 !!!\n");

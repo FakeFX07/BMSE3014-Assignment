@@ -180,7 +180,7 @@ public class CustomerServiceTest {
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> 
                 customerService.registerCustomer(duplicate)
             );
-            assertEquals("Phone number already registered", ex.getMessage());
+            assertEquals("Phone number already registered! Please use a different number.", ex.getMessage());
         }
 
         @Test

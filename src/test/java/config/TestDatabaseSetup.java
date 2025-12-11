@@ -106,15 +106,27 @@ public class TestDatabaseSetup {
     
     /**
      * Clean up test database
+     * NOTE: This method only cleans up test data tables (customers, foods, orders, etc.)
+     * It does NOT touch the admins table to prevent interference with admin authentication tests.
+     * The admins table is managed separately by AdminRepositoryTest and should never be cleaned here.
+     * 
+     * IMPORTANT: Do NOT add "DELETE FROM admins" to this method.
+     * The admins table must be preserved for admin authentication tests.
+     * 
+     * @param connectionProvider Connection provider
+     * @throws SQLException if cleanup fails
      */
     public static void cleanup(ConnectionProvider connectionProvider) throws SQLException {
         try (Connection conn = connectionProvider.getConnection();
              Statement stmt = conn.createStatement()) {
+            // Only delete from test data tables - do NOT touch admins table
             stmt.execute("DELETE FROM order_details");
             stmt.execute("DELETE FROM orders");
             stmt.execute("DELETE FROM payment_methods");
             stmt.execute("DELETE FROM foods");
             stmt.execute("DELETE FROM customers");
+            // IMPORTANT: Admins table is intentionally NOT cleaned up here
+            // to preserve admin authentication test data
         }
     }
 }
