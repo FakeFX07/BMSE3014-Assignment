@@ -15,6 +15,10 @@ import presentation.Food.FoodHandler;
 import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 
+import repository.impl.FoodRepository;
+import service.impl.FoodService;
+import service.interfaces.IFoodService;
+
 /**
  * Main Application Class
  * Entry point for the POS system
@@ -41,9 +45,15 @@ public class Application {
     public Application() {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new UserInputHandler(scanner);
+        
+        // Wire dependencies following N-layered architecture
+        // Repository → Service → Controller
+        IFoodService foodService = new FoodService(new FoodRepository());
+        this.foodController = new FoodController(foodService);
+        
         this.customerController = new CustomerController();
-        this.foodController = new FoodController();
         this.orderController = new OrderController();
+        
         this.foodHandler = new FoodHandler(foodController, inputHandler);
         this.customerHandler = new CustomerHandler(customerController, inputHandler);
         this.orderHandler = new OrderHandler(foodController, orderController, inputHandler);

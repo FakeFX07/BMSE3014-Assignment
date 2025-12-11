@@ -299,13 +299,23 @@ public class FoodControllerTest {
         verify(foodService).isFoodNameUnique("Existing Food");
     }
     
-    // ============= Default Constructor Test =============
+    // ============= Constructor Test =============
     
     @Test
-    @DisplayName("Default constructor - Should create instance with dependencies")
-    void testDefaultConstructor_ShouldCreateInstanceWithDependencies() {
-        FoodController controller = new FoodController();
+    @DisplayName("Constructor with dependency injection - Should create instance")
+    void testConstructor_WithDependencyInjection_ShouldCreateInstance() {
+        FoodController controller = new FoodController(foodService);
         
         assertNotNull(controller);
+    }
+    
+    @Test
+    @DisplayName("Constructor - Should accept IFoodService interface")
+    void testConstructor_ShouldAcceptIFoodServiceInterface() {
+        // Verify constructor accepts interface (not concrete class)
+        FoodController controller = new FoodController(foodService);
+        
+        assertNotNull(controller);
+        // This test verifies dependency inversion principle is followed
     }
 }
