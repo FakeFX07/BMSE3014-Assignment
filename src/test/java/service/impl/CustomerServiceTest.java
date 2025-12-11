@@ -1,243 +1,281 @@
 package service.impl;
-// Tests for CustomerService
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import model.Customer;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import repository.interfaces.ICustomerRepository;
 
-import org.junit.jupiter.api.DisplayName;
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 /**
- * Customer Service Test
- * Tests customer service business logic
- * Follows TDD principles
+ * CustomerService Test (Optimized)
+ * Uses JUnit 5 Parameterized Tests to reduce code duplication
  */
 public class CustomerServiceTest {
-    
+
     private CustomerService customerService;
     private MockCustomerRepository mockRepository;
-    
+
     @BeforeEach
     void setUp() {
         mockRepository = new MockCustomerRepository();
         customerService = new CustomerService(mockRepository);
     }
-    
-    @Test
-    @DisplayName("Test validateName - valid name")
-    void testValidateName_Valid() {
-        assertTrue(customerService.validateName("John Doe"));
-        assertTrue(customerService.validateName("Mary Jane"));
-    }
-    
-    @Test
-    @DisplayName("Test validateName - invalid name with digits")
-    void testValidateName_InvalidWithDigits() {
-        assertFalse(customerService.validateName("John123"));
-        assertFalse(customerService.validateName("123"));
-    }
-    
-    @Test
-    @DisplayName("Test validateAge - valid age")
-    void testValidateAge_Valid() {
-        assertTrue(customerService.validateAge(18));
-        assertTrue(customerService.validateAge(50));
-        assertTrue(customerService.validateAge(79));
-    }
-    
-    @Test
-    @DisplayName("Test validateAge - invalid age")
-    void testValidateAge_Invalid() {
-        assertFalse(customerService.validateAge(17));
-        assertFalse(customerService.validateAge(80));
-    }
-    
-    @Test
-    @DisplayName("Test validatePhoneNumber - valid")
-    void testValidatePhoneNumber_Valid() {
-        assertTrue(customerService.validatePhoneNumber("0123456789"));
-        assertTrue(customerService.validatePhoneNumber("01234567890"));
-    }
-    
-    @Test
-    @DisplayName("Test validatePhoneNumber - invalid")
-    void testValidatePhoneNumber_Invalid() {
-        assertFalse(customerService.validatePhoneNumber("12345"));
-        assertFalse(customerService.validatePhoneNumber("123456789012"));
-    }
-    
-    @Test
-    @DisplayName("Test validateGender - valid")
-    void testValidateGender_Valid() {
-        assertTrue(customerService.validateGender("Male"));
-        assertTrue(customerService.validateGender("Female"));
-    }
-    
-    @Test
-    @DisplayName("Test validateGender - invalid")
-    void testValidateGender_Invalid() {
-        assertFalse(customerService.validateGender("Other"));
-        assertFalse(customerService.validateGender(""));
+
+    // ==========================================
+    // 1. Validation Logic Tests (Grouped)
+    // ==========================================
+    @Nested
+    @DisplayName("Field Validation Tests")
+    class ValidationTests {
+
+        @ParameterizedTest(name = "Name '{0}' should be valid: {1}")
+        @CsvSource({
+            "John Doe, true",
+            "Mary Jane, true",
+            "John123, false",
+            "123, false",
+            "John@Doe, false"
+        })
+        void testValidateName(String name, boolean expected) {
+            assertEquals(expected, customerService.validateName(name));
+        }
+
+        @Test
+        @DisplayName("Name null checks")
+        void testValidateName_Null() {
+            assertFalse(customerService.validateName(null));
+        }
+
+        @ParameterizedTest(name = "Age {0} should be valid: {1}")
+        @CsvSource({
+            "18, true",
+            "79, true",
+            "50, true",
+            "17, false",
+            "80, false",
+            "-1, false"
+        })
+        void testValidateAge(int age, boolean expected) {
+            assertEquals(expected, customerService.validateAge(age));
+        }
+
+        @ParameterizedTest(name = "Phone '{0}' should be valid: {1}")
+        @CsvSource({
+            "0123456789, true",
+            "01234567890, true",
+            "12345, false",      // Too short
+            "012345678, false",  // Too short
+            "012345678901, false", // Too long
+            "0223456789, false", // Wrong prefix
+            "abcdefghij, false"  // Non-digit
+        })
+        void testValidatePhoneNumber(String phone, boolean expected) {
+            assertEquals(expected, customerService.validatePhoneNumber(phone));
+        }
+
+        @Test
+        @DisplayName("Phone null checks")
+        void testValidatePhone_Null() {
+            assertFalse(customerService.validatePhoneNumber(null));
+        }
+
+        @ParameterizedTest(name = "Gender '{0}' should be valid: {1}")
+        @CsvSource({
+            "Male, true",
+            "Female, true",
+            "male, true",   // Case insensitive check
+            "FEMALE, true",
+            "Robot, false",
+            "Other, false"
+        })
+        void testValidateGender(String gender, boolean expected) {
+            assertEquals(expected, customerService.validateGender(gender));
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @DisplayName("Gender null/empty checks")
+        void testValidateGender_NullOrEmpty(String gender) {
+            assertFalse(customerService.validateGender(gender));
+        }
+
+        @ParameterizedTest(name = "Password '{0}' should be valid: {1}")
+        @CsvSource({
+            "12345, true",
+            "password, true",
+            "1234, false",
+            ", false" // Null check implicit in CSV source if handled, but safer to use explicit null check
+        })
+        void testValidatePassword(String password, boolean expected) {
+            // Convert "null" string to actual null for test
+            String input = "".equals(password) ? null : password;
+            assertEquals(expected, customerService.validatePassword(input));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "password, password, true",
+            "password, different, false",
+            "password, , false",
+            ", password, false"
+        })
+        void testValidatePasswordConfirmation(String pass, String confirm, boolean expected) {
+            assertEquals(expected, customerService.validatePasswordConfirmation(pass, confirm));
+        }
     }
 
-    @Test
-    @DisplayName("Test validateGender - null")
-    void testValidateGender_Null() {
-        assertFalse(customerService.validateGender(null));
-    }
-    
-    @Test
-    @DisplayName("Test validatePassword - valid")
-    void testValidatePassword_Valid() {
-        assertTrue(customerService.validatePassword("password123"));
-        assertTrue(customerService.validatePassword("12345"));
-    }
-    
-    @Test
-    @DisplayName("Test validatePassword - invalid")
-    void testValidatePassword_Invalid() {
-        assertFalse(customerService.validatePassword("1234"));
-        assertFalse(customerService.validatePassword(""));
+    // ==========================================
+    // 2. Business Logic Tests (Registration/Login)
+    // ==========================================
+    @Nested
+    @DisplayName("Service Flow Tests")
+    class ServiceFlowTests {
+
+        @Test
+        @DisplayName("Register - Success Scenario")
+        void testRegisterCustomer_Success() {
+            Customer customer = createValidCustomer();
+            
+            Customer registered = customerService.registerCustomer(customer);
+            
+            assertNotNull(registered);
+            assertTrue(registered.getCustomerId() > 0); // Verify ID generated
+            assertEquals("John Doe", registered.getName());
+        }
+
+        @Test
+        @DisplayName("Register - Throws Exception on Invalid Field")
+        void testRegisterCustomer_InvalidData() {
+            Customer customer = createValidCustomer();
+            customer.setName("John123"); // Invalid Name
+            
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+                customerService.registerCustomer(customer);
+            });
+            assertTrue(ex.getMessage().contains("Name"));
+        }
+
+        @Test
+        @DisplayName("Register - Throws Exception on Duplicate Phone")
+        void testRegisterCustomer_DuplicatePhone() {
+            // 1. Pre-fill mock repo
+            Customer existing = createValidCustomer();
+            existing.setPhoneNumber("0111111111");
+            mockRepository.save(existing);
+
+            // 2. Try to register new user with same phone
+            Customer duplicate = createValidCustomer();
+            duplicate.setPhoneNumber("0111111111");
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> 
+                customerService.registerCustomer(duplicate)
+            );
+            assertEquals("Phone number already registered", ex.getMessage());
+        }
+
+        @Test
+        @DisplayName("Login - Success")
+        void testLogin_Success() {
+            // Pre-fill
+            Customer c = createValidCustomer();
+            c.setCustomerId(100);
+            c.setPassword("secret123");
+            mockRepository.save(c);
+
+            // Action
+            Optional<Customer> result = customerService.login(100, "secret123");
+
+            // Assert
+            assertTrue(result.isPresent());
+            assertEquals(100, result.get().getCustomerId());
+        }
+
+        @Test
+        @DisplayName("Login - Failure (Wrong ID or Password)")
+        void testLogin_Failure() {
+            // Pre-fill
+            Customer c = createValidCustomer();
+            c.setCustomerId(100);
+            c.setPassword("secret123");
+            mockRepository.save(c);
+
+            // Wrong Password
+            assertFalse(customerService.login(100, "wrong").isPresent());
+            // Wrong ID
+            assertFalse(customerService.login(999, "secret123").isPresent());
+        }
     }
 
-    @Test
-    @DisplayName("Test validate fields - null name/phone")
-    void testValidateNullFields() {
-        assertFalse(customerService.validateName(null));
-        assertFalse(customerService.validatePhoneNumber(null));
-    }
-    
-    @Test
-    @DisplayName("Test validatePasswordConfirmation - matching")
-    void testValidatePasswordConfirmation_Matching() {
-        assertTrue(customerService.validatePasswordConfirmation("password", "password"));
-    }
-    
-    @Test
-    @DisplayName("Test validatePasswordConfirmation - not matching")
-    void testValidatePasswordConfirmation_NotMatching() {
-        assertFalse(customerService.validatePasswordConfirmation("password", "different"));
-    }
-    
-    @Test
-    @DisplayName("Test registerCustomer - valid customer")
-    void testRegisterCustomer_Valid() {
-        Customer customer = new Customer();
-        customer.setName("John Doe");
-        customer.setAge(25);
-        customer.setPhoneNumber("0123456789");
-        customer.setGender("Male");
-        customer.setPassword("password123");
-        
-        Customer registered = customerService.registerCustomer(customer);
-        assertNotNull(registered);
-        assertEquals("John Doe", registered.getName());
-    }
-    
-    @Test
-    @DisplayName("Test registerCustomer - invalid name")
-    void testRegisterCustomer_InvalidName() {
-        Customer customer = new Customer();
-        customer.setName("John123");
-        customer.setAge(25);
-        customer.setPhoneNumber("0123456789");
-        customer.setGender("Male");
-        customer.setPassword("password123");
-        
-        assertThrows(IllegalArgumentException.class, () -> {
-            customerService.registerCustomer(customer);
-        });
+    // ==========================================
+    // Helpers & Mocks
+    // ==========================================
+
+    private Customer createValidCustomer() {
+        Customer c = new Customer();
+        c.setName("John Doe");
+        c.setAge(25);
+        c.setPhoneNumber("0123456789");
+        c.setGender("Male");
+        c.setPassword("password123");
+        return c;
     }
 
-    @Test
-    @DisplayName("Test registerCustomer - duplicate phone")
-    void testRegisterCustomer_DuplicatePhone() {
-        Customer existing = new Customer();
-        existing.setCustomerId(1001);
-        existing.setName("Existing User");
-        existing.setAge(30);
-        existing.setPhoneNumber("0111111111");
-        existing.setGender("Female");
-        existing.setPassword("password123");
-        mockRepository.addCustomer(existing);
-
-        Customer duplicate = new Customer();
-        duplicate.setName("New User");
-        duplicate.setAge(22);
-        duplicate.setPhoneNumber("0111111111");
-        duplicate.setGender("Female");
-        duplicate.setPassword("password123");
-
-        assertThrows(IllegalArgumentException.class, () -> customerService.registerCustomer(duplicate));
-    }
-    
-    @Test
-    @DisplayName("Test login - valid credentials")
-    void testLogin_Valid() {
-        Customer customer = new Customer(1000, "John Doe", 25, "0123456789", "Male", "password123");
-        mockRepository.addCustomer(customer);
-        
-        Optional<Customer> result = customerService.login(1000, "password123");
-        assertTrue(result.isPresent());
-        assertEquals("John Doe", result.get().getName());
-    }
-    
-    @Test
-    @DisplayName("Test login - invalid credentials")
-    void testLogin_Invalid() {
-        Optional<Customer> result = customerService.login(9999, "wrongpassword");
-        assertFalse(result.isPresent());
-    }
-    
-    // Mock repository for testing
+    /**
+     * Internal Mock Repository
+     */
     private static class MockCustomerRepository implements ICustomerRepository {
-        private java.util.Map<Integer, Customer> customers = new java.util.HashMap<>();
-        
+        private final Map<Integer, Customer> db = new HashMap<>();
+        private int idCounter = 1000;
+
         @Override
         public Optional<Customer> findById(int customerId) {
-            return Optional.ofNullable(customers.get(customerId));
+            return Optional.ofNullable(db.get(customerId));
         }
-        
+
         @Override
         public Optional<Customer> findByPhoneNumber(String phoneNumber) {
-            return customers.values().stream()
+            return db.values().stream()
                     .filter(c -> c.getPhoneNumber().equals(phoneNumber))
                     .findFirst();
         }
-        
+
         @Override
         public Optional<Customer> authenticate(int customerId, String password) {
-            Customer customer = customers.get(customerId);
-            if (customer != null && customer.getPassword().equals(password)) {
-                return Optional.of(customer);
+            Customer c = db.get(customerId);
+            if (c != null && c.getPassword().equals(password)) {
+                return Optional.of(c);
             }
             return Optional.empty();
         }
-        
+
         @Override
         public Customer save(Customer customer) {
-            customers.put(customer.getCustomerId(), customer);
+            // Mimic DB behavior: if ID is 0, generate new one
+            if (customer.getCustomerId() == 0) {
+                customer.setCustomerId(getNextCustomerId());
+            }
+            db.put(customer.getCustomerId(), customer);
             return customer;
         }
-        
+
         @Override
         public int getNextCustomerId() {
-            return customers.size() > 0 ? 
-                    customers.keySet().stream().mapToInt(Integer::intValue).max().orElse(999) + 1 : 1000;
+            return ++idCounter;
         }
-        
+
         @Override
         public boolean existsByPhoneNumber(String phoneNumber) {
-            return customers.values().stream()
-                    .anyMatch(c -> c.getPhoneNumber().equals(phoneNumber));
-        }
-        
-        public void addCustomer(Customer customer) {
-            customers.put(customer.getCustomerId(), customer);
+            return db.values().stream().anyMatch(c -> c.getPhoneNumber().equals(phoneNumber));
         }
     }
 }

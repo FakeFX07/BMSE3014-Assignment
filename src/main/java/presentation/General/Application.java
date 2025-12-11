@@ -3,21 +3,33 @@ package presentation.General;
 import java.util.List;
 import java.util.Scanner;
 
+// Controllers
+import controller.AdminController;
 import controller.CustomerController;
 import controller.FoodController;
 import controller.OrderController;
 
+// Models
 import model.Customer;
 
+// Handlers
 import presentation.Admin.AdminHandler;
 import presentation.Customer.CustomerHandler;
 import presentation.Food.FoodHandler;
 import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 
+<<<<<<< Updated upstream
 import repository.impl.FoodRepository;
 import service.impl.FoodService;
 import service.interfaces.IFoodService;
+=======
+// --- IMPORTS FOR ADMIN DB CONNECTION ---
+import repository.impl.AdminRepository;
+import repository.interfaces.IAdminRepository;
+
+// ---------------------------------------
+>>>>>>> Stashed changes
 
 /**
  * Main Application Class
@@ -30,6 +42,7 @@ public class Application {
     private final UserInputHandler inputHandler;
     
     // Controllers
+    private final AdminController adminController;
     private final CustomerController customerController;
     private final FoodController foodController;
     private final OrderController orderController;
@@ -45,27 +58,44 @@ public class Application {
     public Application() {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new UserInputHandler(scanner);
+<<<<<<< Updated upstream
         
         // Wire dependencies following N-layered architecture
         // Repository → Service → Controller
         IFoodService foodService = new FoodService(new FoodRepository());
         this.foodController = new FoodController(foodService);
         
+=======
+
+        // 1. Initialize Controllers
+        // (Assuming these manage their own services internally as per your request)
+>>>>>>> Stashed changes
         this.customerController = new CustomerController();
         this.orderController = new OrderController();
+<<<<<<< Updated upstream
         
+=======
+        this.adminController = new AdminController();
+
+        // 2. Initialize Admin Service Stack (REQUIRED for DB Login)
+        IAdminRepository adminRepository = new AdminRepository();
+
+        // 3. Initialize Handlers
+>>>>>>> Stashed changes
         this.foodHandler = new FoodHandler(foodController, inputHandler);
         this.customerHandler = new CustomerHandler(customerController, inputHandler);
         this.orderHandler = new OrderHandler(foodController, orderController, inputHandler);
-        this.adminHandler = new AdminHandler(foodHandler, orderController, inputHandler);
+        
+        // 4. Initialize AdminHandler with the AdminService
+        this.adminHandler = new AdminHandler(adminController, foodHandler, orderController, inputHandler);
     }
+        
     
     /**
      * Run the application
      */
     public void run() {
-        final int EXIT_PASSWORD = 1890; 
-        int exitPassword = 0;
+        boolean isRunning = true; // Control flag for the loop
         
         do {
             MenuDisplay.displayMainMenu();
@@ -91,17 +121,15 @@ public class Application {
                     adminHandler.handleAdminMenu(orderHandler, currentCustomer);
                     break;
                 case EXIT:
-                    exitPassword = inputHandler.readInt("Enter the correct pin to exit program : ");
-                    if (exitPassword == EXIT_PASSWORD) {
-                        System.out.println("......Exiting Program......\n");
-                    } else {
-                        System.out.println("......Unable Exit Program......\n");
-                    }
+                    System.out.println("\n=========================");
+                    System.out.println("[]   Exiting Program   []");
+                    System.out.println("=========================\n");
+                    isRunning = false; // Stop the loop
                     break;
                 default:
                     System.out.println("Enter Only 1 until 4 !!!\n");
             }
-        } while (exitPassword != EXIT_PASSWORD);
+        } while (isRunning);
         
         scanner.close();
     }

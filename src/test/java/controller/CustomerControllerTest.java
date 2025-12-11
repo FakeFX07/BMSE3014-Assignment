@@ -1,126 +1,209 @@
 package controller;
 
-import model.Customer;
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import service.interfaces.ICustomerService;
 
-import java.util.Optional;
+import model.Customer;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import java.util.Random;
 
 /**
- * Customer Controller Test
+ * JUnit 5 Test Class for CustomerController
+ * Target: 100% Code Coverage
  */
-public class CustomerControllerTest {
-    
+class CustomerControllerTest {
+
     private CustomerController controller;
-    private ICustomerService mockService;
-    
+    private String uniquePhone; // Store a valid phone for reuse
+
     @BeforeEach
     void setUp() {
-        mockService = mock(ICustomerService.class);
-        controller = new CustomerController(mockService);
+        controller = new CustomerController();
+        // Generate a random phone for every test to avoid conflicts
+        uniquePhone = "01" + (10000000 + new Random().nextInt(80000000));
     }
-    
+
+    // ==========================================
+    // 1. Register Logic (Try/Catch & Duplicate)
+    // ==========================================
+
     @Test
-    @DisplayName("Test registerCustomer - success")
+    @DisplayName("Register - Success")
     void testRegisterCustomer_Success() {
-        Customer customer = new Customer();
-        customer.setName("John Doe");
-        customer.setAge(25);
-        customer.setPhoneNumber("0123456789");
-        customer.setGender("Male");
-        customer.setPassword("password123");
-        
-        Customer registered = new Customer(1000, "John Doe", 25, "0123456789", "Male", "password123");
-        when(mockService.registerCustomer(customer)).thenReturn(registered);
-        
-        Customer result = controller.registerCustomer(customer);
+        Customer c = createValidCustomer(uniquePhone);
+        Customer result = controller.registerCustomer(c);
+
         assertNotNull(result);
-        assertEquals(1000, result.getCustomerId());
+        assertTrue(result.getCustomerId() > 0);
     }
-    
+
     @Test
-    @DisplayName("Test registerCustomer - validation failure")
-    void testRegisterCustomer_ValidationFailure() {
-        Customer customer = new Customer();
-        customer.setName("John123");
+    @DisplayName("Register - Fail (Invalid Data)")
+    void testRegisterCustomer_Fail_InvalidData() {
+        Customer c = createValidCustomer(uniquePhone);
+        c.setAge(5); // Invalid Age
         
-        when(mockService.registerCustomer(customer)).thenThrow(new IllegalArgumentException("Invalid name"));
-        
-        Customer result = controller.registerCustomer(customer);
-        assertNull(result);
+        Customer result = controller.registerCustomer(c);
+        assertNull(result, "Should return null because age is invalid");
     }
-    
+
     @Test
-    @DisplayName("Test login - success")
+    @DisplayName("Register - Fail (Duplicate Phone)")
+    void testRegisterCustomer_Fail_DuplicatePhone() {
+        // 1. Register first time (Success)
+        Customer c1 = createValidCustomer(uniquePhone);
+        assertNotNull(controller.registerCustomer(c1));
+
+        // 2. Register second time with SAME phone (Fail)
+        Customer c2 = createValidCustomer(uniquePhone); 
+        c2.setName("Clone User");
+        
+        // This hits the specific "Phone already registered" exception in Service
+        Customer result = controller.registerCustomer(c2);
+        assertNull(result, "Should return null because phone is duplicate");
+    }
+
+    // ==========================================
+    // 2. Login Logic (All Branches)
+    // ==========================================
+
+    @Test
+    @DisplayName("Login - Success")
     void testLogin_Success() {
-        Customer customer = new Customer(1000, "John Doe", 25, "0123456789", "Male", "password123");
-        when(mockService.login(1000, "password123")).thenReturn(Optional.of(customer));
-        
-        Customer result = controller.login(1000, "password123");
-        assertNotNull(result);
-        assertEquals("John Doe", result.getName());
+        // Register first
+        Customer c = createValidCustomer(uniquePhone);
+        c.setPassword("mypass123");
+        Customer registered = controller.registerCustomer(c);
+
+        // Login
+        Customer loggedIn = controller.login(registered.getCustomerId(), "mypass123");
+        assertNotNull(loggedIn);
+        assertEquals(registered.getCustomerId(), loggedIn.getCustomerId());
     }
-    
+
     @Test
-    @DisplayName("Test login - failure")
-    void testLogin_Failure() {
-        when(mockService.login(9999, "wrong")).thenReturn(Optional.empty());
-        
-        Customer result = controller.login(9999, "wrong");
+    @DisplayName("Login - Fail (User Not Found)")
+    void testLogin_Fail_NotFound() {
+        Customer result = controller.login(-999, "anyPass");
         assertNull(result);
     }
-    
+
     @Test
-    @DisplayName("Test validateName - delegates to service")
-    void testValidateName() {
-        when(mockService.validateName("John Doe")).thenReturn(true);
-        when(mockService.validateName("John123")).thenReturn(false);
-        
-        assertTrue(controller.validateName("John Doe"));
-        assertFalse(controller.validateName("John123"));
+    @DisplayName("Login - Fail (Wrong Password)")
+    void testLogin_Fail_WrongPassword() {
+        // Register first
+        Customer c = createValidCustomer(uniquePhone);
+        c.setPassword("correctPass");
+        Customer registered = controller.registerCustomer(c);
+
+        // Try login with wrong password
+        Customer result = controller.login(registered.getCustomerId(), "wrongPass");
+        assertNull(result);
     }
+
+    // ==========================================
+    // 3. Validation Logic (Logic & Exceptions)
+    // ==========================================
+
+    // --- Phone Number Checks (Crucial for Coverage) ---
     
     @Test
-    @DisplayName("Test validateAge - delegates to service")
-    void testValidateAge() {
-        when(mockService.validateAge(25)).thenReturn(true);
-        when(mockService.validateAge(15)).thenReturn(false);
-        
-        assertTrue(controller.validateAge(25));
-        assertFalse(controller.validateAge(15));
+    @DisplayName("Check Phone - Valid & Unique")
+    void testCheckPhoneNumber_Success() {
+        assertDoesNotThrow(() -> controller.checkPhoneNumber(uniquePhone));
     }
-    
+
     @Test
-    @DisplayName("Test validatePhoneNumber - delegates to service")
-    void testValidatePhoneNumber() {
-        when(mockService.validatePhoneNumber("0123456789")).thenReturn(true);
-        assertTrue(controller.validatePhoneNumber("0123456789"));
+    @DisplayName("Check Phone - Invalid Format")
+    void testCheckPhoneNumber_InvalidFormat() {
+        assertThrows(IllegalArgumentException.class, () -> controller.checkPhoneNumber("123"));
     }
-    
+
     @Test
-    @DisplayName("Test validateGender - delegates to service")
-    void testValidateGender() {
-        when(mockService.validateGender("Male")).thenReturn(true);
+    @DisplayName("Check Phone - Duplicate (The Missing 5%)")
+    void testCheckPhoneNumber_Duplicate() {
+        // 1. Register a number first
+        Customer c = createValidCustomer(uniquePhone);
+        controller.registerCustomer(c);
+
+        // 2. Try to check the SAME number again
+        // This forces the "if (exists)" branch to execute
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
+            () -> controller.checkPhoneNumber(uniquePhone));
+            
+        // Optional: verify message confirms it's a duplicate error
+        assertTrue(ex.getMessage().contains("already registered"));
+    }
+
+    // --- Is Phone Registered (True/False) ---
+
+    @Test
+    void testIsPhoneNumberRegistered() {
+        // Case 1: False
+        assertFalse(controller.isPhoneNumberRegistered(uniquePhone));
+
+        // Case 2: True
+        Customer c = createValidCustomer(uniquePhone);
+        controller.registerCustomer(c);
+        assertTrue(controller.isPhoneNumberRegistered(uniquePhone));
+    }
+
+    // --- Other Validations (Standard) ---
+
+    @Test
+    void testName() {
+        assertTrue(controller.validateName("Ali Baba"));
+        assertFalse(controller.validateName("Ali123"));
+        assertDoesNotThrow(() -> controller.checkName("Ali"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkName("Ali123"));
+    }
+
+    @Test
+    void testAge() {
+        assertTrue(controller.validateAge(20));
+        assertFalse(controller.validateAge(10));
+        assertDoesNotThrow(() -> controller.checkAge(20));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkAge(10));
+    }
+
+    @Test
+    void testGender() {
         assertTrue(controller.validateGender("Male"));
+        assertTrue(controller.validateGender("female")); // Case insensitive
+        assertFalse(controller.validateGender("Robot"));
+        assertDoesNotThrow(() -> controller.checkGender("Male"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkGender("Robot"));
     }
-    
+
     @Test
-    @DisplayName("Test validatePassword - delegates to service")
-    void testValidatePassword() {
-        when(mockService.validatePassword("password123")).thenReturn(true);
-        assertTrue(controller.validatePassword("password123"));
+    void testPassword() {
+        assertTrue(controller.validatePassword("123456"));
+        assertFalse(controller.validatePassword("123"));
+        assertDoesNotThrow(() -> controller.checkPassword("123456"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkPassword("123"));
     }
-    
+
     @Test
-    @DisplayName("Test validatePasswordConfirmation - delegates to service")
-    void testValidatePasswordConfirmation() {
-        when(mockService.validatePasswordConfirmation("pass", "pass")).thenReturn(true);
-        assertTrue(controller.validatePasswordConfirmation("pass", "pass"));
+    void testPasswordConfirmation() {
+        assertTrue(controller.validatePasswordConfirmation("abc", "abc"));
+        assertFalse(controller.validatePasswordConfirmation("abc", "def"));
+        assertDoesNotThrow(() -> controller.checkPasswordConfirmation("a", "a"));
+        assertThrows(IllegalArgumentException.class, () -> controller.checkPasswordConfirmation("a", "b"));
+    }
+
+    // ==========================================
+    // Helper Method (To keep code clean)
+    // ==========================================
+    private Customer createValidCustomer(String phone) {
+        Customer c = new Customer();
+        c.setName("Test Unit");
+        c.setAge(25);
+        c.setPhoneNumber(phone);
+        c.setGender("Male");
+        c.setPassword("password123");
+        return c;
     }
 }
-

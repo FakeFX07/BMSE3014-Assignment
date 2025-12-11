@@ -7,30 +7,14 @@ import repository.impl.CustomerRepository;
 import service.impl.CustomerService;
 import service.interfaces.ICustomerService;
 
-/**
- * Customer Controller
- * Handles customer-related user interactions
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class CustomerController {
-    
+
     private final ICustomerService customerService;
-    
-    public CustomerController(ICustomerService customerService) {
-        this.customerService = customerService;
-    }
-    
-    // Default constructor wiring service and repository
+
     public CustomerController() {
-        this(new CustomerService(new CustomerRepository()));
+        this.customerService = new CustomerService(new CustomerRepository());
     }
-    
-    /**
-     * Register a new customer
-     * 
-     * @param customer Customer to register
-     * @return Registered customer if successful, null if validation fails
-     */
+
     public Customer registerCustomer(Customer customer) {
         try {
             return customerService.registerCustomer(customer);
@@ -39,77 +23,98 @@ public class CustomerController {
             return null;
         }
     }
-    
-    /**
-     * Login customer
-     * 
-     * @param customerId Customer ID
-     * @param password Password
-     * @return Customer if authenticated, null otherwise
-     */
+
     public Customer login(int customerId, String password) {
         Optional<Customer> customerOpt = customerService.login(customerId, password);
         return customerOpt.orElse(null);
     }
-    
-    /**
-     * Validate customer name
-     * 
-     * @param name Name to validate
-     * @return true if valid
-     */
+
     public boolean validateName(String name) {
         return customerService.validateName(name);
     }
-    
+
     /**
-     * Validate customer age
+     * Check name validity
      * 
-     * @param age Age to validate
-     * @return true if valid
+     * @param name Name to check
+     * @throws IllegalArgumentException if name is invalid
      */
+    public void checkName(String name) throws IllegalArgumentException {
+        customerService.checkName(name);
+    }
+
     public boolean validateAge(int age) {
         return customerService.validateAge(age);
     }
-    
+
     /**
-     * Validate phone number
+     * Check age validity
      * 
-     * @param phoneNumber Phone number to validate
-     * @return true if valid
+     * @param age Age to check
+     * @throws IllegalArgumentException if age is invalid
      */
+    public void checkAge(int age) throws IllegalArgumentException {
+        customerService.checkAge(age);
+    }
+
     public boolean validatePhoneNumber(String phoneNumber) {
         return customerService.validatePhoneNumber(phoneNumber);
     }
-    
+
     /**
-     * Validate gender
+     * Check phone number validity and availability
      * 
-     * @param gender Gender to validate
-     * @return true if valid
+     * @param phoneNumber Phone number to check
+     * @throws IllegalArgumentException if phone number is invalid or already registered
      */
+    public void checkPhoneNumber(String phoneNumber) throws IllegalArgumentException {
+        customerService.checkPhoneNumber(phoneNumber);
+    }
+
+    public boolean isPhoneNumberRegistered(String phoneNumber) {
+        return customerService.isPhoneNumberRegistered(phoneNumber);
+    }
+
     public boolean validateGender(String gender) {
         return customerService.validateGender(gender);
     }
-    
+
     /**
-     * Validate password
+     * Check gender validity
      * 
-     * @param password Password to validate
-     * @return true if valid
+     * @param gender Gender to check
+     * @throws IllegalArgumentException if gender is invalid
      */
+    public void checkGender(String gender) throws IllegalArgumentException {
+        customerService.checkGender(gender);
+    }
+
     public boolean validatePassword(String password) {
         return customerService.validatePassword(password);
     }
-    
+
     /**
-     * Validate password confirmation
+     * Check password validity
+     * 
+     * @param password Password to check
+     * @throws IllegalArgumentException if password is invalid
+     */
+    public void checkPassword(String password) throws IllegalArgumentException {
+        customerService.checkPassword(password);
+    }
+
+    public boolean validatePasswordConfirmation(String password, String confirmPassword) {
+        return customerService.validatePasswordConfirmation(password, confirmPassword);
+    }
+
+    /**
+     * Check if password matches confirmation
      * 
      * @param password Password
      * @param confirmPassword Confirmation password
-     * @return true if matches
+     * @throws IllegalArgumentException if passwords don't match
      */
-    public boolean validatePasswordConfirmation(String password, String confirmPassword) {
-        return customerService.validatePasswordConfirmation(password, confirmPassword);
+    public void checkPasswordConfirmation(String password, String confirmPassword) throws IllegalArgumentException {
+        customerService.checkPasswordConfirmation(password, confirmPassword);
     }
 }

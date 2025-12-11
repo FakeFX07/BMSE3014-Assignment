@@ -7,13 +7,13 @@ import java.util.Scanner;
  * Follows SOLID: Single Responsibility Principle, DRY principle
  */
 public class UserInputHandler {
-    
+
     private final Scanner scanner;
-    
+
     public UserInputHandler(Scanner scanner) {
         this.scanner = scanner;
     }
-    
+
     /**
      * Read integer input with validation
      * User can enter 'X' or 'x' to cancel
@@ -23,22 +23,21 @@ public class UserInputHandler {
      * @throws UserCancelledException if user enters X to cancel
      */
     public int readInt(String prompt) {
-        while (true) {
-            try {
-                System.out.print(prompt);
-                String input = scanner.nextLine().trim();
-                
-                if (input.equalsIgnoreCase("X")) {
-                    throw new UserCancelledException();
-                }
-                
-                return Integer.parseInt(input);
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter an integer or X to cancel.");
-            }
+    while (true) {
+        System.out.print(prompt);
+        String input = scanner.nextLine().trim(); 
+
+        if (input.equalsIgnoreCase("X")) {
+            throw new UserCancelledException();
+        }
+        try {
+            return Integer.parseInt(input);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a number or X to cancel.");
         }
     }
-    
+}
+
     /**
      * Read double input with validation
      * User can enter 'X' or 'x' to cancel
@@ -52,18 +51,18 @@ public class UserInputHandler {
             try {
                 System.out.print(prompt);
                 String input = scanner.nextLine().trim();
-                
+
                 if (input.equalsIgnoreCase("X")) {
                     throw new UserCancelledException();
                 }
-                
+
                 return Double.parseDouble(input);
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a number or X to cancel.");
             }
         }
     }
-    
+
     /**
      * Read string input
      * 
@@ -74,7 +73,7 @@ public class UserInputHandler {
         System.out.print(prompt);
         return scanner.nextLine();
     }
-    
+
     /**
      * Read yes/no confirmation
      * 
@@ -94,7 +93,7 @@ public class UserInputHandler {
             }
         }
     }
-    
+
     /**
      * Read character input
      * 
