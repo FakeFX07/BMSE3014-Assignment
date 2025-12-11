@@ -1,6 +1,7 @@
-package presentation;
+package presentation.General;
 
 import model.*;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,8 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests application functionality with mocked dependencies
  */
 public class ApplicationTest {
-    
-    private Application app;
     private Scanner testScanner;
     private ByteArrayOutputStream outContent;
     
@@ -47,14 +46,6 @@ public class ApplicationTest {
         assertNotNull(app);
     }
     
-    @Test
-    @DisplayName("Test handleDisplayAllFoods - displays foods")
-    void testHandleDisplayAllFoods() {
-        Application app = new Application();
-        app.handleDisplayAllFoods();
-        String output = outContent.toString();
-        assertTrue(output.contains("All Food Details") || output.length() > 0);
-    }
     
     @Test
     @DisplayName("Test handleOrderReport - displays report")
@@ -90,38 +81,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleDeleteFood - user cancels")
-    void testHandleDeleteFood_Cancel() {
-        System.setIn(new ByteArrayInputStream("N\n".getBytes()));
-        Application app = new Application();
-        app.handleDeleteFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleRegisterFood - user cancels")
-    void testHandleRegisterFood_Cancel() {
-        System.setIn(new ByteArrayInputStream("N\n".getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - user cancels")
-    void testHandleEditFood_Cancel() {
-        System.setIn(new ByteArrayInputStream("N\n".getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test handleRegister - user cancels")
@@ -189,41 +148,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleRegisterFood - complete flow with cancel")
-    void testHandleRegisterFood_CompleteCancel() {
-        String input = "Y\nTest Food\n10.50\nSet\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - food not found")
-    void testHandleEditFood_FoodNotFound() {
-        String input = "Y\n9999\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleDeleteFood - complete flow")
-    void testHandleDeleteFood_Complete() {
-        String input = "Y\n2000\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleDeleteFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test processOrder - TNG payment")
@@ -327,65 +251,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleRegisterFood - complete flow with validation")
-    void testHandleRegisterFood_CompleteFlow() {
-        String input = "Y\nFood123\nChicken Rice\n70\n10.50\nInvalid\nSet\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - edit name")
-    void testHandleEditFood_EditName() {
-        String input = "Y\n2000\n1\nNew Name\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - edit price")
-    void testHandleEditFood_EditPrice() {
-        String input = "Y\n2000\n2\n15.00\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - edit type")
-    void testHandleEditFood_EditType() {
-        String input = "Y\n2000\n3\nA la carte\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - invalid edit choice")
-    void testHandleEditFood_InvalidChoice() {
-        String input = "Y\n2000\n99\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test processOrder - Grab payment")
@@ -474,17 +339,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleDeleteFood - complete deletion")
-    void testHandleDeleteFood_CompleteDeletion() {
-        String input = "Y\n2000\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleDeleteFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test run - exit with correct password")
@@ -534,53 +388,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleEditFood - continue editing multiple fields")
-    void testHandleEditFood_ContinueEditing() {
-        String input = "Y\n2000\n1\nNew Name\nY\n2\n15.00\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - edit with validation retries")
-    void testHandleEditFood_WithValidationRetries() {
-        String input = "Y\n2000\n1\nFood123\nNew Name\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleRegisterFood - with validation retries for all fields")
-    void testHandleRegisterFood_WithAllValidationRetries() {
-        String input = "Y\nFood123\nChicken Rice\n0\n10.50\nInvalid\nSet\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleRegisterFood - cancel after validation")
-    void testHandleRegisterFood_CancelAfterValidation() {
-        String input = "Y\nChicken Rice\n10.50\nSet\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test handleOrder - complete order flow")
@@ -667,53 +474,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleEditFood - edit all fields in sequence")
-    void testHandleEditFood_EditAllFields() {
-        String input = "Y\n2000\n1\nNew Name\nY\n2\n20.00\nY\n3\nA la carte\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - edit with lowercase continue")
-    void testHandleEditFood_LowercaseContinue() {
-        String input = "Y\n2000\n1\nNew Name\ny\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleRegisterFood - price validation retry")
-    void testHandleRegisterFood_PriceValidationRetry() {
-        String input = "Y\nChicken Rice\n0\n10.50\nSet\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleRegisterFood - type validation retry")
-    void testHandleRegisterFood_TypeValidationRetry() {
-        String input = "Y\nChicken Rice\n10.50\nInvalid\nSet\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test run - login option")
@@ -787,29 +547,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    @Test
-    @DisplayName("Test handleRegisterFood - all validation failures")
-    void testHandleRegisterFood_AllValidationFailures() {
-        String input = "Y\n123\nChicken Rice\n0\n10.50\nX\nSet\nY\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleRegisterFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test handleEditFood - all edit options with validation")
-    void testHandleEditFood_AllOptionsWithValidation() {
-        String input = "Y\n2000\n1\n123\nNew Name\nY\n2\n0\n15.00\nY\n3\nX\nSet\nN\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.handleEditFood();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test processOrder - order with null result")
@@ -854,3 +591,4 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
 }
+

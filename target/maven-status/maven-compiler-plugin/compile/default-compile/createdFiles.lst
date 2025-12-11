@@ -8,7 +8,6 @@ repository\interfaces\IOrderRepository.class
 service\impl\CustomerService.class
 config\ConnectionProvider.class
 model\PaymentMethod.class
-presentation\MenuDisplay.class
 service\impl\FoodService.class
 controller\OrderController.class
 repository\impl\CustomerRepository.class
@@ -17,6 +16,7 @@ service\impl\PaymentService.class
 model\Customer.class
 service\impl\OrderService.class
 repository\impl\OrderRepository.class
+presentation\General\MainMenuOption$1.class
 config\DatabaseConnection.class
 model\GrabPayment.class
 service\interfaces\IFoodService.class
@@ -27,8 +27,6 @@ repository\interfaces\IPaymentMethodRepository.class
 model\Payment.class
 model\Order.class
 service\interfaces\IPaymentService.class
-presentation\UserInputHandler.class
-presentation\Application.class
 model\Food.class
 controller\FoodController.class
 service\interfaces\IOrderService.class

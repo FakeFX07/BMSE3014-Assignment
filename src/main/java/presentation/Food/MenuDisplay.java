@@ -1,4 +1,4 @@
-package presentation;
+package presentation.Food;
 
 import java.util.List;
 
@@ -6,6 +6,9 @@ import model.Food;
 import model.Order;
 import model.OrderDetails;
 import model.PaymentMethod;
+import presentation.Admin.AdminMenuOption;
+import presentation.General.MainMenuOption;
+import presentation.Payment.PaymentOption;
 
 /**
  * Menu Display Utility
@@ -18,30 +21,14 @@ public class MenuDisplay {
      * Display main menu
      */
     public static void displayMainMenu() {
-        System.out.println("========================================");
-        System.out.println("[]======JB Food Ordering System=======[]");
-        System.out.println("========================================");
-        System.out.println("[]              1.Login               []");
-        System.out.println("[]              2.Register            []");
-        System.out.println("[]              3.Admin                []");
-        System.out.println("[]              4.Exit                []");
-        System.out.println("========================================");
+        MainMenuOption.displayMenu();
     }
     
     /**
      * Display admin menu
      */
     public static void displayAdminMenu() {
-        System.out.println("[]===============================[]");
-        System.out.println("[]             Admin             []");
-        System.out.println("[]===============================[]");
-        System.out.println("        1.Register New Food        ");
-        System.out.println("        2.Edit Food                ");
-        System.out.println("        3.Delete Food              ");
-        System.out.println("        4.View All Food              ");
-        System.out.println("        5.Order Report              ");
-        System.out.println("        0.Back Main Menu             ");
-        System.out.println("[]==============================[]");
+        AdminMenuOption.displayMenu();
     }
     
     /**
@@ -65,11 +52,7 @@ public class MenuDisplay {
      * Display payment options
      */
     public static void displayPaymentOptions() {
-        System.out.println("\t===================");
-        System.out.println("\t      Payment      ");
-        System.out.println("\t===================");
-        System.out.println("\t1.TNG 2.Grab 3.Bank");
-        System.out.println("\t===================");
+        PaymentOption.displayMenu();
     }
     
     /**

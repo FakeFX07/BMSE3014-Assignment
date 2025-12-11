@@ -1,4 +1,4 @@
-package presentation;
+package presentation.General;
 
 import java.util.InputMismatchException;
 import java.util.Scanner;

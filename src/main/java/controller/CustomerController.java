@@ -3,6 +3,8 @@ package controller;
 import java.util.Optional;
 
 import model.Customer;
+import repository.impl.CustomerRepository;
+import service.impl.CustomerService;
 import service.interfaces.ICustomerService;
 
 /**
@@ -16,6 +18,11 @@ public class CustomerController {
     
     public CustomerController(ICustomerService customerService) {
         this.customerService = customerService;
+    }
+    
+    // Default constructor wiring service and repository
+    public CustomerController() {
+        this(new CustomerService(new CustomerRepository()));
     }
     
     /**

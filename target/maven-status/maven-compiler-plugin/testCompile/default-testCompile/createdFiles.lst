@@ -8,7 +8,6 @@ OrderServiceTest$MockPaymentService.class
 PaymentServiceTest.class
 ModelCoverageTest.class
 presentation\UserInputHandlerTest.class
-presentation\ApplicationTest.class
 OrderServiceTest.class
 repository\impl\OrderRepositoryTest.class
 FoodServiceTest.class

@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import model.Food;
+import repository.impl.FoodRepository;
+import service.impl.FoodService;
 import service.interfaces.IFoodService;
 
 /**
@@ -17,6 +19,11 @@ public class FoodController {
     
     public FoodController(IFoodService foodService) {
         this.foodService = foodService;
+    }
+    
+    // Default constructor wiring service and repository
+    public FoodController() {
+        this(new FoodService(new FoodRepository()));
     }
     
     /**

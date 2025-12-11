@@ -4,6 +4,11 @@ import java.util.List;
 
 import model.Order;
 import model.OrderDetails;
+import repository.impl.CustomerRepository;
+import repository.impl.OrderRepository;
+import repository.impl.PaymentMethodRepository;
+import service.impl.OrderService;
+import service.impl.PaymentService;
 import service.interfaces.IOrderService;
 
 /**
@@ -17,6 +22,16 @@ public class OrderController {
     
     public OrderController(IOrderService orderService) {
         this.orderService = orderService;
+    }
+    
+    // Default constructor wiring services and repositories
+    public OrderController() {
+        this(new OrderService(
+                new OrderRepository(),
+                new CustomerRepository(),
+                new PaymentMethodRepository(),
+                new PaymentService(new PaymentMethodRepository())
+        ));
     }
     
     /**

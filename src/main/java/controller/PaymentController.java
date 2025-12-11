@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import model.Payment;
 import model.PaymentMethod;
+import repository.impl.PaymentMethodRepository;
+import service.impl.PaymentService;
 import service.interfaces.IPaymentService;
 
 /**
@@ -17,6 +19,11 @@ public class PaymentController {
     
     public PaymentController(IPaymentService paymentService) {
         this.paymentService = paymentService;
+    }
+    
+    // Default constructor wiring service and repository
+    public PaymentController() {
+        this(new PaymentService(new PaymentMethodRepository()));
     }
     
     /**
