@@ -12,8 +12,22 @@
     "java.test.config": {
         "workingDirectory": "${workspaceFolder}"
     },
-    "coverage-gutters.coverageFileNames": ["jacoco.xml", "target/site/jacoco/jacoco.xml"],
+    "coverage-gutters.coverageFileNames": ["target/site/jacoco/jacoco.xml", "jacoco.xml"],
     "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.ignoredPathGlobs": [
+        "**/test/**",
+        "**/src/test/**",
+        "**/test/java/**",
+        "**/*Test.java",
+        "**/*Tests.java",
+        "**/Test*.java"
+    ],
+    "coverage-gutters.lcovname": "lcov.info",
+    "coverage-gutters.watch": true,
+    "coverage-gutters.coverageType": "gutter",
+    "coverage-gutters.fullCoverageDecorationType": "gutter",
+    "coverage-gutters.partialCoverageDecorationType": "gutter",
+    "coverage-gutters.noCoverageDecorationType": "gutter",
     "java.clean.workspace": false,
     "java.compile.nullAnalysis.mode": "automatic"
 }

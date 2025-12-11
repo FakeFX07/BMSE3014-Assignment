@@ -80,7 +80,13 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.version}</version>
                 <configuration>
-                    <!-- All packages included for coverage -->
+                    <!-- Exclude test source files from coverage reports -->
+                    <excludes>
+                        <exclude>**/test/**</exclude>
+                        <exclude>**/Test*.class</exclude>
+                        <exclude>**/*Test.class</exclude>
+                        <exclude>**/*Tests.class</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -101,6 +107,13 @@
                                 <format>XML</format>
                                 <format>CSV</format>
                             </formats>
+                            <!-- Exclude test classes from coverage report -->
+                            <excludes>
+                                <exclude>**/test/**</exclude>
+                                <exclude>**/Test*.class</exclude>
+                                <exclude>**/*Test.class</exclude>
+                                <exclude>**/*Tests.class</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                     <execution>
@@ -122,6 +135,13 @@
                                     </limits>
                                 </rule>
                             </rules>
+                            <!-- Exclude test classes from coverage check -->
+                            <excludes>
+                                <exclude>**/test/**</exclude>
+                                <exclude>**/Test*.class</exclude>
+                                <exclude>**/*Test.class</exclude>
+                                <exclude>**/*Tests.class</exclude>
+                            </excludes>
                         </configuration>
                     </execution>
                 </executions>
