@@ -126,19 +126,19 @@ public class OrderHandler {
             String cardInput;
             do {
                 cardInput = inputHandler.readString("Enter your card number (16 digit) : ");
-                if (cardInput.length() != 16) {
+                if (cardInput == null || cardInput.length() != 16) {
                     System.out.println("Please Enter Card Number Again : ");
                 }
-            } while (cardInput.length() != 16);
+            } while (cardInput == null || cardInput.length() != 16);
             cardNumber = cardInput;
 
             String expiryInput;
             do {
                 expiryInput = inputHandler.readString("Enter expired date (4 digit): ");
-                if (expiryInput.length() != 4) {
+                if (expiryInput == null || expiryInput.length() != 4) {
                     System.out.println("Please Enter Expiry Date Again : ");
                 }
-            } while (expiryInput.length() != 4);
+            } while (expiryInput == null || expiryInput.length() != 4);
             expiryDate = expiryInput;
 
             break;

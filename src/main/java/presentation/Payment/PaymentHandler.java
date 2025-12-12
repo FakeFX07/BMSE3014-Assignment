@@ -2,7 +2,6 @@ package presentation.Payment;
 
 import controller.PaymentController;
 import model.Payment;
-import model.PaymentMethod;
 import presentation.General.UserInputHandler;
 
 /**

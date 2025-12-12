@@ -2,12 +2,10 @@ package service.impl;
 // Tests for PaymentService
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import model.*;
 import repository.interfaces.IPaymentMethodRepository;
-import service.impl.PaymentService;
 import org.junit.jupiter.api.DisplayName;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Optional;
