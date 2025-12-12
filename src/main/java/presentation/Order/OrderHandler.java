@@ -42,10 +42,17 @@ public class OrderHandler {
     List<OrderDetails> orderDetailsList = new ArrayList<>();
     Map<Integer, Integer> tempQuantityReductions = new HashMap<>(); // Track temporary quantity reductions
     char newOrder = 'Y';
+    boolean isNewOrderCycle = true; // Track if this is a fresh order cycle
 
     while (newOrder == 'Y') {
+        // Clear temporary reductions at the start of each new order cycle
+        // This ensures fresh quantities from DB are displayed (especially after failed payment)
+        if (isNewOrderCycle) {
+            tempQuantityReductions.clear();
+            isNewOrderCycle = false; // Reset flag after clearing
+        }
 
-        // Refresh food list from database
+        // Refresh food list from database (always get fresh data)
         List<Food> foods = foodController.getAllFoods();
         if (foods.isEmpty()) {
             System.out.println("No food items available");
@@ -144,10 +151,17 @@ public class OrderHandler {
                 System.out.println("\n>>> No items in your order. Please add items first.\n");
             } else {
                 processOrder(currentCustomer, orderDetailsList);
+                
+                // Clear order details and temporary reductions after payment attempt
                 orderDetailsList.clear();
+                tempQuantityReductions.clear();
 
                 if (inputHandler.readYesNo("Do you want to proceed another order (Y/N) : ")) {
                     newOrder = 'Y';
+                    // Clear everything for new order
+                    orderDetailsList.clear();
+                    tempQuantityReductions.clear();
+                    isNewOrderCycle = true; // Mark that next iteration is a new order cycle
                 } else {
                     System.out.println("Thank You. Please Come Again");
                     newOrder = 'N';
@@ -158,6 +172,7 @@ public class OrderHandler {
             System.out.println("\n>>> Order Cancelled !!!\n");
             orderDetailsList.clear();
             tempQuantityReductions.clear(); // Clear temporary reductions
+            isNewOrderCycle = true; // Mark that next iteration should show fresh quantities
             // Continue the loop to show menu again (don't set newOrder = 'N')
         } else {
             System.out.println("Invalid choice. Please enter Y, N, or X.");
@@ -167,60 +182,75 @@ public class OrderHandler {
 
 
     public void processOrder(Customer currentCustomer, List<OrderDetails> orderDetailsList) {
-    if (orderDetailsList.isEmpty()) {
-        System.out.println("No items in order");
-        return;
-    }
-
-    
-    OrderMenuDisplay.displayOrderSummary(orderDetailsList);
-
-    // Payment selection
-    displayPaymentOptions();
-    int paymentChoice = inputHandler.readInt("Please Select a Payment Method :");
-
-    String paymentType = null;
-    String identifier = null; // wallet_id or card_number
-    String password = null;
-
-    switch (paymentChoice) {
-        case 1:
-            paymentType = "TNG";
-            identifier = inputHandler.readString("Enter your TNG Wallet ID : ");
-            password = inputHandler.readPassword("Enter your TNG password : ");
-            break;
-        case 2:
-            paymentType = "Grab";
-            identifier = inputHandler.readString("Enter your Grab Wallet ID : ");
-            password = inputHandler.readPassword("Enter your Grab password : ");
-            break;
-        case 3:
-            paymentType = "Bank";
-            identifier = inputHandler.readString("Enter your card number (16 digit) : ");
-            if (identifier == null || identifier.length() != 16) {
-                System.out.println("Invalid card number. Payment cancelled.\n");
-                return;
-            }
-            password = inputHandler.readPassword("Enter your card password : ");
-            break;
-        default:
-            System.out.println("Wrong Choice !\n");
+        if (orderDetailsList.isEmpty()) {
+            System.out.println("No items in order");
             return;
-    }
+        }
 
-    // Create order with wallet_id/card_number and password
-    Order order = orderController.createOrder(
-            currentCustomer.getCustomerId(),
-            orderDetailsList,
-            paymentType,
-            identifier,
-            password
-    );
+        OrderMenuDisplay.displayOrderSummary(orderDetailsList);
 
-    if (order != null) {
-        displayReceipt(order);
+        // Payment retry loop - allow user to try different payment methods on failure
+        boolean paymentSuccess = false;
+        while (!paymentSuccess) {
+            // Payment selection
+            displayPaymentOptions();
+            int paymentChoice = inputHandler.readInt("Please Select a Payment Method :");
+
+            String paymentType = null;
+            String identifier = null; // wallet_id or card_number
+            String password = null;
+            boolean validChoice = true;
+
+            switch (paymentChoice) {
+                case 1:
+                    paymentType = "TNG";
+                    identifier = inputHandler.readString("Enter your TNG Wallet ID : ");
+                    password = inputHandler.readPassword("Enter your TNG password : ");
+                    break;
+                case 2:
+                    paymentType = "Grab";
+                    identifier = inputHandler.readString("Enter your Grab Wallet ID : ");
+                    password = inputHandler.readPassword("Enter your Grab password : ");
+                    break;
+                case 3:
+                    paymentType = "Bank";
+                    identifier = inputHandler.readString("Enter your card number (16 digit) : ");
+                    if (identifier == null || identifier.length() != 16) {
+                        System.out.println("Invalid card number. Please try again.\n");
+                        validChoice = false;
+                        break;
+                    }
+                    password = inputHandler.readPassword("Enter your card password : ");
+                    break;
+                default:
+                    System.out.println("Wrong Choice !\n");
+                    validChoice = false;
+                    break;
+            }
+
+            // Skip payment processing if choice was invalid
+            if (!validChoice) {
+                continue;
+            }
+
+            // Create order with wallet_id/card_number and password
+            Order order = orderController.createOrder(
+                    currentCustomer.getCustomerId(),
+                    orderDetailsList,
+                    paymentType,
+                    identifier,
+                    password
+            );
+
+            if (order != null) {
+                displayReceipt(order);
+                paymentSuccess = true;
+            } else {
+                // Payment failed - allow user to try again
+                System.out.println("\n⚠️  Payment failed. Please try again with another payment method.\n");
+            }
+        }
     }
-}
 
 
         /**
@@ -230,18 +260,18 @@ public class OrderHandler {
      */
     public static void displayReceipt(Order order) {
         System.out.println("\n╔═══════════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                            🧾 RECEIPT 🧾                                      ║");
+        System.out.println("║                                    RECEIPT                                    ║");
         System.out.println("╠═══════════════════════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ Order ID    : %-65d ║%n", order.getOrderId());
-        System.out.printf("║ Date        : %-65s ║%n", order.getOrderDate());
-        System.out.printf("║ Customer ID : %-65d ║%n", order.getCustomer().getCustomerId());
+        System.out.printf("║ Order ID    : %-63d ║%n", order.getOrderId());
+        System.out.printf("║ Date        : %-63s ║%n", order.getOrderDate());
+        System.out.printf("║ Customer ID : %-63d ║%n", order.getCustomer().getCustomerId());
         System.out.println("╠═══════════════════════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ %-6s │ %-30s │ %10s │ %6s │ %12s ║%n", "ID", "Food Name", "Unit Price", "Qty", "Subtotal");
+        System.out.printf("║ %-6s │ %-30s │ %10s │ %6s │ %13s ║%n", "ID", "Food Name", "Unit Price", "Qty", "Subtotal");
         System.out.println("╠═══════════════════════════════════════════════════════════════════════════════╣");
         
         for (OrderDetails detail : order.getOrderDetails()) {
             if (detail != null && detail.getFood() != null) {
-                System.out.printf("║ %6d │ %-30s │ RM %7.2f │ %4d │ RM %9.2f ║%n",
+                System.out.printf("║ %6d │ %-30s │ RM %7.2f │ %6d │ RM %10.2f ║%n",
                         detail.getFood().getFoodId(),
                         detail.getFood().getFoodName(),
                         detail.getUnitPrice(),
@@ -251,10 +281,10 @@ public class OrderHandler {
         }
         
         System.out.println("╠═══════════════════════════════════════════════════════════════════════════════╣");
-        System.out.printf("║ %-75s RM %9.2f ║%n", "SUBTOTAL:", order.getTotalPrice());
+        System.out.printf("║ %-64s RM %9.2f ║%n", "SUBTOTAL:", order.getTotalPrice());
         
         PaymentMethod paymentMethod = order.getPaymentMethod();
-        System.out.printf("║ %-75s RM %9.2f ║%n", 
+        System.out.printf("║ %-64s RM %9.2f ║%n", 
                          paymentMethod.getPaymentType() + " Balance:", 
                          paymentMethod.getBalance());
         
