@@ -11,50 +11,56 @@ import service.interfaces.IPaymentService;
 /**
  * Payment Controller
  * Handles payment-related user interactions
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
+ * Follows SOLID: Single Responsibility Principle
+ * Single Responsibility： Orchestrates flow, handles exceptions, returns results.
+ * KISS: Keep It Simple - no complex logic here。
  */
 public class PaymentController {
     
     private final IPaymentService paymentService;
     
+    /**
+     * Constructor for Dependency Injection.
+     * @param paymentService The service to handle business logic
+     */
     public PaymentController(IPaymentService paymentService) {
         this.paymentService = paymentService;
     }
     
-    // Default constructor wiring service and repository
+    /**
+     * Default constructor (Wiring).
+     * Maintains backward compatibility while allowing DI via the other constructor.
+     */
     public PaymentController() {
         this(new PaymentService(new PaymentMethodRepository()));
     }
     
     /**
-     * Process payment
-     * 
-     * @param customerId Customer ID
-     * @param paymentType Payment type
-     * @param amount Amount to pay
-     * @param cardNumber Card number (for Bank, null for others)
-     * @param expiryDate Expiry date (for Bank, null for others)
-     * @return Payment object if successful, null if payment fails
+     * Process a user payment.
+     * @param customerId The customer making the payment
+     * @param paymentType The type of payment (TNG, Grab, Bank)
+     * @param amount The transaction amount
+     * @param cardNumber Optional card number (for Bank)
+     * @param expiryDate Optional expiry date (for Bank)
+     * @return The Payment object if successful, null otherwise
      */
     public Payment processPayment(int customerId, String paymentType, double amount, 
                                  String cardNumber, String expiryDate) {
         try {
             return paymentService.processPayment(customerId, paymentType, amount, cardNumber, expiryDate);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Payment failed: " + e.getMessage());
+        } catch (RuntimeException e) { // FIXED: Caught RuntimeException only (covers IllegalArgumentException)
+            System.out.println("Payment Processing Error: " + e.getMessage());
             return null;
         }
     }
     
     /**
-     * Get payment method for customer
-     * 
+     * Retrieve a specific payment method.
      * @param customerId Customer ID
-     * @param paymentType Payment type
-     * @return Payment method if found, null otherwise
+     * @param paymentType Payment Type Name
+     * @return PaymentMethod object or null if not found
      */
     public PaymentMethod getPaymentMethod(int customerId, String paymentType) {
-        Optional<PaymentMethod> paymentMethodOpt = paymentService.getPaymentMethod(customerId, paymentType);
-        return paymentMethodOpt.orElse(null);
+        return paymentService.getPaymentMethod(customerId, paymentType).orElse(null);
     }
 }
