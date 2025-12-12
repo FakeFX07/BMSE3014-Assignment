@@ -1,7 +1,6 @@
 package controller;
 
 import model.Payment;
-import model.PaymentMethod;
 import repository.impl.PaymentMethodRepository;
 import service.impl.PaymentService;
 import service.interfaces.IPaymentService;
@@ -34,31 +33,20 @@ public class PaymentController {
     }
     
     /**
-     * Process a user payment.
-     * @param customerId The customer making the payment
+     * Process a user payment with authentication.
      * @param paymentType The type of payment (TNG, Grab, Bank)
+     * @param identifier Wallet ID (for TNG/Grab) or Card Number (for Bank)
+     * @param password Password for authentication
      * @param amount The transaction amount
-     * @param cardNumber Optional card number (for Bank)
-     * @param expiryDate Optional expiry date (for Bank)
      * @return The Payment object if successful, null otherwise
      */
-    public Payment processPayment(int customerId, String paymentType, double amount, 
-                                 String cardNumber, String expiryDate) {
+    public Payment processPayment(String paymentType, String identifier, 
+                                 String password, double amount) {
         try {
-            return paymentService.processPayment(customerId, paymentType, amount, cardNumber, expiryDate);
-        } catch (RuntimeException e) { // FIXED: Caught RuntimeException only (covers IllegalArgumentException)
+            return paymentService.processPayment(paymentType, identifier, password, amount);
+        } catch (RuntimeException e) {
             System.out.println("Payment Processing Error: " + e.getMessage());
             return null;
         }
-    }
-    
-    /**
-     * Retrieve a specific payment method.
-     * @param customerId Customer ID
-     * @param paymentType Payment Type Name
-     * @return PaymentMethod object or null if not found
-     */
-    public PaymentMethod getPaymentMethod(int customerId, String paymentType) {
-        return paymentService.getPaymentMethod(customerId, paymentType).orElse(null);
     }
 }

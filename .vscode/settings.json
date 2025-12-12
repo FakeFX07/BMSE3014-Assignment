@@ -29,5 +29,12 @@
     "coverage-gutters.partialCoverageDecorationType": "gutter",
     "coverage-gutters.noCoverageDecorationType": "gutter",
     "java.clean.workspace": false,
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.runtimes": [],
+    "java.eclipse.downloadSources": true,
+    "java.maven.downloadSources": true,
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "target/classes/**"
+    ]
 }

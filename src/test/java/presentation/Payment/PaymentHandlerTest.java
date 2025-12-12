@@ -40,23 +40,25 @@ class PaymentHandlerTest {
         // Mock user selecting invalid option
         when(inputHandler.readInt(anyString())).thenReturn(99);
 
-        paymentHandler.handlePayment(1, 50.0);
+        paymentHandler.handlePayment(50.0);
 
         // Verify we asked for input but never proceeded to payment
         verify(inputHandler).readInt(anyString());
-        verify(paymentController, never()).processPayment(anyInt(), anyString(), anyDouble(), any(), any());
+        verify(paymentController, never()).processPayment(anyString(), anyString(), anyString(), anyDouble());
     }
 
     @Test
     @DisplayName("Test: User Cancelled Confirmation (TNG)")
     void testHandlePayment_UserCancelled() {
-        // Mock TNG Selection (1) but User says "No" (false) to confirmation
+        // Mock TNG Selection (1) with wallet ID and password but User says "No" (false) to confirmation
         when(inputHandler.readInt(anyString())).thenReturn(1); // TNG
+        when(inputHandler.readString(anyString())).thenReturn("TNG001");
+        when(inputHandler.readPassword(anyString())).thenReturn("tng123");
         when(inputHandler.readYesNo(anyString())).thenReturn(false);
 
-        paymentHandler.handlePayment(1, 50.0);
+        paymentHandler.handlePayment(50.0);
 
-        verify(paymentController, never()).processPayment(anyInt(), anyString(), anyDouble(), any(), any());
+        verify(paymentController, never()).processPayment(anyString(), anyString(), anyString(), anyDouble());
     }
 
     @Test
@@ -64,17 +66,19 @@ class PaymentHandlerTest {
     void testHandlePayment_Success_TNG() {
         // Mock TNG Selection (1) and User says "Yes"
         when(inputHandler.readInt(anyString())).thenReturn(1); // TNG
+        when(inputHandler.readString(contains("Wallet"))).thenReturn("TNG001");
+        when(inputHandler.readPassword(anyString())).thenReturn("tng123");
         when(inputHandler.readYesNo(anyString())).thenReturn(true);
         
         // Mock Controller success
         Payment mockPayment = new TNGPayment(40.0); // Remaining balance
-        when(paymentController.processPayment(eq(1), eq("TNG"), eq(10.0), isNull(), isNull()))
+        when(paymentController.processPayment(eq("TNG"), eq("TNG001"), eq("tng123"), eq(10.0)))
                 .thenReturn(mockPayment);
 
-        paymentHandler.handlePayment(1, 10.0);
+        paymentHandler.handlePayment(10.0);
 
         // Verify controller was called correctly
-        verify(paymentController).processPayment(1, "TNG", 10.0, null, null);
+        verify(paymentController).processPayment("TNG", "TNG001", "tng123", 10.0);
     }
 
     @Test
@@ -82,34 +86,36 @@ class PaymentHandlerTest {
     void testHandlePayment_Success_Grab() {
         // Mock Grab Selection (2)
         when(inputHandler.readInt(anyString())).thenReturn(2); // Grab
+        when(inputHandler.readString(contains("Wallet"))).thenReturn("GRAB001");
+        when(inputHandler.readPassword(anyString())).thenReturn("grab456");
         when(inputHandler.readYesNo(anyString())).thenReturn(true);
         
         Payment mockPayment = new TNGPayment(100.0); // Just using any payment object
-        when(paymentController.processPayment(anyInt(), eq("Grab"), anyDouble(), any(), any()))
+        when(paymentController.processPayment(eq("Grab"), eq("GRAB001"), eq("grab456"), eq(20.0)))
                 .thenReturn(mockPayment);
 
-        paymentHandler.handlePayment(1, 20.0);
+        paymentHandler.handlePayment(20.0);
         
-        verify(paymentController).processPayment(1, "Grab", 20.0, null, null);
+        verify(paymentController).processPayment("Grab", "GRAB001", "grab456", 20.0);
     }
 
     @Test
-    @DisplayName("Test: Successful Payment (Bank with Card Details)")
+    @DisplayName("Test: Successful Payment (Bank with Card Number and Password)")
     void testHandlePayment_Success_Bank() {
-        // Mock Bank Selection (3) -> Needs Card Input
+        // Mock Bank Selection (3) -> Needs Card Number and Password
         when(inputHandler.readInt(anyString())).thenReturn(3); // Bank
         when(inputHandler.readString(contains("Card Number"))).thenReturn("1234567890123456");
-        when(inputHandler.readString(contains("Expiry"))).thenReturn("1225");
+        when(inputHandler.readPassword(anyString())).thenReturn("bank789");
         when(inputHandler.readYesNo(anyString())).thenReturn(true);
         
         Payment mockPayment = new TNGPayment(200.0);
-        when(paymentController.processPayment(anyInt(), eq("Bank"), anyDouble(), anyString(), anyString()))
+        when(paymentController.processPayment(eq("Bank"), eq("1234567890123456"), eq("bank789"), eq(50.0)))
                 .thenReturn(mockPayment);
 
-        paymentHandler.handlePayment(1, 50.0);
+        paymentHandler.handlePayment(50.0);
         
-        // Verify card details were passed to controller
-        verify(paymentController).processPayment(1, "Bank", 50.0, "1234567890123456", "1225");
+        // Verify card number and password were passed to controller
+        verify(paymentController).processPayment("Bank", "1234567890123456", "bank789", 50.0);
     }
 
     @Test
@@ -117,15 +123,17 @@ class PaymentHandlerTest {
     void testHandlePayment_Failure() {
         // Mock TNG Selection and Confirmation
         when(inputHandler.readInt(anyString())).thenReturn(1);
+        when(inputHandler.readString(anyString())).thenReturn("TNG001");
+        when(inputHandler.readPassword(anyString())).thenReturn("tng123");
         when(inputHandler.readYesNo(anyString())).thenReturn(true);
 
         // Mock Controller returning null (failure)
-        when(paymentController.processPayment(anyInt(), anyString(), anyDouble(), any(), any()))
+        when(paymentController.processPayment(anyString(), anyString(), anyString(), anyDouble()))
                 .thenReturn(null);
 
-        paymentHandler.handlePayment(1, 10.0);
+        paymentHandler.handlePayment(10.0);
 
         // Verify method was called but resulted in failure (no exception thrown)
-        verify(paymentController).processPayment(1, "TNG", 10.0, null, null);
+        verify(paymentController).processPayment("TNG", "TNG001", "tng123", 10.0);
     }
 }

@@ -1,7 +1,5 @@
 package service.interfaces;
 
-import java.util.Optional;
-
 import model.Payment;
 import model.PaymentMethod;
 
@@ -13,27 +11,17 @@ import model.PaymentMethod;
 public interface IPaymentService {
     
     /**
-     * Process payment
+     * Process payment with authentication
      * 
-     * @param customerId Customer ID
      * @param paymentType Payment type (TNG, Grab, Bank)
+     * @param identifier Wallet ID (for TNG/Grab) or Card Number (for Bank)
+     * @param password Password for authentication (will be hashed with SHA256)
      * @param amount Amount to pay
-     * @param cardNumber Card number (for Bank, null for others)
-     * @param expiryDate Expiry date (for Bank, null for others)
      * @return Payment object if successful
-     * @throws IllegalArgumentException if payment fails
+     * @throws IllegalArgumentException if payment fails or authentication fails
      */
-    Payment processPayment(int customerId, String paymentType, double amount, 
-                          String cardNumber, String expiryDate) throws IllegalArgumentException;
-    
-    /**
-     * Get payment method for customer
-     * 
-     * @param customerId Customer ID
-     * @param paymentType Payment type
-     * @return Optional containing payment method if found
-     */
-    Optional<PaymentMethod> getPaymentMethod(int customerId, String paymentType);
+    Payment processPayment(String paymentType, String identifier, String password, double amount) 
+            throws IllegalArgumentException;
     
     /**
      * Create payment instance from payment method

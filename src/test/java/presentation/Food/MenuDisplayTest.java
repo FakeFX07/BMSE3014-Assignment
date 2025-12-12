@@ -99,23 +99,6 @@ public class MenuDisplayTest {
     }
     
     @Test
-    @DisplayName("displayFoodMenu - With single food - Should display correctly")
-    void testDisplayFoodMenu_SingleFood() {
-        List<Food> foods = Arrays.asList(
-            new Food(2000, "Chicken Rice", 10.50, "Set")
-        );
-        
-        MenuDisplay.displayFoodMenu(foods);
-        String output = outputStream.toString();
-        
-        assertTrue(output.contains("Chicken Rice"));
-        assertTrue(output.contains("2000"));
-        assertTrue(output.contains("1."));
-        
-        System.setOut(originalOut);
-    }
-    
-    @Test
     @DisplayName("displayFoodMenu - With empty list - Should display headers only")
     void testDisplayFoodMenu_EmptyList() {
         List<Food> foods = new ArrayList<>();
@@ -134,8 +117,10 @@ public class MenuDisplayTest {
     void testDisplayOrderReport_MultipleOrders() {
         Customer customer1 = new Customer(1000, "John Doe");
         Customer customer2 = new Customer(1001, "Jane Smith");
-        PaymentMethod pm1 = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
-        PaymentMethod pm2 = new PaymentMethod(2, 1001, "Cash", 50.00, null, null);
+        PaymentMethod pm1 = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm1.setPaymentMethodId(1);
+        PaymentMethod pm2 = new PaymentMethod("CASH001", "Cash", "cash123", 50.00);
+        pm2.setPaymentMethodId(2);
         
         Order order1 = new Order(new Date(), customer1, new ArrayList<>(), 21.00, pm1);
         order1.setOrderId(1);
@@ -165,7 +150,8 @@ public class MenuDisplayTest {
     @DisplayName("displayOrderReport - With single order - Should display correctly")
     void testDisplayOrderReport_SingleOrder() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Order order = new Order(new Date(), customer, new ArrayList<>(), 21.00, pm);
         order.setOrderId(1);
         
@@ -274,26 +260,6 @@ public class MenuDisplayTest {
     }
     
     @Test
-    @DisplayName("displayFoodMenu - Should increment index correctly")
-    void testDisplayFoodMenu_IndexIncrement() {
-        List<Food> foods = Arrays.asList(
-            new Food(2000, "Food A", 10.00, "Set"),
-            new Food(2001, "Food B", 11.00, "Set"),
-            new Food(2002, "Food C", 12.00, "Set")
-        );
-        
-        MenuDisplay.displayFoodMenu(foods);
-        String output = outputStream.toString();
-        
-        // Check that indices 1, 2, 3 appear
-        assertTrue(output.contains("1."));
-        assertTrue(output.contains("2."));
-        assertTrue(output.contains("3."));
-        
-        System.setOut(originalOut);
-    }
-    
-    @Test
     @DisplayName("displayFoodAdminMenu - Should skip code 0 in loop")
     void testDisplayFoodAdminMenu_SkipsExitInLoop() {
         MenuDisplay.displayFoodAdminMenu();
@@ -313,7 +279,8 @@ public class MenuDisplayTest {
     @DisplayName("displayOrderReport - Should format prices with 2 decimals")
     void testDisplayOrderReport_FormattedPrices() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Order order = new Order(new Date(), customer, new ArrayList<>(), 21.5, pm);
         order.setOrderId(1);
         

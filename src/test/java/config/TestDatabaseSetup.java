@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import util.PasswordUtil;
+
 /**
  * Test Database Setup Utility
  * Creates test database schema for H2 database
@@ -30,20 +32,22 @@ public class TestDatabaseSetup {
                     "password VARCHAR(100) NOT NULL" +
                     ")");
             
-            // Create foods table
+            // Create foods table with quantity field
             stmt.execute("CREATE TABLE IF NOT EXISTS foods (" +
                     "food_id INT PRIMARY KEY AUTO_INCREMENT, " +
                     "food_name VARCHAR(100) NOT NULL, " +
                     "food_price DECIMAL(10,2) NOT NULL, " +
-                    "food_type VARCHAR(20) NOT NULL" +
+                    "food_type VARCHAR(20) NOT NULL, " +
+                    "quantity INT NOT NULL DEFAULT 0" +
                     ")");
             
-            // Create payment_methods table
+            // Create payment_methods table (new schema without customer_id)
             stmt.execute("CREATE TABLE IF NOT EXISTS payment_methods (" +
                     "payment_method_id INT PRIMARY KEY AUTO_INCREMENT, " +
-                    "customer_id INT NOT NULL, " +
+                    "password VARCHAR(255) NOT NULL, " +
                     "payment_type VARCHAR(20) NOT NULL, " +
-                    "balance DECIMAL(10,2) NOT NULL, " +
+                    "wallet_id VARCHAR(50), " +
+                    "balance DECIMAL(10,2) NOT NULL DEFAULT 0.00, " +
                     "card_number VARCHAR(16), " +
                     "expiry_date VARCHAR(4)" +
                     ")");
@@ -85,23 +89,31 @@ public class TestDatabaseSetup {
      * Insert test data
      */
     private static void insertTestData(Statement stmt) throws SQLException {
-        // Insert test customers
+        // Hash passwords before inserting
+        String password1Hash = PasswordUtil.hashPassword("password123");
+        String password2Hash = PasswordUtil.hashPassword("pass456");
+        
+        // Insert test customers with hashed passwords
         stmt.execute("INSERT INTO customers (customer_id, name, age, phone_number, gender, password) VALUES " +
-                "(1000, 'John Doe', 25, '0123456789', 'Male', 'password123'), " +
-                "(1001, 'Jane Smith', 30, '0111111111', 'Female', 'pass456')");
+                "(1000, 'John Doe', 25, '0123456789', 'Male', '" + password1Hash + "'), " +
+                "(1001, 'Jane Smith', 30, '0111111111', 'Female', '" + password2Hash + "')");
         
-        // Insert test foods
-        stmt.execute("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES " +
-                "(2000, 'Chicken Rice', 10.50, 'Set'), " +
-                "(2001, 'Nasi Lemak', 8.00, 'Set'), " +
-                "(2002, 'Mee Goreng', 12.00, 'A la carte')");
+        // Insert test foods with quantities
+        stmt.execute("INSERT INTO foods (food_id, food_name, food_price, food_type, quantity) VALUES " +
+                "(2000, 'Chicken Rice', 10.50, 'Set', 50), " +
+                "(2001, 'Nasi Lemak', 8.00, 'Set', 30), " +
+                "(2002, 'Mee Goreng', 12.00, 'A la carte', 25)");
         
-        // Insert test payment methods
-        stmt.execute("INSERT INTO payment_methods (payment_method_id, customer_id, payment_type, balance, card_number, expiry_date) VALUES " +
-                "(1, 1000, 'TNG', 100.00, NULL, NULL), " +
-                "(2, 1000, 'Grab', 50.00, NULL, NULL), " +
-                "(3, 1000, 'Bank', 200.00, '1234567890123456', '1225'), " +
-                "(4, 1001, 'TNG', 75.00, NULL, NULL)");
+        // Insert test payment methods with hashed passwords (SHA256)
+        String tngPassword = PasswordUtil.hashPassword("tng123");
+        String grabPassword = PasswordUtil.hashPassword("grab456");
+        String bankPassword = PasswordUtil.hashPassword("bank789");
+        
+        stmt.execute("INSERT INTO payment_methods (payment_method_id, password, payment_type, wallet_id, balance, card_number, expiry_date) VALUES " +
+                "(1, '" + tngPassword + "', 'TNG', 'TNG001', 100.00, NULL, NULL), " +
+                "(2, '" + grabPassword + "', 'Grab', 'GRAB001', 50.00, NULL, NULL), " +
+                "(3, '" + bankPassword + "', 'Bank', NULL, 200.00, '1234567890123456', '1225'), " +
+                "(4, '" + tngPassword + "', 'TNG', 'TNG002', 75.00, NULL, NULL)");
     }
     
     /**

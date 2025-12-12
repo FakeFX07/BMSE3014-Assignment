@@ -382,6 +382,16 @@ public class FoodServiceTest {
                     .anyMatch(f -> f.getFoodName().equalsIgnoreCase(foodName));
         }
         
+        @Override
+        public boolean decrementQuantity(int foodId, int quantityToDeduct) {
+            Food food = foods.get(foodId);
+            if (food != null && food.getQuantity() >= quantityToDeduct) {
+                food.setQuantity(food.getQuantity() - quantityToDeduct);
+                return true;
+            }
+            return false;
+        }
+        
         public void addFood(Food food) {
             foods.put(food.getFoodId(), food);
         }

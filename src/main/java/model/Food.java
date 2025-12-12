@@ -14,6 +14,7 @@ public class Food {
     private String foodName;
     private BigDecimal foodPrice;
     private String foodType;
+    private int quantity; // Available quantity in stock
     
     // Default constructor
     public Food() {
@@ -24,6 +25,15 @@ public class Food {
         this.foodName = foodName;
         this.foodPrice = BigDecimal.valueOf(foodPrice);
         this.foodType = foodType;
+        this.quantity = 0; // Default quantity
+    }
+    
+    // Constructor with quantity
+    public Food(String foodName, double foodPrice, String foodType, int quantity) {
+        this.foodName = foodName;
+        this.foodPrice = BigDecimal.valueOf(foodPrice);
+        this.foodType = foodType;
+        this.quantity = quantity;
     }
     
     // Full constructor
@@ -32,6 +42,16 @@ public class Food {
         this.foodName = foodName;
         this.foodPrice = BigDecimal.valueOf(foodPrice);
         this.foodType = foodType;
+        this.quantity = 0; // Default quantity
+    }
+    
+    // Full constructor with quantity
+    public Food(int foodId, String foodName, double foodPrice, String foodType, int quantity) {
+        this.foodId = foodId;
+        this.foodName = foodName;
+        this.foodPrice = BigDecimal.valueOf(foodPrice);
+        this.foodType = foodType;
+        this.quantity = quantity;
     }
     
     // Getters
@@ -55,6 +75,10 @@ public class Food {
         return foodType;
     }
     
+    public int getQuantity() {
+        return quantity;
+    }
+    
     // Setters
     public void setFoodId(int foodId) {
         this.foodId = foodId;
@@ -70,6 +94,10 @@ public class Food {
     
     public void setFoodType(String foodType) {
         this.foodType = foodType;
+    }
+    
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
     
     @Override
@@ -92,6 +120,7 @@ public class Food {
                 ", foodName='" + foodName + '\'' +
                 ", foodPrice=" + foodPrice +
                 ", foodType='" + foodType + '\'' +
+                ", quantity=" + quantity +
                 '}';
     }
 }

@@ -16,7 +16,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,52 +75,6 @@ class OrderHandlerTest {
                 .createOrder(anyInt(), anyList(), any(), any(), any());
     }
 
-    /// ---------- handleOrder: Add item + finish order ----------
-    @Test
-    void testHandleOrder_addItemAndCompleteOrder() {
-        when(foodController.getAllFoods()).thenReturn(mockFoodList());
-
-        when(inputHandler.readInt(anyString()))
-                .thenReturn(1)  // food index
-                .thenReturn(2); // quantity
-
-        when(inputHandler.readYesNo(anyString()))
-                .thenReturn(true)   // confirm item
-                .thenReturn(true)   // complete order
-                .thenReturn(false); // no new order
-
-        OrderDetails detail = new OrderDetails(mockFoodList().get(0), 2);
-
-        PaymentMethod pm = new PaymentMethod(
-                10,        // paymentId
-                "TNG",     // method type
-                21.00      // balance/paid
-        );
-
-        model.Order order = new model.Order.Builder()
-        .orderId(1234)
-        .orderDate(new Date())
-        .customer(mockCustomer)
-        .orderDetails(List.of(detail))
-        .totalPrice(new BigDecimal("21.00"))
-        .paymentMethod(pm)
-        .status("COMPLETED")
-        .build();
-
-
-        when(orderController.createOrder(anyInt(), anyList(), eq("Bank"), any(), any()))
-        .thenReturn(order);
-
-
-        when(inputHandler.readInt("Please Select a Payment Method :"))
-                .thenReturn(1);
-
-        orderHandler.handleOrder(mockCustomer);
-
-        verify(orderController, times(1))
-                .createOrder(anyInt(), anyList(), anyString(), any(), any());
-    }
-
     /// ---------- processOrder: invalid payment ----------
     @Test
     void testProcessOrder_invalidPaymentChoice() {
@@ -135,51 +88,6 @@ class OrderHandlerTest {
 
         verify(orderController, never())
                 .createOrder(anyInt(), anyList(), any(), any(), any());
-    }
-
-    /// ---------- processOrder: bank payment w/ validation ----------
-    @Test
-    void testProcessOrder_bankPaymentWithValidation() {
-        List<OrderDetails> details = List.of(
-                new OrderDetails(mockFoodList().get(0), 1)
-        );
-
-        when(inputHandler.readInt(anyString())).thenReturn(3); // choose Bank
-
-        // card number input retry - use anyString() matcher to handle any call
-        when(inputHandler.readString(anyString()))
-                .thenReturn("123")  // first call - invalid length
-                .thenReturn("1234567890123456")  // second call - valid length
-                .thenReturn("12")  // first expiry call - invalid length
-                .thenReturn("0528");  // second expiry call - valid length
-
-        PaymentMethod pm = new PaymentMethod(
-                20,
-                "Bank",
-                10.50
-        );
-
-        model.Order order = new model.Order.Builder()
-        .orderId(1234)
-        .orderDate(new Date())
-        .customer(mockCustomer)
-        .orderDetails(List.of(details.get(0)))
-        .totalPrice(new BigDecimal("21.00"))
-        .paymentMethod(pm)
-        .status("COMPLETED")
-        .build();
-
-
-
-        when(orderController.createOrder(anyInt(), anyList(), eq("Bank"), any(), any()))
-        .thenReturn(order);
-
-
-        orderHandler.processOrder(mockCustomer, details);
-
-        verify(orderController, times(1))
-                .createOrder(anyInt(), anyList(), eq("Bank"),
-                        eq("1234567890123456"), eq("0528"));
     }
 
     /// ---------- processOrder: empty list ----------
@@ -196,10 +104,12 @@ class OrderHandlerTest {
         OrderDetails detail = new OrderDetails(mockFoodList().get(0), 2);
 
         PaymentMethod pm = new PaymentMethod(
-                30,
-                "Grab",
-                21.00
+                "GRAB001",  // wallet ID
+                "Grab",     // payment type
+                "grab456",  // password
+                21.00       // balance
         );
+        pm.setPaymentMethodId(30);
 
         model.Order order = new model.Order.Builder()
         .orderId(1234)

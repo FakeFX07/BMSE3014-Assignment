@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import model.*;
 import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IFoodRepository;
 import repository.interfaces.IOrderRepository;
 import repository.interfaces.IPaymentMethodRepository;
 import service.impl.OrderService;
@@ -29,6 +30,7 @@ public class OrderServiceTest {
     private MockCustomerRepository customerRepository;
     private MockPaymentMethodRepository paymentMethodRepository;
     private MockPaymentService paymentService;
+    private MockFoodRepository foodRepository;
     
     @BeforeEach
     void setUp() {
@@ -36,9 +38,10 @@ public class OrderServiceTest {
         customerRepository = new MockCustomerRepository();
         paymentMethodRepository = new MockPaymentMethodRepository();
         paymentService = new MockPaymentService(paymentMethodRepository);
+        foodRepository = new MockFoodRepository();
         
         orderService = new OrderService(orderRepository, customerRepository, 
-                                       paymentMethodRepository, paymentService);
+                                       paymentMethodRepository, paymentService, foodRepository);
     }
     
     @Test
@@ -61,15 +64,18 @@ public class OrderServiceTest {
         Customer customer = new Customer(1000, "John Doe", 25, "0123456789", "Male", "password");
         customerRepository.addCustomer(customer);
         
-        PaymentMethod pm = new PaymentMethod(1000, "TNG", 100.00);
+        // Store password as hashed
+        String hashedPassword = util.PasswordUtil.hashPassword("tng123");
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", hashedPassword, 100.00);
         pm.setPaymentMethodId(1);
         paymentMethodRepository.addPaymentMethod(pm);
         
         List<OrderDetails> details = new ArrayList<>();
-        Food food = new Food(2000, "Food 1", 10.00, "Set");
+        Food food = new Food(2000, "Food 1", 10.00, "Set", 10); // Add quantity
+        foodRepository.addFood(food);
         details.add(new OrderDetails(food, 2));
         
-        Order order = orderService.createOrder(1000, details, "TNG", null, null);
+        Order order = orderService.createOrder(1000, details, "TNG", "TNG001", "tng123");
         
         assertNotNull(order);
         assertEquals(20.00, order.getTotalPrice(), 0.01);
@@ -80,11 +86,12 @@ public class OrderServiceTest {
     @DisplayName("Test createOrder - customer not found")
     void testCreateOrder_CustomerNotFound() {
         List<OrderDetails> details = new ArrayList<>();
-        Food food = new Food(2000, "Food 1", 10.00, "Set");
+        Food food = new Food(2000, "Food 1", 10.00, "Set", 10); // Add quantity
+        foodRepository.addFood(food);
         details.add(new OrderDetails(food, 1));
         
         assertThrows(IllegalArgumentException.class, () -> {
-            orderService.createOrder(9999, details, "TNG", null, null);
+            orderService.createOrder(9999, details, "TNG", "TNG001", "tng123");
         });
     }
     
@@ -95,7 +102,7 @@ public class OrderServiceTest {
         customerRepository.addCustomer(customer);
         
         assertThrows(IllegalArgumentException.class, () -> {
-            orderService.createOrder(1000, new ArrayList<>(), "TNG", null, null);
+            orderService.createOrder(1000, new ArrayList<>(), "TNG", "TNG001", "tng123");
         });
     }
 
@@ -105,14 +112,18 @@ public class OrderServiceTest {
         Customer customer = new Customer(1000, "John Doe", 25, "0123456789", "Male", "password");
         customerRepository.addCustomer(customer);
 
-        PaymentMethod pm = new PaymentMethod(1000, "TNG", 100.00);
+        // Store password as hashed
+        String hashedPassword = util.PasswordUtil.hashPassword("tng123");
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", hashedPassword, 100.00);
         pm.setPaymentMethodId(1);
         paymentMethodRepository.addPaymentMethod(pm);
 
         List<OrderDetails> details = new ArrayList<>();
-        details.add(new OrderDetails(new Food(2000, "Food 1", 10.00, "Set"), 1));
+        Food food = new Food(2000, "Food 1", 10.00, "Set", 10); // Add quantity
+        foodRepository.addFood(food);
+        details.add(new OrderDetails(food, 1));
 
-        orderService.createOrder(1000, details, "TNG", null, null);
+        orderService.createOrder(1000, details, "TNG", "TNG001", "tng123");
 
         assertEquals(1, orderService.getOrdersByCustomerId(1000).size());
         assertEquals(1, orderService.getAllOrders().size());
@@ -194,6 +205,8 @@ public class OrderServiceTest {
     
     private static class MockPaymentMethodRepository implements IPaymentMethodRepository {
         private java.util.Map<Integer, PaymentMethod> paymentMethods = new java.util.HashMap<>();
+        private java.util.Map<String, PaymentMethod> byWalletId = new java.util.HashMap<>();
+        private java.util.Map<String, PaymentMethod> byCardNumber = new java.util.HashMap<>();
         
         @Override
         public Optional<PaymentMethod> findById(int paymentMethodId) {
@@ -201,23 +214,42 @@ public class OrderServiceTest {
         }
         
         @Override
-        public List<PaymentMethod> findByCustomerId(int customerId) {
-            return paymentMethods.values().stream()
-                    .filter(pm -> pm.getCustomerId() == customerId)
-                    .collect(java.util.stream.Collectors.toList());
+        public Optional<PaymentMethod> findByWalletId(String walletId) {
+            return Optional.ofNullable(byWalletId.get(walletId));
         }
         
         @Override
-        public Optional<PaymentMethod> findByCustomerIdAndType(int customerId, String paymentType) {
-            return paymentMethods.values().stream()
-                    .filter(pm -> pm.getCustomerId() == customerId && 
-                                 pm.getPaymentType().equalsIgnoreCase(paymentType))
-                    .findFirst();
+        public Optional<PaymentMethod> findByCardNumber(String cardNumber) {
+            return Optional.ofNullable(byCardNumber.get(cardNumber));
+        }
+        
+        @Override
+        public Optional<PaymentMethod> authenticateByWalletId(String walletId, String hashedPassword) {
+            PaymentMethod pm = byWalletId.get(walletId);
+            if (pm != null && pm.getPassword().equals(hashedPassword)) {
+                return Optional.of(pm);
+            }
+            return Optional.empty();
+        }
+        
+        @Override
+        public Optional<PaymentMethod> authenticateByCardNumber(String cardNumber, String hashedPassword) {
+            PaymentMethod pm = byCardNumber.get(cardNumber);
+            if (pm != null && pm.getPassword().equals(hashedPassword)) {
+                return Optional.of(pm);
+            }
+            return Optional.empty();
         }
         
         @Override
         public PaymentMethod save(PaymentMethod paymentMethod) {
             paymentMethods.put(paymentMethod.getPaymentMethodId(), paymentMethod);
+            if (paymentMethod.getWalletId() != null) {
+                byWalletId.put(paymentMethod.getWalletId(), paymentMethod);
+            }
+            if (paymentMethod.getCardNumber() != null) {
+                byCardNumber.put(paymentMethod.getCardNumber(), paymentMethod);
+            }
             return paymentMethod;
         }
         
@@ -233,6 +265,12 @@ public class OrderServiceTest {
         
         public void addPaymentMethod(PaymentMethod pm) {
             paymentMethods.put(pm.getPaymentMethodId(), pm);
+            if (pm.getWalletId() != null) {
+                byWalletId.put(pm.getWalletId(), pm);
+            }
+            if (pm.getCardNumber() != null) {
+                byCardNumber.put(pm.getCardNumber(), pm);
+            }
         }
     }
     
@@ -244,11 +282,20 @@ public class OrderServiceTest {
         }
         
         @Override
-        public Payment processPayment(int customerId, String paymentType, double amount, 
-                                    String cardNumber, String expiryDate) {
-            Optional<PaymentMethod> pmOpt = repository.findByCustomerIdAndType(customerId, paymentType);
+        public Payment processPayment(String paymentType, String identifier, String password, double amount) {
+            // Hash password as PaymentService does
+            String hashedPassword = util.PasswordUtil.hashPassword(password);
+            
+            // Authenticate and get payment method
+            Optional<PaymentMethod> pmOpt;
+            if ("Bank".equalsIgnoreCase(paymentType)) {
+                pmOpt = repository.authenticateByCardNumber(identifier, hashedPassword);
+            } else {
+                pmOpt = repository.authenticateByWalletId(identifier, hashedPassword);
+            }
+            
             if (pmOpt.isEmpty()) {
-                throw new IllegalArgumentException("Payment method not found");
+                throw new IllegalArgumentException("Invalid wallet ID or password");
             }
             
             PaymentMethod pm = pmOpt.get();
@@ -265,13 +312,76 @@ public class OrderServiceTest {
         }
         
         @Override
-        public Optional<PaymentMethod> getPaymentMethod(int customerId, String paymentType) {
-            return repository.findByCustomerIdAndType(customerId, paymentType);
+        public Payment createPayment(PaymentMethod paymentMethod) {
+            return new TNGPayment(paymentMethod.getBalance());
+        }
+    }
+    
+    private static class MockFoodRepository implements IFoodRepository {
+        private java.util.Map<Integer, Food> foods = new java.util.HashMap<>();
+        
+        @Override
+        public Optional<Food> findById(int foodId) {
+            return Optional.ofNullable(foods.get(foodId));
         }
         
         @Override
-        public Payment createPayment(PaymentMethod paymentMethod) {
-            return new TNGPayment(paymentMethod.getBalance());
+        public Optional<Food> findByName(String foodName) {
+            return foods.values().stream()
+                    .filter(f -> f.getFoodName().equalsIgnoreCase(foodName))
+                    .findFirst();
+        }
+        
+        @Override
+        public List<Food> findAll() {
+            return new ArrayList<>(foods.values());
+        }
+        
+        @Override
+        public Food save(Food food) {
+            foods.put(food.getFoodId(), food);
+            return food;
+        }
+        
+        @Override
+        public Food update(Food food) {
+            foods.put(food.getFoodId(), food);
+            return food;
+        }
+        
+        @Override
+        public boolean deleteById(int foodId) {
+            return foods.remove(foodId) != null;
+        }
+        
+        @Override
+        public int getNextFoodId() {
+            return 2000;
+        }
+        
+        @Override
+        public boolean existsById(int foodId) {
+            return foods.containsKey(foodId);
+        }
+        
+        @Override
+        public boolean existsByName(String foodName) {
+            return foods.values().stream()
+                    .anyMatch(f -> f.getFoodName().equalsIgnoreCase(foodName));
+        }
+        
+        @Override
+        public boolean decrementQuantity(int foodId, int quantityToDeduct) {
+            Food food = foods.get(foodId);
+            if (food != null && food.getQuantity() >= quantityToDeduct) {
+                food.setQuantity(food.getQuantity() - quantityToDeduct);
+                return true;
+            }
+            return false;
+        }
+        
+        public void addFood(Food food) {
+            foods.put(food.getFoodId(), food);
         }
     }
 }

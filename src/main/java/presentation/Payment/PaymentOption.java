@@ -46,12 +46,12 @@ public enum PaymentOption {
      * Display the payment options menu using enum values
      */
     public static void displayMenu() {
-        System.out.println("\t===================");
-        System.out.println("\t      Payment      ");
-        System.out.println("\t===================");
+        System.out.println("===================");
+        System.out.println("      Payment      ");
+        System.out.println("===================");
         
         // Build the payment options line
-        StringBuilder paymentLine = new StringBuilder("\t");
+        StringBuilder paymentLine = new StringBuilder("");
         for (int i = 0; i < PaymentOption.values().length; i++) {
             PaymentOption option = PaymentOption.values()[i];
             paymentLine.append(option.getOptionNumber()).append(".").append(option.getDisplayText());
@@ -61,7 +61,7 @@ public enum PaymentOption {
         }
         System.out.println(paymentLine.toString());
         
-        System.out.println("\t===================");
+        System.out.println("===================");
     }
     
     /**

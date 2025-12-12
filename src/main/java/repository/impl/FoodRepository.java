@@ -20,12 +20,13 @@ public class FoodRepository implements IFoodRepository {
     private static final String FIND_BY_ID = "SELECT * FROM foods WHERE food_id = ?";
     private static final String FIND_BY_NAME = "SELECT * FROM foods WHERE LOWER(food_name) = LOWER(?)";
     private static final String FIND_ALL = "SELECT * FROM foods ORDER BY food_id";
-    private static final String INSERT = "INSERT INTO foods (food_name, food_price, food_type) VALUES (?, ?, ?)";
-    private static final String UPDATE = "UPDATE foods SET food_name = ?, food_price = ?, food_type = ? WHERE food_id = ?";
+    private static final String INSERT = "INSERT INTO foods (food_name, food_price, food_type, quantity) VALUES (?, ?, ?, ?)";
+    private static final String UPDATE = "UPDATE foods SET food_name = ?, food_price = ?, food_type = ?, quantity = ? WHERE food_id = ?";
     private static final String DELETE = "DELETE FROM foods WHERE food_id = ?";
     private static final String GET_MAX_ID = "SELECT MAX(food_id) as max_id FROM foods";
     private static final String EXISTS = "SELECT COUNT(*) FROM foods WHERE food_id = ?";
     private static final String EXISTS_BY_NAME = "SELECT COUNT(*) FROM foods WHERE LOWER(food_name) = LOWER(?)";
+    private static final String UPDATE_QUANTITY = "UPDATE foods SET quantity = quantity - ? WHERE food_id = ? AND quantity >= ?";
     
     private final ConnectionProvider connectionProvider;
     
@@ -129,6 +130,7 @@ public class FoodRepository implements IFoodRepository {
             stmt.setString(1, food.getFoodName());
             stmt.setBigDecimal(2, food.getFoodPriceDecimal());
             stmt.setString(3, food.getFoodType());
+            stmt.setInt(4, food.getQuantity());
             
             int affectedRows = stmt.executeUpdate();
             
@@ -160,7 +162,8 @@ public class FoodRepository implements IFoodRepository {
             stmt.setString(1, food.getFoodName());
             stmt.setBigDecimal(2, food.getFoodPriceDecimal());
             stmt.setString(3, food.getFoodType());
-            stmt.setInt(4, food.getFoodId());
+            stmt.setInt(4, food.getQuantity());
+            stmt.setInt(5, food.getFoodId());
             
             stmt.executeUpdate();
         } catch (SQLException e) {
@@ -258,6 +261,29 @@ public class FoodRepository implements IFoodRepository {
     }
     
     /**
+     * Decrement food quantity when order is placed
+     * 
+     * @param foodId Food ID
+     * @param quantityToDeduct Quantity to deduct
+     * @return true if quantity was sufficient and updated, false otherwise
+     */
+    public boolean decrementQuantity(int foodId, int quantityToDeduct) {
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(UPDATE_QUANTITY)) {
+            
+            stmt.setInt(1, quantityToDeduct);
+            stmt.setInt(2, foodId);
+            stmt.setInt(3, quantityToDeduct); // Check that quantity >= quantityToDeduct
+            
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
+            System.err.println("Error decrementing food quantity: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Map ResultSet to Food object
      * Follows DRY principle - single method for mapping
      */
@@ -267,6 +293,13 @@ public class FoodRepository implements IFoodRepository {
         food.setFoodName(rs.getString("food_name"));
         food.setFoodPrice(rs.getBigDecimal("food_price").doubleValue());
         food.setFoodType(rs.getString("food_type"));
+        // Handle quantity - use default 0 if column doesn't exist (for backward compatibility)
+        try {
+            food.setQuantity(rs.getInt("quantity"));
+        } catch (SQLException e) {
+            // Column might not exist in older schemas
+            food.setQuantity(0);
+        }
         return food;
     }
 }

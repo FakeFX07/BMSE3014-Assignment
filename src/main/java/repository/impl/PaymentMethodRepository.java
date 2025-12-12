@@ -2,8 +2,6 @@ package repository.impl;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import config.ConnectionProvider;
@@ -19,11 +17,14 @@ import repository.interfaces.IPaymentMethodRepository;
 public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     private static final String FIND_BY_ID = "SELECT * FROM payment_methods WHERE payment_method_id = ?";
-    private static final String FIND_BY_CUSTOMER_ID = "SELECT * FROM payment_methods WHERE customer_id = ?";
-    private static final String FIND_BY_CUSTOMER_AND_TYPE = 
-            "SELECT * FROM payment_methods WHERE customer_id = ? AND payment_type = ?";
+    private static final String FIND_BY_WALLET_ID = "SELECT * FROM payment_methods WHERE wallet_id = ?";
+    private static final String FIND_BY_CARD_NUMBER = "SELECT * FROM payment_methods WHERE card_number = ?";
+    private static final String AUTH_BY_WALLET_ID = 
+            "SELECT * FROM payment_methods WHERE wallet_id = ? AND password = ?";
+    private static final String AUTH_BY_CARD_NUMBER = 
+            "SELECT * FROM payment_methods WHERE card_number = ? AND password = ?";
     private static final String INSERT = 
-            "INSERT INTO payment_methods (customer_id, payment_type, balance, card_number, expiry_date) VALUES (?, ?, ?, ?, ?)";
+            "INSERT INTO payment_methods (password, payment_type, wallet_id, balance, card_number, expiry_date) VALUES (?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_BALANCE = 
             "UPDATE payment_methods SET balance = ? WHERE payment_method_id = ?";
     
@@ -64,37 +65,71 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     }
     
     @Override
-    public List<PaymentMethod> findByCustomerId(int customerId) {
-        List<PaymentMethod> paymentMethods = new ArrayList<>();
+    public Optional<PaymentMethod> findByWalletId(String walletId) {
         try (Connection conn = connectionProvider.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_ID)) {
+             PreparedStatement stmt = conn.prepareStatement(FIND_BY_WALLET_ID)) {
             
-            stmt.setInt(1, customerId);
-            ResultSet rs = stmt.executeQuery();
-            
-            while (rs.next()) {
-                paymentMethods.add(mapResultSetToPaymentMethod(rs));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error finding payment methods by customer ID: " + e.getMessage());
-        }
-        return paymentMethods;
-    }
-    
-    @Override
-    public Optional<PaymentMethod> findByCustomerIdAndType(int customerId, String paymentType) {
-        try (Connection conn = connectionProvider.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(FIND_BY_CUSTOMER_AND_TYPE)) {
-            
-            stmt.setInt(1, customerId);
-            stmt.setString(2, paymentType);
+            stmt.setString(1, walletId);
             ResultSet rs = stmt.executeQuery();
             
             if (rs.next()) {
                 return Optional.of(mapResultSetToPaymentMethod(rs));
             }
         } catch (SQLException e) {
-            System.err.println("Error finding payment method by customer and type: " + e.getMessage());
+            System.err.println("Error finding payment method by wallet ID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+    
+    @Override
+    public Optional<PaymentMethod> findByCardNumber(String cardNumber) {
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(FIND_BY_CARD_NUMBER)) {
+            
+            stmt.setString(1, cardNumber);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return Optional.of(mapResultSetToPaymentMethod(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error finding payment method by card number: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+    
+    @Override
+    public Optional<PaymentMethod> authenticateByWalletId(String walletId, String hashedPassword) {
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(AUTH_BY_WALLET_ID)) {
+            
+            stmt.setString(1, walletId);
+            stmt.setString(2, hashedPassword);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return Optional.of(mapResultSetToPaymentMethod(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error authenticating by wallet ID: " + e.getMessage());
+        }
+        return Optional.empty();
+    }
+    
+    @Override
+    public Optional<PaymentMethod> authenticateByCardNumber(String cardNumber, String hashedPassword) {
+        try (Connection conn = connectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(AUTH_BY_CARD_NUMBER)) {
+            
+            stmt.setString(1, cardNumber);
+            stmt.setString(2, hashedPassword);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return Optional.of(mapResultSetToPaymentMethod(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error authenticating by card number: " + e.getMessage());
         }
         return Optional.empty();
     }
@@ -104,11 +139,12 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
         try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(INSERT, Statement.RETURN_GENERATED_KEYS)) {
             
-            stmt.setInt(1, paymentMethod.getCustomerId());
+            stmt.setString(1, paymentMethod.getPassword());
             stmt.setString(2, paymentMethod.getPaymentType());
-            stmt.setBigDecimal(3, paymentMethod.getBalanceDecimal());
-            stmt.setString(4, paymentMethod.getCardNumber());
-            stmt.setString(5, paymentMethod.getExpiryDate());
+            stmt.setString(3, paymentMethod.getWalletId());
+            stmt.setBigDecimal(4, paymentMethod.getBalanceDecimal());
+            stmt.setString(5, paymentMethod.getCardNumber());
+            stmt.setString(6, paymentMethod.getExpiryDate());
             
             int affectedRows = stmt.executeUpdate();
             
@@ -147,8 +183,9 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     private PaymentMethod mapResultSetToPaymentMethod(ResultSet rs) throws SQLException {
         PaymentMethod paymentMethod = new PaymentMethod();
         paymentMethod.setPaymentMethodId(rs.getInt("payment_method_id"));
-        paymentMethod.setCustomerId(rs.getInt("customer_id"));
+        paymentMethod.setPassword(rs.getString("password"));
         paymentMethod.setPaymentType(rs.getString("payment_type"));
+        paymentMethod.setWalletId(rs.getString("wallet_id"));
         paymentMethod.setBalance(rs.getBigDecimal("balance").doubleValue());
         paymentMethod.setCardNumber(rs.getString("card_number"));
         paymentMethod.setExpiryDate(rs.getString("expiry_date"));

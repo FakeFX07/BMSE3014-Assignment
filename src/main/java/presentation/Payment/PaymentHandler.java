@@ -20,10 +20,10 @@ public class PaymentHandler {
     }
     
     /**
-     * Handles the payment flow.
+     * Handles the payment flow with wallet ID/card number and password authentication.
      * Displays menu using Enum and processes selection.
      */
-    public void handlePayment(int customerId, double totalAmount) {
+    public void handlePayment(double totalAmount) {
         System.out.println("\n--- Proceeding to Payment ---");
         System.out.printf("Total Amount to Pay: RM %.2f%n", totalAmount);
         
@@ -39,19 +39,23 @@ public class PaymentHandler {
             return;
         }
         
-        // 3. Gather Details
+        // 3. Get identifier and password based on payment type
         String paymentType = selectedOption.getDisplayText();
-        String cardNumber = null;
-        String expiryDate = null;
+        String identifier;
+        String password;
         
         if (selectedOption == PaymentOption.BANK) {
-            cardNumber = inputHandler.readString("Enter Card Number (16 digits): ");
-            expiryDate = inputHandler.readString("Enter Expiry Date (MMYY): ");
+            identifier = inputHandler.readString("Enter Card Number (16 digits): ");
+            password = inputHandler.readPassword("Enter Card Password: ");
+        } else {
+            // TNG or Grab
+            identifier = inputHandler.readString("Enter " + paymentType + " Wallet ID: ");
+            password = inputHandler.readPassword("Enter " + paymentType + " Password: ");
         }
         
         // 4. Confirm and Process
         if (inputHandler.readYesNo("Confirm payment of RM " + totalAmount + "? (Y/N): ")) {
-            Payment result = paymentController.processPayment(customerId, paymentType, totalAmount, cardNumber, expiryDate);
+            Payment result = paymentController.processPayment(paymentType, identifier, password, totalAmount);
             
             if (result != null) {
                 printReceipt(result, totalAmount);

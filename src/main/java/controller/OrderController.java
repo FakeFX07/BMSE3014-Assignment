@@ -5,6 +5,7 @@ import java.util.List;
 import model.Order;
 import model.OrderDetails;
 import repository.impl.CustomerRepository;
+import repository.impl.FoodRepository;
 import repository.impl.OrderRepository;
 import repository.impl.PaymentMethodRepository;
 import service.impl.OrderService;
@@ -30,7 +31,8 @@ public class OrderController {
                 new OrderRepository(),
                 new CustomerRepository(),
                 new PaymentMethodRepository(),
-                new PaymentService(new PaymentMethodRepository())
+                new PaymentService(new PaymentMethodRepository()),
+                new FoodRepository()
         ));
     }
     
@@ -45,9 +47,9 @@ public class OrderController {
      * @return Created order if successful, null if creation fails
      */
     public Order createOrder(int customerId, List<OrderDetails> orderDetailsList, 
-                           String paymentType, String cardNumber, String expiryDate) {
+                           String paymentType, String identifier, String password) {
         try {
-            return orderService.createOrder(customerId, orderDetailsList, paymentType, cardNumber, expiryDate);
+            return orderService.createOrder(customerId, orderDetailsList, paymentType, identifier, password);
         } catch (IllegalArgumentException e) {
             System.out.println("Order creation failed: " + e.getMessage());
             return null;

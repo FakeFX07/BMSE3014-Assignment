@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import util.PasswordUtil;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -27,15 +28,35 @@ public class CustomerRepositoryTest {
     @BeforeEach
     void setUp() throws SQLException {
         connectionProvider = DatabaseConnection.createInstance(H2_URL, "sa", "");
+        // Clean up any existing data first to ensure a clean state
+        try {
+            TestDatabaseSetup.cleanup(connectionProvider);
+        } catch (SQLException e) {
+            // Ignore if tables don't exist yet
+        }
+        // Initialize schema and insert test data
         TestDatabaseSetup.initializeSchema(connectionProvider);
         repository = new CustomerRepository(connectionProvider);
     }
     
     @AfterEach
     void tearDown() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        if (connectionProvider instanceof DatabaseConnection) {
-            ((DatabaseConnection) connectionProvider).closeConnection();
+        // Clean up all test data after each test to ensure test isolation
+        // This ensures that tests don't affect each other
+        try {
+            TestDatabaseSetup.cleanup(connectionProvider);
+        } catch (SQLException e) {
+            // Log but don't fail the test if cleanup has issues
+            System.err.println("Warning: Cleanup failed: " + e.getMessage());
+        } finally {
+            // Always close the connection
+            if (connectionProvider instanceof DatabaseConnection) {
+                try {
+                    ((DatabaseConnection) connectionProvider).closeConnection();
+                } catch (SQLException e) {
+                    System.err.println("Warning: Connection close failed: " + e.getMessage());
+                }
+            }
         }
     }
     
@@ -73,7 +94,9 @@ public class CustomerRepositoryTest {
     @Test
     @DisplayName("Test authenticate - valid credentials")
     void testAuthenticate_Valid() {
-        Optional<Customer> customer = repository.authenticate(1000, "password123");
+        // Repository expects hashed password (as CustomerService hashes it before calling)
+        String hashedPassword = util.PasswordUtil.hashPassword("password123");
+        Optional<Customer> customer = repository.authenticate(1000, hashedPassword);
         assertTrue(customer.isPresent());
         assertEquals("John Doe", customer.get().getName());
     }
@@ -81,7 +104,9 @@ public class CustomerRepositoryTest {
     @Test
     @DisplayName("Test authenticate - invalid credentials")
     void testAuthenticate_Invalid() {
-        Optional<Customer> customer = repository.authenticate(1000, "wrongpassword");
+        // Repository expects hashed password
+        String hashedPassword = util.PasswordUtil.hashPassword("wrongpassword");
+        Optional<Customer> customer = repository.authenticate(1000, hashedPassword);
         assertFalse(customer.isPresent());
     }
     
@@ -236,8 +261,11 @@ public class CustomerRepositoryTest {
     @Test
     @DisplayName("Test authenticate - with different customer IDs")
     void testAuthenticate_DifferentCustomerIds() {
-        Optional<Customer> customer1 = repository.authenticate(1000, "password123");
-        Optional<Customer> customer2 = repository.authenticate(1001, "pass456");
+        // Repository expects hashed passwords
+        String hashedPassword1 = util.PasswordUtil.hashPassword("password123");
+        String hashedPassword2 = util.PasswordUtil.hashPassword("pass456");
+        Optional<Customer> customer1 = repository.authenticate(1000, hashedPassword1);
+        Optional<Customer> customer2 = repository.authenticate(1001, hashedPassword2);
         
         assertTrue(customer1.isPresent());
         assertTrue(customer2.isPresent());
@@ -341,8 +369,10 @@ public class CustomerRepositoryTest {
     @Test
     @DisplayName("Test authenticate - verify password matching")
     void testAuthenticate_PasswordMatching() {
-        Optional<Customer> valid = repository.authenticate(1000, "password123");
-        Optional<Customer> invalid = repository.authenticate(1000, "wrongpass");
+        // Test data uses hashed passwords, so we need to hash the input password
+        String hashedPassword = util.PasswordUtil.hashPassword("password123");
+        Optional<Customer> valid = repository.authenticate(1000, hashedPassword);
+        Optional<Customer> invalid = repository.authenticate(1000, util.PasswordUtil.hashPassword("wrongpass"));
         
         assertTrue(valid.isPresent());
         assertFalse(invalid.isPresent());
@@ -385,7 +415,7 @@ public class CustomerRepositoryTest {
             stmt.setInt(3, 25);
             stmt.setString(4, "0199999999");
             stmt.setString(5, "Male");
-            stmt.setString(6, "pass");
+            stmt.setString(6, PasswordUtil.hashPassword("pass"));
             stmt.executeUpdate();
         }
         
@@ -405,7 +435,7 @@ public class CustomerRepositoryTest {
             stmt.setInt(3, 25);
             stmt.setString(4, "0198888888");
             stmt.setString(5, "Male");
-            stmt.setString(6, "pass");
+            stmt.setString(6, PasswordUtil.hashPassword("pass"));
             stmt.executeUpdate();
         }
         
@@ -507,7 +537,7 @@ public class CustomerRepositoryTest {
             stmt.setInt(3, 25);
             stmt.setString(4, "0222222222");
             stmt.setString(5, "Male");
-            stmt.setString(6, "pass");
+            stmt.setString(6, PasswordUtil.hashPassword("pass"));
             stmt.executeUpdate();
         }
         
@@ -528,7 +558,7 @@ public class CustomerRepositoryTest {
             stmt.setInt(3, 25);
             stmt.setString(4, "0233333333");
             stmt.setString(5, "Male");
-            stmt.setString(6, "pass");
+            stmt.setString(6, PasswordUtil.hashPassword("pass"));
             stmt.executeUpdate();
         }
         
@@ -567,6 +597,10 @@ public class CustomerRepositoryTest {
         assertEquals(25, c.getAge());
         assertEquals("0123456789", c.getPhoneNumber());
         assertEquals("Male", c.getGender());
-        assertEquals("password123", c.getPassword());
+        // Password is hashed in test data, so verify it's a hash (64 chars for SHA-256)
+        assertNotNull(c.getPassword());
+        assertEquals(64, c.getPassword().length()); // SHA-256 produces 64-character hex string
+        // Verify it's the correct hash
+        assertEquals(util.PasswordUtil.hashPassword("password123"), c.getPassword());
     }
 }

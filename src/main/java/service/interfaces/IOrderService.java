@@ -17,14 +17,14 @@ public interface IOrderService {
      * 
      * @param customerId Customer ID
      * @param orderDetailsList List of order details
-     * @param paymentType Payment type
-     * @param cardNumber Card number (for Bank, null for others)
-     * @param expiryDate Expiry date (for Bank, null for others)
+     * @param paymentType Payment type (TNG, Grab, Bank)
+     * @param identifier Wallet ID (for TNG/Grab) or Card Number (for Bank)
+     * @param password Password for payment authentication
      * @return Created order
      * @throws IllegalArgumentException if order creation fails
      */
     Order createOrder(int customerId, List<OrderDetails> orderDetailsList, 
-                     String paymentType, String cardNumber, String expiryDate) throws IllegalArgumentException;
+                     String paymentType, String identifier, String password) throws IllegalArgumentException;
     
     /**
      * Get all orders

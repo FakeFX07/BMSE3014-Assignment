@@ -6,13 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import service.interfaces.IPaymentService;
 
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Payment Controller Test
+ * Payment Controller Test - Updated for new payment authentication system
  */
 public class PaymentControllerTest {
     
@@ -26,42 +24,57 @@ public class PaymentControllerTest {
     }
     
     @Test
-    @DisplayName("Test processPayment - success")
-    void testProcessPayment_Success() {
+    @DisplayName("Test processPayment - TNG success")
+    void testProcessPayment_TNG_Success() {
         Payment payment = new TNGPayment(100.00);
-        when(mockService.processPayment(1000, "TNG", 50.00, null, null)).thenReturn(payment);
+        when(mockService.processPayment("TNG", "TNG001", "tng123", 50.00)).thenReturn(payment);
         
-        Payment result = controller.processPayment(1000, "TNG", 50.00, null, null);
+        Payment result = controller.processPayment("TNG", "TNG001", "tng123", 50.00);
         assertNotNull(result);
         assertEquals("TNG", result.paymentName());
     }
     
     @Test
-    @DisplayName("Test processPayment - failure")
-    void testProcessPayment_Failure() {
-        when(mockService.processPayment(1000, "TNG", 200.00, null, null))
+    @DisplayName("Test processPayment - Grab success")
+    void testProcessPayment_Grab_Success() {
+        Payment payment = new GrabPayment(75.00);
+        when(mockService.processPayment("Grab", "GRAB001", "grab456", 30.00)).thenReturn(payment);
+        
+        Payment result = controller.processPayment("Grab", "GRAB001", "grab456", 30.00);
+        assertNotNull(result);
+        assertEquals("Grab", result.paymentName());
+    }
+    
+    @Test
+    @DisplayName("Test processPayment - Bank success")
+    void testProcessPayment_Bank_Success() {
+        Payment payment = new BankPayment(200.00);
+        when(mockService.processPayment("Bank", "1234567890123456", "bank789", 100.00))
+            .thenReturn(payment);
+        
+        Payment result = controller.processPayment("Bank", "1234567890123456", "bank789", 100.00);
+        assertNotNull(result);
+        assertEquals("Bank", result.paymentName());
+    }
+    
+    @Test
+    @DisplayName("Test processPayment - insufficient balance")
+    void testProcessPayment_InsufficientBalance() {
+        when(mockService.processPayment("TNG", "TNG001", "tng123", 200.00))
             .thenThrow(new IllegalArgumentException("Insufficient balance"));
         
-        Payment result = controller.processPayment(1000, "TNG", 200.00, null, null);
+        Payment result = controller.processPayment("TNG", "TNG001", "tng123", 200.00);
         assertNull(result);
     }
     
     @Test
-    @DisplayName("Test getPaymentMethod - existing")
-    void testGetPaymentMethod_Existing() {
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
-        when(mockService.getPaymentMethod(1000, "TNG")).thenReturn(Optional.of(pm));
+    @DisplayName("Test processPayment - invalid credentials")
+    void testProcessPayment_InvalidCredentials() {
+        when(mockService.processPayment("TNG", "TNG001", "wrongpassword", 50.00))
+            .thenThrow(new IllegalArgumentException("Invalid wallet ID or password"));
         
-        PaymentMethod result = controller.getPaymentMethod(1000, "TNG");
-        assertNotNull(result);
-        assertEquals("TNG", result.getPaymentType());
-    }
-    
-    @Test
-    @DisplayName("Test getPaymentMethod - not found")
-    void testGetPaymentMethod_NotFound() {
-        when(mockService.getPaymentMethod(9999, "TNG")).thenReturn(Optional.empty());
-        assertNull(controller.getPaymentMethod(9999, "TNG"));
+        Payment result = controller.processPayment("TNG", "TNG001", "wrongpassword", 50.00);
+        assertNull(result);
     }
 }
 

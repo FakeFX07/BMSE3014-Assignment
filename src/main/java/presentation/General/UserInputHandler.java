@@ -1,4 +1,5 @@
 package presentation.General;
+import java.io.Console;
 import java.util.Scanner;
 
 /**
@@ -9,9 +10,11 @@ import java.util.Scanner;
 public class UserInputHandler {
 
     private final Scanner scanner;
+    private final Console console;
 
     public UserInputHandler(Scanner scanner) {
         this.scanner = scanner;
+        this.console = System.console();
     }
 
     /**
@@ -104,5 +107,31 @@ public class UserInputHandler {
         System.out.print(prompt);
         String input = scanner.nextLine();
         return input.isEmpty() ? ' ' : input.charAt(0);
+    }
+
+    /**
+     * Read password input with masking (displays * instead of characters)
+     * Uses System.console() when available (production), falls back to Scanner for testing
+     * 
+     * @param prompt Prompt message
+     * @return Password as String
+     */
+    public String readPassword(String prompt) {
+        System.out.print(prompt);
+        
+        // Use Console for password masking when available (production environment)
+        if (console != null) {
+            char[] passwordChars = console.readPassword();
+            if (passwordChars != null) {
+                String password = new String(passwordChars);
+                // Clear the password from memory
+                java.util.Arrays.fill(passwordChars, ' ');
+                return password;
+            }
+        }
+        
+        // Fallback to Scanner for testing environments (IDE, unit tests)
+        // Note: This won't mask the password visually, but keeps the API consistent
+        return scanner.nextLine();
     }
 }

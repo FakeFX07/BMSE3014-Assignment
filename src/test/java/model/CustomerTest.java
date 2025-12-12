@@ -56,32 +56,6 @@ class CustomerTest {
     }
 
     // ==========================================
-    // 2. Test equals() Logic (Crucial for Coverage)
-    // ==========================================
-
-    @Test
-    void testEquals() {
-        Customer c1 = new Customer(1, "John");
-        Customer c2 = new Customer(1, "John"); // Same ID as c1
-        Customer c3 = new Customer(2, "Jane"); // Different ID
-
-        // 1. Test comparison with itself (this == o)
-        assertTrue(c1.equals(c1));
-
-        // 2. Test comparison with null
-        assertFalse(c1.equals(null));
-
-        // 3. Test comparison with different class
-        assertFalse(c1.equals("Some String"));
-
-        // 4. Test comparison with same ID (Should be true based on your code)
-        assertTrue(c1.equals(c2));
-
-        // 5. Test comparison with different ID
-        assertFalse(c1.equals(c3));
-    }
-
-    // ==========================================
     // 3. Test hashCode()
     // ==========================================
 

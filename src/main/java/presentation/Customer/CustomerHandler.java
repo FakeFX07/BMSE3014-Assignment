@@ -27,23 +27,19 @@ public class CustomerHandler {
         try {
             // 2. 这里的 readInt 或 readString 如果输入 X 会抛出异常
             int customerId = inputHandler.readInt("Customer ID (X to cancel) : ");
-            String password = inputHandler.readString("Password (X to cancel) : ");
+            String password = inputHandler.readPassword("Password : ");
 
             Customer customer = customerController.login(customerId, password);
 
             if (customer != null) {
-                System.out.println("\n===================================================");
-                System.out.println("\t\tWelcome " + customer.getName());
-                System.out.println("\tHave a great time placing an order");
-                System.out.println("===================================================\n");
+                System.out.println("\n=================================================================================");
+                System.out.println("\t\t\t\tWelcome " + customer.getName());
+                System.out.println("=================================================================================");
                 return customer;
             } else {
-                System.out.println("\n========================");
-                System.out.println("| Wrong ID or Password |");
-                System.out.println("========================\n");
+                System.out.println("Wrong ID or Password !!!!");
             }
         } catch (UserCancelledException e) {
-            // 3. 捕获取消操作，安全退出登录流程
             System.out.println("\n>> Login Cancelled.\n");
             return null;
         }
@@ -52,16 +48,6 @@ public class CustomerHandler {
     }
 
     public void handleRegister() {
-        // 这个简单的 YesNo 也可以抛出异常，不过通常 UserInputHandler 对 readYesNo 的实现可能略有不同
-        // 如果你的 readYesNo 也会抛出异常，建议也放进 try 里面。
-        // 这里假设 readYesNo 只是返回 true/false。
-        if (!inputHandler.readYesNo("Are you confirm want to register ? (Y/N) : ")) {
-            System.out.println("\n========================");
-            System.out.println("|  Quit From Register  |");
-            System.out.println("========================\n");
-            return;
-        }
-
         System.out.println("==========================--=");
         System.out.println("[]      Enter Details      []");
         System.out.println("==========================--=");
@@ -124,7 +110,7 @@ public class CustomerHandler {
             // Password validation
             String password;
             do {
-                password = inputHandler.readString("Enter your password : ");
+                password = inputHandler.readPassword("Enter your password : ");
                 try {
                     customerController.checkPassword(password);
                     break;
@@ -136,7 +122,7 @@ public class CustomerHandler {
             // Password confirmation
             String confirmPassword;
             do {
-                confirmPassword = inputHandler.readString("Confirm your password again : ");
+                confirmPassword = inputHandler.readPassword("Confirm your password again : ");
                 try {
                     customerController.checkPasswordConfirmation(password, confirmPassword);
                     break;
@@ -146,19 +132,33 @@ public class CustomerHandler {
             } while (true);
             customer.setPassword(password);
 
-            // Final confirmation
-            if (inputHandler.readYesNo("Are you sure want to register (Y/N) :")) {
+            // Display customer information before confirmation
+            System.out.println("\n==============================");
+            System.out.println("[]     Customer Details     []");
+            System.out.println("==============================");
+            System.out.println("  Name : " + customer.getName());
+            System.out.println("  Age : " + customer.getAge());
+            System.out.println("  Phone No : " + customer.getPhoneNumber());
+            System.out.println("  Gender : " + customer.getGender());
+            System.out.println("==============================\n");
+
+            // Final confirmation after displaying details
+            if (inputHandler.readYesNo("Are you sure want to register (Y/N) : ")) {
                 Customer registeredCustomer = customerController.registerCustomer(customer);
                 if (registeredCustomer != null) {
-                    System.out.println("\n==============================");
-                    System.out.println("[]     Customer Details     []");
-                    System.out.println("==============================");
+                    System.out.println("\n=============================================");
+                    System.out.println("[]      Registration Successful!          []");
+                    System.out.println("=============================================");
                     System.out.println("  ID : " + registeredCustomer.getCustomerId());
                     System.out.println("  Name : " + registeredCustomer.getName());
                     System.out.println("  Age : " + registeredCustomer.getAge());
                     System.out.println("  Phone No : " + registeredCustomer.getPhoneNumber());
                     System.out.println("  Gender : " + registeredCustomer.getGender());
-                    System.out.println("==============================\n");
+                    System.out.println("=============================================\n");
+                } else {
+                    System.out.println("\n=============================================");
+                    System.out.println("[]      Registration Failed                 []");
+                    System.out.println("=============================================\n");
                 }
             } else {
                 System.out.println("\n=============================================");

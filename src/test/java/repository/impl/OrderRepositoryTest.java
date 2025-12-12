@@ -46,7 +46,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test save - new order")
     void testSave_NewOrder() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 2);
         List<OrderDetails> details = new ArrayList<>();
@@ -64,7 +65,8 @@ public class OrderRepositoryTest {
     void testFindById_Existing() {
         // First create an order
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 1);
         List<OrderDetails> details = new ArrayList<>();
@@ -83,7 +85,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test findByCustomerId - returns customer orders")
     void testFindByCustomerId() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 1);
         List<OrderDetails> details = new ArrayList<>();
@@ -122,7 +125,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test save - order with multiple details")
     void testSave_MultipleDetails() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food1 = new Food(2000, "Chicken Rice", 10.50, "Set");
         Food food2 = new Food(2001, "Nasi Lemak", 8.00, "Set");
         List<OrderDetails> details = Arrays.asList(
@@ -163,7 +167,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test save - order with null details")
     void testSave_WithNullDetails() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Order order = new Order(new Date(), customer, null, 0.0, pm);
         order.setStatus("COMPLETED");
         
@@ -175,7 +180,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test findAll - includes new orders")
     void testFindAll_IncludesNewOrders() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 1);
         List<OrderDetails> details = Arrays.asList(detail);
@@ -192,7 +198,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test findById - verify order details loaded")
     void testFindById_WithOrderDetails() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 2);
         List<OrderDetails> details = Arrays.asList(detail);
@@ -211,7 +218,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test findByCustomerId - verify orders ordered by date")
     void testFindByCustomerId_OrderedByDate() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 1);
         
@@ -230,7 +238,8 @@ public class OrderRepositoryTest {
     @DisplayName("Test save - order with empty details list")
     void testSave_WithEmptyDetailsList() {
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Order order = new Order(new Date(), customer, new ArrayList<>(), 0.0, pm);
         order.setStatus("COMPLETED");
         

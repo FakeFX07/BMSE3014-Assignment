@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Optional;
+import util.PasswordUtil;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,16 +48,18 @@ public class PaymentMethodRepositoryTest {
     }
     
     @Test
-    @DisplayName("Test findByCustomerId - returns all methods")
-    void testFindByCustomerId() {
-        List<PaymentMethod> methods = repository.findByCustomerId(1000);
-        assertTrue(methods.size() >= 3);
+    @DisplayName("Test findByWalletId - existing")
+    void testFindByWalletId_Existing() {
+        Optional<PaymentMethod> pm = repository.findByWalletId("TNG001");
+        assertTrue(pm.isPresent());
+        assertEquals("TNG", pm.get().getPaymentType());
     }
     
     @Test
-    @DisplayName("Test findByCustomerIdAndType - existing")
-    void testFindByCustomerIdAndType_Existing() {
-        Optional<PaymentMethod> pm = repository.findByCustomerIdAndType(1000, "TNG");
+    @DisplayName("Test authenticateByWalletId - existing with correct password")
+    void testAuthenticateByWalletId_Existing() {
+        String hashedPassword = PasswordUtil.hashPassword("tng123");
+        Optional<PaymentMethod> pm = repository.authenticateByWalletId("TNG001", hashedPassword);
         assertTrue(pm.isPresent());
         assertEquals("TNG", pm.get().getPaymentType());
     }
@@ -65,7 +67,7 @@ public class PaymentMethodRepositoryTest {
     @Test
     @DisplayName("Test save - new payment method")
     void testSave_NewPaymentMethod() {
-        PaymentMethod pm = new PaymentMethod(1001, "Grab", 60.00);
+        PaymentMethod pm = new PaymentMethod("GRAB002", "Grab", "grab789", 60.00);
         PaymentMethod saved = repository.save(pm);
         assertTrue(saved.getPaymentMethodId() > 0);
     }
@@ -91,7 +93,12 @@ public class PaymentMethodRepositoryTest {
     @Test
     @DisplayName("Test save - Bank payment with card details")
     void testSave_BankPayment() {
-        PaymentMethod pm = new PaymentMethod(1, 1000, "Bank", 200.00, "1234567890123456", "1225");
+        PaymentMethod pm = new PaymentMethod();
+        pm.setPaymentMethodId(1);
+        pm.setPaymentType("Bank");
+        pm.setCardNumber("1234567890123456");
+        pm.setPassword("bank789");
+        pm.setBalance(200.00);
         PaymentMethod saved = repository.save(pm);
         assertTrue(saved.getPaymentMethodId() > 0);
         assertEquals("Bank", saved.getPaymentType());
@@ -99,10 +106,10 @@ public class PaymentMethodRepositoryTest {
     }
     
     @Test
-    @DisplayName("Test findByCustomerId - empty result")
-    void testFindByCustomerId_Empty() {
-        List<PaymentMethod> methods = repository.findByCustomerId(9999);
-        assertTrue(methods.isEmpty());
+    @DisplayName("Test findByWalletId - non-existing")
+    void testFindByWalletId_NonExisting() {
+        Optional<PaymentMethod> pm = repository.findByWalletId("NONEXISTENT");
+        assertFalse(pm.isPresent());
     }
     
     @Test
@@ -115,7 +122,7 @@ public class PaymentMethodRepositoryTest {
     @Test
     @DisplayName("Test save - payment method with generated ID")
     void testSave_WithGeneratedId() {
-        PaymentMethod pm = new PaymentMethod(1001, "Grab", 60.00);
+        PaymentMethod pm = new PaymentMethod("GRAB002", "Grab", "grab789", 60.00);
         PaymentMethod saved = repository.save(pm);
         assertTrue(saved.getPaymentMethodId() > 0);
         
@@ -125,33 +132,27 @@ public class PaymentMethodRepositoryTest {
     }
     
     @Test
-    @DisplayName("Test findByCustomerId - returns empty for non-existing customer")
-    void testFindByCustomerId_NonExisting() {
-        List<PaymentMethod> methods = repository.findByCustomerId(9999);
-        assertTrue(methods.isEmpty());
-    }
-    
-    @Test
-    @DisplayName("Test findByCustomerIdAndType - non-existing")
-    void testFindByCustomerIdAndType_NonExisting() {
-        Optional<PaymentMethod> pm = repository.findByCustomerIdAndType(9999, "TNG");
+    @DisplayName("Test authenticateByWalletId - wrong password")
+    void testAuthenticateByWalletId_WrongPassword() {
+        Optional<PaymentMethod> pm = repository.authenticateByWalletId("TNG001", "wrongpassword");
         assertFalse(pm.isPresent());
     }
     
     @Test
-    @DisplayName("Test findByCustomerId - verify all payment types returned")
-    void testFindByCustomerId_AllTypes() {
-        List<PaymentMethod> methods = repository.findByCustomerId(1000);
-        assertTrue(methods.size() >= 3);
-        
-        // Verify different payment types
-        long tngCount = methods.stream().filter(pm -> "TNG".equals(pm.getPaymentType())).count();
-        long grabCount = methods.stream().filter(pm -> "Grab".equals(pm.getPaymentType())).count();
-        long bankCount = methods.stream().filter(pm -> "Bank".equals(pm.getPaymentType())).count();
-        
-        assertTrue(tngCount > 0);
-        assertTrue(grabCount > 0);
-        assertTrue(bankCount > 0);
+    @DisplayName("Test authenticateByCardNumber - existing")
+    void testAuthenticateByCardNumber_Existing() {
+        String hashedPassword = PasswordUtil.hashPassword("bank789");
+        Optional<PaymentMethod> pm = repository.authenticateByCardNumber("1234567890123456", hashedPassword);
+        assertTrue(pm.isPresent());
+        assertEquals("Bank", pm.get().getPaymentType());
+    }
+    
+    @Test
+    @DisplayName("Test findByCardNumber - existing")
+    void testFindByCardNumber_Existing() {
+        Optional<PaymentMethod> pm = repository.findByCardNumber("1234567890123456");
+        assertTrue(pm.isPresent());
+        assertEquals("Bank", pm.get().getPaymentType());
     }
     
     @Test
@@ -175,7 +176,12 @@ public class PaymentMethodRepositoryTest {
     @Test
     @DisplayName("Test save - verify card details saved for Bank payment")
     void testSave_BankWithCardDetails() {
-        PaymentMethod pm = new PaymentMethod(1000, "Bank", 200.00);
+        PaymentMethod pm = new PaymentMethod();
+        pm.setPaymentMethodId(1000);
+        pm.setPaymentType("Bank");
+        pm.setCardNumber("1234567890123456");
+        pm.setPassword("bank789");
+        pm.setBalance(200.00);
         pm.setCardNumber("9876543210987654");
         pm.setExpiryDate("1230");
         
@@ -195,29 +201,25 @@ public class PaymentMethodRepositoryTest {
         assertTrue(pm.isPresent());
         PaymentMethod p = pm.get();
         assertEquals(3, p.getPaymentMethodId());
-        assertEquals(1000, p.getCustomerId());
         assertEquals("Bank", p.getPaymentType());
+        assertNotNull(p.getCardNumber());
         assertTrue(p.getBalance() > 0);
         assertNotNull(p.getCardNumber());
         assertNotNull(p.getExpiryDate());
     }
     
     @Test
-    @DisplayName("Test findByCustomerId - verify while loop processes all")
-    void testFindByCustomerId_WhileLoopProcessesAll() {
-        List<PaymentMethod> methods = repository.findByCustomerId(1000);
-        // Verify all methods are returned
-        assertTrue(methods.size() >= 3);
-        // Verify all have correct customer ID
-        for (PaymentMethod pm : methods) {
-            assertEquals(1000, pm.getCustomerId());
-        }
+    @DisplayName("Test findByWalletId - verify multiple wallets")
+    void testFindByWalletId_MultipleWallets() {
+        Optional<PaymentMethod> pm1 = repository.findByWalletId("TNG001");
+        Optional<PaymentMethod> pm2 = repository.findByWalletId("TNG002");
+        assertTrue(pm1.isPresent() || pm2.isPresent());
     }
     
     @Test
     @DisplayName("Test save - verify generated keys path")
     void testSave_GeneratedKeysPath() {
-        PaymentMethod pm = new PaymentMethod(1001, "TNG", 50.00);
+        PaymentMethod pm = new PaymentMethod("TNG003", "TNG", "tng456", 50.00);
         PaymentMethod saved = repository.save(pm);
         // Verify ID was generated
         assertTrue(saved.getPaymentMethodId() > 0);
@@ -247,8 +249,8 @@ public class PaymentMethodRepositoryTest {
         PaymentMethod p = pm.get();
         // Verify all fields from ResultSet are mapped
         assertTrue(p.getPaymentMethodId() > 0);
-        assertTrue(p.getCustomerId() > 0);
         assertNotNull(p.getPaymentType());
+        assertNotNull(p.getPassword());
         assertTrue(p.getBalance() > 0);
     }
 }

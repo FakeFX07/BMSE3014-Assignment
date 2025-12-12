@@ -93,7 +93,8 @@ public class MenuDisplayTest {
         System.setOut(new PrintStream(out));
         
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
         OrderDetails detail = new OrderDetails(food, 2);
         Order order = new Order(new Date(), customer, Arrays.asList(detail), 21.00, pm);
@@ -116,7 +117,8 @@ public class MenuDisplayTest {
         System.setOut(new PrintStream(out));
         
         Customer customer = new Customer(1000, "John Doe");
-        PaymentMethod pm = new PaymentMethod(1, 1000, "TNG", 100.00, null, null);
+        PaymentMethod pm = new PaymentMethod("TNG001", "TNG", "tng123", 100.00);
+        pm.setPaymentMethodId(1);
         Order order = new Order(new Date(), customer, new java.util.ArrayList<>(), 21.00, pm);
         order.setOrderId(1);
         

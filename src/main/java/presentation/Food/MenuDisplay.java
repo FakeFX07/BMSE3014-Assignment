@@ -58,11 +58,12 @@ public class MenuDisplay {
      */
     public static void displayFoodMenu(List<Food> foods) {
         System.out.println("============================ []Menu[] ======================");
+        System.out.printf("%-5s %-10s %-22s %-10s %-10s%n", "No.", "Food Id", "Food Name", "Price", "Available");
         int index = 1;
         for (Food food : foods) {
-            System.out.println(index + ". " + food.getFoodId() + "\t" + 
-                             food.getFoodName() + "\t\t" + "RM " + food.getFoodPrice());
-            index++;
+            String availability = food.getQuantity() > 0 ? String.valueOf(food.getQuantity()) : "Out of Stock";
+            System.out.printf("%-5d %-10d %-22s RM %-6.2f %-10s%n", 
+                             index++, food.getFoodId(), food.getFoodName(), food.getFoodPrice(), availability);
         }
         System.out.println("0. Exit Order");
         System.out.println("==============================================================");
@@ -99,15 +100,16 @@ public class MenuDisplay {
         System.out.println("================================================================");
         System.out.println("                         All Food Details                      ");
         System.out.println("================================================================");
-        System.out.printf("%-5s %-10s %-22s %-14s %-12s%n", "No", "Food Id", "Food Name", "Food Price", "Food Type");
+        System.out.printf("%-5s %-10s %-22s %-14s %-12s %-10s%n", "No", "Food Id", "Food Name", "Food Price", "Food Type", "Quantity");
         int index = 1;
         for (Food food : foods) {
-            System.out.printf("%-5d %-10d %-22s %-14.2f %-12s%n",
+            System.out.printf("%-5d %-10d %-22s %-14.2f %-12s %-10d%n",
                     index++,
                     food.getFoodId(),
                     food.getFoodName(),
                     food.getFoodPrice(),
-                    food.getFoodType());
+                    food.getFoodType(),
+                    food.getQuantity());
         }
         System.out.println("================================================================");
     }

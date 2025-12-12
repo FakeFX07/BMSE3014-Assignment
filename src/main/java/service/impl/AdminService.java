@@ -2,6 +2,7 @@ package service.impl;
 
 import service.interfaces.IAdminService;
 import repository.interfaces.IAdminRepository;
+import util.PasswordUtil;
 
 public class AdminService implements IAdminService {
     
@@ -16,6 +17,8 @@ public class AdminService implements IAdminService {
         if (name == null || password == null) {
             return false;
         }
-        return adminRepository.authenticate(name, password);
+        // Hash the input password before authentication
+        String hashedPassword = PasswordUtil.hashPassword(password);
+        return adminRepository.authenticate(name, hashedPassword);
     }
 }

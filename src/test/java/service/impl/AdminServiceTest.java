@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import repository.interfaces.IAdminRepository;
+import util.PasswordUtil;
 
 class AdminServiceTest {
 
@@ -34,21 +35,25 @@ class AdminServiceTest {
     @DisplayName("Login - Success (Repo returns true)")
     void testLogin_Success() {
         // Mock behavior: Repo returns true for valid credentials
-        when(adminRepository.authenticate("admin", "123")).thenReturn(true);
+        // AdminService hashes the password before calling repository
+        String hashedPassword = PasswordUtil.hashPassword("123");
+        when(adminRepository.authenticate("admin", hashedPassword)).thenReturn(true);
 
         // Execute
         boolean result = adminService.login("admin", "123");
 
         // Verify
         assertTrue(result, "Login should succeed when repo returns true");
-        verify(adminRepository).authenticate("admin", "123");
+        verify(adminRepository).authenticate("admin", hashedPassword);
     }
 
     @Test
     @DisplayName("Login - Failure (Repo returns false)")
     void testLogin_Failure_WrongCredentials() {
         // Mock behavior: Repo returns false for invalid credentials
-        when(adminRepository.authenticate("admin", "wrong")).thenReturn(false);
+        // AdminService hashes the password before calling repository
+        String hashedPassword = PasswordUtil.hashPassword("wrong");
+        when(adminRepository.authenticate("admin", hashedPassword)).thenReturn(false);
 
         // Execute
         boolean result = adminService.login("admin", "wrong");

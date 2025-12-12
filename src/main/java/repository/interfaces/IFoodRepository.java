@@ -81,4 +81,13 @@ public interface IFoodRepository {
      * @return true if exists, false otherwise
      */
     boolean existsByName(String foodName);
+    
+    /**
+     * Decrement food quantity when order is placed
+     * 
+     * @param foodId Food ID
+     * @param quantityToDeduct Quantity to deduct
+     * @return true if quantity was sufficient and updated, false otherwise
+     */
+    boolean decrementQuantity(int foodId, int quantityToDeduct);
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import repository.interfaces.ICustomerRepository;
+import util.PasswordUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -186,13 +187,15 @@ public class CustomerServiceTest {
         @Test
         @DisplayName("Login - Success")
         void testLogin_Success() {
-            // Pre-fill
+            // Pre-fill - password will be hashed when saved through service
             Customer c = createValidCustomer();
             c.setCustomerId(100);
             c.setPassword("secret123");
+            // Hash password before saving to mock (simulating what happens in real flow)
+            c.setPassword(PasswordUtil.hashPassword("secret123"));
             mockRepository.save(c);
 
-            // Action
+            // Action - service will hash the input password
             Optional<Customer> result = customerService.login(100, "secret123");
 
             // Assert
@@ -203,10 +206,12 @@ public class CustomerServiceTest {
         @Test
         @DisplayName("Login - Failure (Wrong ID or Password)")
         void testLogin_Failure() {
-            // Pre-fill
+            // Pre-fill - password will be hashed when saved through service
             Customer c = createValidCustomer();
             c.setCustomerId(100);
             c.setPassword("secret123");
+            // Hash password before saving to mock (simulating what happens in real flow)
+            c.setPassword(PasswordUtil.hashPassword("secret123"));
             mockRepository.save(c);
 
             // Wrong Password

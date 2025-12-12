@@ -1,6 +1,5 @@
 package repository.interfaces;
 
-import java.util.List;
 import java.util.Optional;
 
 import model.PaymentMethod;
@@ -21,21 +20,38 @@ public interface IPaymentMethodRepository {
     Optional<PaymentMethod> findById(int paymentMethodId);
     
     /**
-     * Find payment methods by customer ID
+     * Find payment method by wallet ID (for TNG/Grab)
      * 
-     * @param customerId Customer ID
-     * @return List of payment methods
-     */
-    List<PaymentMethod> findByCustomerId(int customerId);
-    
-    /**
-     * Find payment method by customer ID and payment type
-     * 
-     * @param customerId Customer ID
-     * @param paymentType Payment type (TNG, Grab, Bank)
+     * @param walletId Wallet ID
      * @return Optional containing payment method if found
      */
-    Optional<PaymentMethod> findByCustomerIdAndType(int customerId, String paymentType);
+    Optional<PaymentMethod> findByWalletId(String walletId);
+    
+    /**
+     * Find payment method by card number (for Bank)
+     * 
+     * @param cardNumber Card number
+     * @return Optional containing payment method if found
+     */
+    Optional<PaymentMethod> findByCardNumber(String cardNumber);
+    
+    /**
+     * Authenticate payment method by wallet ID and password
+     * 
+     * @param walletId Wallet ID
+     * @param hashedPassword SHA256 hashed password
+     * @return Optional containing payment method if authenticated
+     */
+    Optional<PaymentMethod> authenticateByWalletId(String walletId, String hashedPassword);
+    
+    /**
+     * Authenticate payment method by card number and password
+     * 
+     * @param cardNumber Card number
+     * @param hashedPassword SHA256 hashed password
+     * @return Optional containing payment method if authenticated
+     */
+    Optional<PaymentMethod> authenticateByCardNumber(String cardNumber, String hashedPassword);
     
     /**
      * Save payment method (create or update)

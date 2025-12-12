@@ -1,10 +1,9 @@
 package service.impl;
 
-import java.util.Optional;
-
 import model.*;
 import repository.interfaces.IPaymentMethodRepository;
 import service.interfaces.IPaymentService;
+import util.PasswordUtil;
 
 /**
  * Payment Service Implementation
@@ -19,8 +18,6 @@ public class PaymentService implements IPaymentService {
     private final IPaymentMethodRepository paymentMethodRepository;
     
     // Constants for validation
-    private static final int CARD_NUMBER_LENGTH = 16;
-    private static final int EXPIRY_DATE_LENGTH = 4;
     private static final String PAYMENT_TYPE_BANK = "BANK";
     private static final String PAYMENT_TYPE_TNG = "TNG";
     private static final String PAYMENT_TYPE_GRAB = "GRAB";
@@ -34,15 +31,26 @@ public class PaymentService implements IPaymentService {
     }
     
     @Override
-    public Payment processPayment(int customerId, String paymentType, double amount, 
-                                  String cardNumber, String expiryDate) throws IllegalArgumentException {
+    public Payment processPayment(String paymentType, String identifier, String password, double amount) 
+            throws IllegalArgumentException {
         
-        // 1. Retrieve Payment Method
-        PaymentMethod paymentMethod = getPaymentMethodOrThrow(customerId, paymentType);
+        // 1. Hash the password
+        String hashedPassword = PasswordUtil.hashPassword(password);
         
-        // 2. Validate Bank Details if applicable
+        // 2. Authenticate and retrieve payment method based on type
+        PaymentMethod paymentMethod;
         if (PAYMENT_TYPE_BANK.equalsIgnoreCase(paymentType)) {
-            validateBankDetails(cardNumber, expiryDate);
+            // For Bank, identifier is card number
+            paymentMethod = paymentMethodRepository
+                .authenticateByCardNumber(identifier, hashedPassword)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Invalid card number or password"));
+        } else {
+            // For TNG/Grab, identifier is wallet ID
+            paymentMethod = paymentMethodRepository
+                .authenticateByWalletId(identifier, hashedPassword)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Invalid wallet ID or password"));
         }
         
         // 3. Create Payment Strategy
@@ -55,17 +63,13 @@ public class PaymentService implements IPaymentService {
         double newBalance = payment.makePayment(amount);
         
         // 6. Update Persistence
-        boolean updateSuccess = paymentMethodRepository.updateBalance(paymentMethod.getPaymentMethodId(), newBalance);
+        boolean updateSuccess = paymentMethodRepository.updateBalance(
+            paymentMethod.getPaymentMethodId(), newBalance);
         if (!updateSuccess) {
             throw new RuntimeException("System Error: Failed to update balance in database.");
         }
         
         return payment;
-    }
-    
-    @Override
-    public Optional<PaymentMethod> getPaymentMethod(int customerId, String paymentType) {
-        return paymentMethodRepository.findByCustomerIdAndType(customerId, paymentType);
     }
     
     @Override
@@ -89,26 +93,6 @@ public class PaymentService implements IPaymentService {
     // ========================================================================
     // Private Helper Methods (DRY & Meaningful Names)
     // ========================================================================
-
-    /**
-     * Retrieves payment method or throws exception if not found.
-     */
-    private PaymentMethod getPaymentMethodOrThrow(int customerId, String paymentType) {
-        return paymentMethodRepository.findByCustomerIdAndType(customerId, paymentType)
-                .orElseThrow(() -> new IllegalArgumentException("Payment method not found for customer"));
-    }
-
-    /**
-     * Validates card details specifically for Bank payments.
-     */
-    private void validateBankDetails(String cardNumber, String expiryDate) {
-        if (cardNumber == null || cardNumber.length() != CARD_NUMBER_LENGTH) {
-            throw new IllegalArgumentException("Invalid card number. Must be " + CARD_NUMBER_LENGTH + " digits");
-        }
-        if (expiryDate == null || expiryDate.length() != EXPIRY_DATE_LENGTH) {
-            throw new IllegalArgumentException("Invalid expiry date. Must be " + EXPIRY_DATE_LENGTH + " digits (MMYY)");
-        }
-    }
 
     /**
      * Checks if the payment source has enough funds.

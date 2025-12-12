@@ -78,7 +78,7 @@ public class AdminHandler {
 
         // Make sure your UserInputHandler has a readString method!
         String name = inputHandler.readString("Username: ");
-        String password = inputHandler.readString("Password: ");
+        String password = inputHandler.readPassword("Password: ");
 
         // Call the service to check database
         return adminController.login(name, password);

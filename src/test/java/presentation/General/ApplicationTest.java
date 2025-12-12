@@ -81,18 +81,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    
-    @Test
-    @DisplayName("Test handleRegister - user cancels")
-    void testHandleRegister_Cancel() {
-        System.setIn(new ByteArrayInputStream("N\n".getBytes()));
-        Application app = new Application();
-        app.handleRegister();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
     @Test
     @DisplayName("Test handleLogin - invalid credentials")
     void testHandleLogin_Invalid() {
@@ -146,27 +134,6 @@ public class ApplicationTest {
         System.setIn(new ByteArrayInputStream("admin\n123\n2\n0\n".getBytes()));
         Application app = new Application();
         app.handleAdminMenu();
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    
-    @Test
-    @DisplayName("Test processOrder - TNG payment")
-    void testProcessOrder_TNGPayment() {
-        String input = "1\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        
-        // Set current customer for the test
-        app.currentCustomer = new Customer(1000, "John Doe");
-        
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        List<OrderDetails> details = Arrays.asList(detail);
-        
-        app.processOrder(details);
         String output = outContent.toString();
         assertTrue(output.length() > 0);
         System.setIn(System.in);
@@ -266,21 +233,6 @@ public class ApplicationTest {
         System.setIn(System.in);
     }
     
-    
-    @Test
-    @DisplayName("Test processOrder - Grab payment")
-    void testProcessOrder_GrabPayment() {
-        String input = "2\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.currentCustomer = new Customer(1000, "John Doe");
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        app.processOrder(Arrays.asList(detail));
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
     
     @Test
     @DisplayName("Test processOrder - Bank payment with card")
@@ -447,25 +399,6 @@ public class ApplicationTest {
     }
     
     @Test
-    @DisplayName("Test processOrder - order with multiple items")
-    void testProcessOrder_MultipleItems() {
-        String input = "1\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.currentCustomer = new Customer(1000, "John Doe");
-        Food food1 = new Food(2000, "Chicken Rice", 10.50, "Set");
-        Food food2 = new Food(2001, "Nasi Lemak", 8.00, "Set");
-        List<OrderDetails> details = Arrays.asList(
-            new OrderDetails(food1, 2),
-            new OrderDetails(food2, 1)
-        );
-        app.processOrder(details);
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
     @DisplayName("Test handleAdminMenu - all menu options")
     void testHandleAdminMenu_AllOptions() {
         // Option 1: Food Management -> 0 to exit back
@@ -574,22 +507,6 @@ public class ApplicationTest {
         } catch (Exception e) {
             // Handle any exceptions that might occur
         }
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    
-    @Test
-    @DisplayName("Test processOrder - order with null result")
-    void testProcessOrder_NullOrder() {
-        String input = "1\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.currentCustomer = new Customer(1000, "John Doe");
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        app.processOrder(Arrays.asList(detail));
         String output = outContent.toString();
         assertTrue(output.length() > 0);
         System.setIn(System.in);

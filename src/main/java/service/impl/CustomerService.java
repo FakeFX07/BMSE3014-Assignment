@@ -5,6 +5,7 @@ import java.util.Optional;
 import model.Customer;
 import repository.interfaces.ICustomerRepository;
 import service.interfaces.ICustomerService;
+import util.PasswordUtil;
 
 public class CustomerService implements ICustomerService {
 
@@ -37,13 +38,19 @@ public class CustomerService implements ICustomerService {
         // Generate customer ID
         customer.setCustomerId(customerRepository.getNextCustomerId());
 
+        // Hash password before saving
+        String hashedPassword = PasswordUtil.hashPassword(customer.getPassword());
+        customer.setPassword(hashedPassword);
+
         // Save customer
         return customerRepository.save(customer);
     }
 
     @Override
     public Optional<Customer> login(int customerId, String password) {
-        return customerRepository.authenticate(customerId, password);
+        // Hash the input password before authentication
+        String hashedPassword = PasswordUtil.hashPassword(password);
+        return customerRepository.authenticate(customerId, hashedPassword);
     }
 
     @Override

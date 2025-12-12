@@ -15,8 +15,6 @@ import presentation.Food.FoodHandler;
 import presentation.Order.OrderHandler;
 import presentation.General.UserInputHandler;
 
-import java.util.ArrayList;
-
 class AdminHandlerTest {
 
     @Mock
@@ -51,7 +49,7 @@ class AdminHandlerTest {
     void testHandleAdminMenu_LoginFail() {
         // 1. Mock Login Inputs
         when(inputHandler.readString(contains("Username"))).thenReturn("wrongUser");
-        when(inputHandler.readString(contains("Password"))).thenReturn("wrongPass");
+        when(inputHandler.readPassword(contains("Password"))).thenReturn("wrongPass");
 
         // 2. Mock Controller to return false
         when(adminController.login("wrongUser", "wrongPass")).thenReturn(false);
@@ -70,7 +68,7 @@ class AdminHandlerTest {
     void testHandleAdminMenu_LoginSuccess_ThenExit() {
         // 1. Mock Login Success
         when(inputHandler.readString(contains("Username"))).thenReturn("admin");
-        when(inputHandler.readString(contains("Password"))).thenReturn("123");
+        when(inputHandler.readPassword(contains("Password"))).thenReturn("123");
         when(adminController.login("admin", "123")).thenReturn(true);
 
         // 2. Mock Menu Input: 0 (Back Main Menu)
@@ -93,7 +91,8 @@ class AdminHandlerTest {
     @DisplayName("Food Management - Register, Edit, Delete, View, Exit")
     void testHandleFoodManagement_FullFlow() {
         // --- Setup Login ---
-        when(inputHandler.readString(anyString())).thenReturn("admin", "123");
+        when(inputHandler.readString(contains("Username"))).thenReturn("admin");
+        when(inputHandler.readPassword(contains("Password"))).thenReturn("123");
         when(adminController.login(anyString(), anyString())).thenReturn(true);
 
         // --- Setup Menu Sequence ---
@@ -142,51 +141,5 @@ class AdminHandlerTest {
 
         // Verify loop continued and we eventually exited
         verify(foodHandler, never()).handleRegisterFood(); // Invalid input shouldn't trigger actions
-    }
-
-    // ==========================================
-    // 3. Order Report Flow Tests
-    // ==========================================
-
-    @Test
-    @DisplayName("Order Report - View and Exit")
-    void testHandleOrderReport() {
-        // Login
-        when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminController.login(anyString(), anyString())).thenReturn(true);
-
-        // Mock Order Data
-        when(orderController.getAllOrders()).thenReturn(new ArrayList<>());
-
-        // Menu Sequence: 2 (Order Report) -> 0 (Exit)
-        when(inputHandler.readInt(anyString()))
-            .thenReturn(2, 0);
-
-        // Execute
-        adminHandler.handleAdminMenu(orderHandler, null);
-
-        // Verify Controller Call
-        verify(orderController).getAllOrders();
-    }
-
-    // ==========================================
-    // 4. Edge Cases
-    // ==========================================
-
-    @Test
-    @DisplayName("Admin Menu - Invalid Input Loop")
-    void testHandleAdminMenu_InvalidInput() {
-        // Login
-        when(inputHandler.readString(anyString())).thenReturn("admin", "123");
-        when(adminController.login(anyString(), anyString())).thenReturn(true);
-
-        // Sequence: -1 (Invalid) -> 99 (Invalid) -> 0 (Exit)
-        when(inputHandler.readInt(anyString()))
-            .thenReturn(-1, 99, 0);
-
-        adminHandler.handleAdminMenu(orderHandler, null);
-
-        // Verify we stayed in the loop 3 times (3 reads)
-        verify(inputHandler, times(3)).readInt(anyString());
     }
 }

@@ -214,7 +214,13 @@ public class ModelCoverageTest {
 
         Food food = new Food(21, "Rice", 5.0, "Set");
         OrderDetails details = new OrderDetails(food, 4);
-        PaymentMethod method = new PaymentMethod(1, 5, "Bank", 100.0, "1234567890123456", "1225");
+        PaymentMethod method = new PaymentMethod();
+        method.setPaymentMethodId(1);
+        method.setPaymentType("Bank");
+        method.setCardNumber("1234567890123456");
+        method.setExpiryDate("1225");
+        method.setPassword("bank789");
+        method.setBalance(100.0);
         Customer customer = new Customer(5, "Alice");
 
         Order completed = new Order(new Date(), customer, List.of(details), details.getSubtotal(), method);
@@ -231,7 +237,8 @@ public class ModelCoverageTest {
     void orderAccessorsAndToString() {
         Order order = new Order();
         OrderDetails details = new OrderDetails(new Food(30, "Pasta", 8.0, "Set"), 1);
-        PaymentMethod method = new PaymentMethod(8, 40, "Grab", 12.5, null, null);
+        PaymentMethod method = new PaymentMethod("GRAB008", "Grab", "grab123", 12.5);
+        method.setPaymentMethodId(8);
 
         order.setOrderId(5);
         order.setOrderDate(new Date(0));
@@ -252,7 +259,8 @@ public class ModelCoverageTest {
 
     @Test
     void paymentMethodEqualityAndSetters() {
-        PaymentMethod method = new PaymentMethod(7, 99, "Grab", 45.0, null, null);
+        PaymentMethod method = new PaymentMethod("GRAB007", "Grab", "grab123", 45.0);
+        method.setPaymentMethodId(7);
         assertEquals(45.0, method.getBalance(), 0.0001);
         assertEquals("Grab", method.getPaymentType());
 
@@ -275,7 +283,7 @@ public class ModelCoverageTest {
     @Test
     void paymentMethodDecimalSupport() {
         PaymentMethod method = new PaymentMethod();
-        method.setCustomerId(55);
+        method.setWalletId("WALLET055");
         method.setPaymentMethodId(12);
         method.setPaymentType("Bank");
         method.setBalanceDecimal(BigDecimal.valueOf(22.22));

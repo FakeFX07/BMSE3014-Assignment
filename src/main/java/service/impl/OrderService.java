@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import model.*;
 import repository.interfaces.ICustomerRepository;
+import repository.interfaces.IFoodRepository;
 import repository.interfaces.IOrderRepository;
 import repository.interfaces.IPaymentMethodRepository;
 import service.interfaces.IOrderService;
@@ -24,20 +25,23 @@ public class OrderService implements IOrderService {
     private final ICustomerRepository customerRepository;
     private final IPaymentMethodRepository paymentMethodRepository;
     private final IPaymentService paymentService;
+    private final IFoodRepository foodRepository;
 
     public OrderService(IOrderRepository orderRepository, 
                             ICustomerRepository customerRepository, 
                             IPaymentMethodRepository paymentMethodRepository, 
-                            IPaymentService paymentService) {
+                            IPaymentService paymentService,
+                            IFoodRepository foodRepository) {
         this.orderRepository = orderRepository;
         this.customerRepository = customerRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.paymentService = paymentService;
+        this.foodRepository = foodRepository;
     }
 
     @Override
     public Order createOrder(int customerId, List<OrderDetails> orderDetailsList, 
-                             String paymentType, String cardNumber, String expiryDate) throws IllegalArgumentException {
+                             String paymentType, String identifier, String password) throws IllegalArgumentException {
         // Validate customer exists
         Optional<Customer> customerOpt = customerRepository.findById(customerId);
         if (customerOpt.isEmpty()) {
@@ -56,6 +60,9 @@ public class OrderService implements IOrderService {
             if (detail == null)
                 throw new IllegalArgumentException("Order detail cannot be null");
 
+            if (detail.getFood() == null)
+                throw new IllegalArgumentException("Food item cannot be null");
+
             if (detail.getQuantity() <= 0)
                 throw new IllegalArgumentException("Quantity must be > 0");
 
@@ -63,6 +70,20 @@ public class OrderService implements IOrderService {
                 throw new IllegalArgumentException(
                     "Quantity too large for item: " + detail.getFood().getFoodId()
                 );
+
+            // Validate available quantity
+            Optional<Food> foodOpt = foodRepository.findById(detail.getFood().getFoodId());
+            if (foodOpt.isEmpty()) {
+                throw new IllegalArgumentException("Food item not found: " + detail.getFood().getFoodId());
+            }
+            
+            Food food = foodOpt.get();
+            if (food.getQuantity() < detail.getQuantity()) {
+                throw new IllegalArgumentException(
+                    "Insufficient quantity available for " + food.getFoodName() + 
+                    ". Available: " + food.getQuantity() + ", Requested: " + detail.getQuantity()
+                );
+            }
 
             BigDecimal unit = detail.getUnitPriceDecimal();
             if (unit == null)
@@ -88,19 +109,39 @@ public class OrderService implements IOrderService {
         computedTotal = computedTotal.setScale(2, RoundingMode.HALF_UP);
         double totalPrice = computedTotal.doubleValue();
 
-        // Get payment method
-        Optional<PaymentMethod> paymentMethodOpt = paymentMethodRepository
-                .findByCustomerIdAndType(customerId, paymentType);
-        if (paymentMethodOpt.isEmpty()) {
-            throw new IllegalArgumentException("Payment method not found");
-        }
-        PaymentMethod paymentMethod = paymentMethodOpt.get();
-
-        // Process payment
+        // Process payment with authentication and get the authenticated payment method
+        PaymentMethod paymentMethod;
         try {
-            paymentService.processPayment(customerId, paymentType, totalPrice, cardNumber, expiryDate);
+            // Process payment first - this authenticates the user and deducts the amount
+            paymentService.processPayment(paymentType, identifier, password, totalPrice);
+            
+            // Retrieve the payment method after successful authentication
+            // Based on payment type, use appropriate method to get the payment method
+            if ("Bank".equalsIgnoreCase(paymentType)) {
+                paymentMethod = paymentMethodRepository
+                    .findByCardNumber(identifier)
+                    .orElseThrow(() -> new IllegalArgumentException("Payment method not found after authentication"));
+            } else {
+                paymentMethod = paymentMethodRepository
+                    .findByWalletId(identifier)
+                    .orElseThrow(() -> new IllegalArgumentException("Payment method not found after authentication"));
+            }
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Payment failed: " + e.getMessage());
+        }
+
+        // Decrement food quantities after successful payment
+        for (OrderDetails detail : orderDetailsList) {
+            boolean success = foodRepository.decrementQuantity(
+                detail.getFood().getFoodId(), 
+                detail.getQuantity()
+            );
+            if (!success) {
+                throw new IllegalArgumentException(
+                    "Failed to update quantity for food: " + detail.getFood().getFoodName() + 
+                    ". It may have been sold out."
+                );
+            }
         }
 
         // Create order using Builder pattern (keeps construction logic centralized)
