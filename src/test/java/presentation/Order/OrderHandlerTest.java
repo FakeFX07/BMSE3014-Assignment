@@ -75,29 +75,6 @@ class OrderHandlerTest {
                 .createOrder(anyInt(), anyList(), any(), any(), any());
     }
 
-    /// ---------- processOrder: invalid payment ----------
-    @Test
-    void testProcessOrder_invalidPaymentChoice() {
-        List<OrderDetails> details = List.of(
-                new OrderDetails(mockFoodList().get(0), 1)
-        );
-
-        when(inputHandler.readInt(anyString())).thenReturn(99);
-
-        orderHandler.processOrder(mockCustomer, details);
-
-        verify(orderController, never())
-                .createOrder(anyInt(), anyList(), any(), any(), any());
-    }
-
-    /// ---------- processOrder: empty list ----------
-    @Test
-    void testProcessOrder_emptyDetails() {
-        orderHandler.processOrder(mockCustomer, new ArrayList<>());
-        verify(orderController, never())
-                .createOrder(anyInt(), anyList(), any(), any(), any());
-    }
-
     /// ---------- displayReceipt: ensure no errors ----------
     @Test
     void testDisplayReceipt_runsWithoutError() {

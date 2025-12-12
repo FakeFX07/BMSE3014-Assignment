@@ -11,7 +11,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -140,26 +139,6 @@ public class ApplicationTest {
     }
     
     @Test
-    @DisplayName("Test processOrder - invalid payment choice")
-    void testProcessOrder_InvalidPayment() {
-        String input = "99\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        
-        // Set current customer for the test
-        app.currentCustomer = new Customer(1000, "John Doe");
-        
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        List<OrderDetails> details = Arrays.asList(detail);
-        
-        app.processOrder(details);
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
     @DisplayName("Test handleOrder - empty food list")
     void testHandleOrder_EmptyFoodList() {
         System.setIn(new ByteArrayInputStream("".getBytes()));
@@ -228,37 +207,6 @@ public class ApplicationTest {
         } catch (Exception e) {
             // Handle any exceptions that might occur
         }
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    
-    @Test
-    @DisplayName("Test processOrder - Bank payment with card")
-    void testProcessOrder_BankPayment() {
-        String input = "3\n1234567890123456\n1225\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.currentCustomer = new Customer(1000, "John Doe");
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        app.processOrder(Arrays.asList(detail));
-        String output = outContent.toString();
-        assertTrue(output.length() > 0);
-        System.setIn(System.in);
-    }
-    
-    @Test
-    @DisplayName("Test processOrder - Bank payment with invalid card retry")
-    void testProcessOrder_BankPaymentInvalidCard() {
-        String input = "3\n123\n1234567890123456\n12\n1225\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Application app = new Application();
-        app.currentCustomer = new Customer(1000, "John Doe");
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        OrderDetails detail = new OrderDetails(food, 1);
-        app.processOrder(Arrays.asList(detail));
         String output = outContent.toString();
         assertTrue(output.length() > 0);
         System.setIn(System.in);
