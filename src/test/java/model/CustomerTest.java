@@ -5,15 +5,11 @@ import org.junit.jupiter.api.Test;
 
 class CustomerTest {
 
-    // ==========================================
-    // 1. Test All Constructors & Getters/Setters
-    // ==========================================
-
     @Test
     void testDefaultConstructorAndSetters() {
         Customer c = new Customer();
         
-        // Test Setters
+        //Setup data
         c.setCustomerId(1);
         c.setName("John");
         c.setAge(25);
@@ -21,7 +17,7 @@ class CustomerTest {
         c.setGender("Male");
         c.setPassword("pass123");
 
-        // Test Getters
+        //Verify values
         assertEquals(1, c.getCustomerId());
         assertEquals("John", c.getName());
         assertEquals(25, c.getAge());
@@ -30,6 +26,7 @@ class CustomerTest {
         assertEquals("pass123", c.getPassword());
     }
 
+    // Constructor Tests
     @Test
     void testConstructorWithId() {
         Customer c = new Customer(10);
@@ -55,33 +52,25 @@ class CustomerTest {
         assertEquals("secret", c.getPassword());
     }
 
-    // ==========================================
-    // 3. Test hashCode()
-    // ==========================================
-
     @Test
     void testHashCode() {
         Customer c1 = new Customer(1, "John");
         Customer c2 = new Customer(1, "John");
 
-        // Objects that are equal must have the same hash code
+        // Consistent objects should have same hash
         assertEquals(c1.hashCode(), c2.hashCode());
         
-        // Different objects usually have different hash codes
+        // Different objects should ideally have different hash
         Customer c3 = new Customer(2, "Jane");
         assertNotEquals(c1.hashCode(), c3.hashCode());
     }
-
-    // ==========================================
-    // 4. Test toString()
-    // ==========================================
 
     @Test
     void testToString() {
         Customer c = new Customer(5, "TestName", 20, "0123", "Male", "pass");
         String result = c.toString();
         
-        // Ensure the string contains key information
+        // Verify key info is present in the string
         assertNotNull(result);
         assertTrue(result.contains("customerId=5"));
         assertTrue(result.contains("name='TestName'"));

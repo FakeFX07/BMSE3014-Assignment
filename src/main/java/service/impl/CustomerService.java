@@ -11,7 +11,6 @@ public class CustomerService implements ICustomerService {
 
     private final ICustomerRepository customerRepository;
 
-    // Validation constants
     private static final int MIN_AGE = 18;
     private static final int MAX_AGE = 79;
     private static final int MIN_PASSWORD_LENGTH = 5;
@@ -24,31 +23,31 @@ public class CustomerService implements ICustomerService {
 
     @Override
     public Customer registerCustomer(Customer customer) throws IllegalArgumentException {
-        // Validate all fields
+        //validate all fields
         checkName(customer.getName());
         checkAge(customer.getAge());
         checkPhoneNumber(customer.getPhoneNumber()); 
         checkGender(customer.getGender());
         checkPassword(customer.getPassword());
-        // Check if phone number already exists
+        //Check phone number exists or not
         if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
             throw new IllegalArgumentException("Phone number already registered");
         }
 
-        // Generate customer ID
+        //Generate customer ID
         customer.setCustomerId(customerRepository.getNextCustomerId());
 
-        // Hash password before saving
+        //Hash password before saving
         String hashedPassword = PasswordUtil.hashPassword(customer.getPassword());
         customer.setPassword(hashedPassword);
 
-        // Save customer
+        //save customer
         return customerRepository.save(customer);
     }
 
     @Override
     public Optional<Customer> login(int customerId, String password) {
-        // Hash the input password before authentication
+        //Hash the input password before authentication
         String hashedPassword = PasswordUtil.hashPassword(password);
         return customerRepository.authenticate(customerId, hashedPassword);
     }

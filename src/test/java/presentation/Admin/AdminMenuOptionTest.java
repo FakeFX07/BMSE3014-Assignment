@@ -9,15 +9,15 @@ class AdminMenuOptionTest {
     @Test
     @DisplayName("Test Enum Properties (Getters)")
     void testEnumProperties() {
-        // Test FOOD_MANAGEMENT
+        //Test FOOD_MANAGEMENT
         assertEquals(1, AdminMenuOption.FOOD_MANAGEMENT.getOptionNumber());
         assertEquals("Food Management", AdminMenuOption.FOOD_MANAGEMENT.getDisplayText());
 
-        // Test ORDER_REPORT
+        //Test ORDER_REPORT
         assertEquals(2, AdminMenuOption.ORDER_REPORT.getOptionNumber());
         assertEquals("Order Report", AdminMenuOption.ORDER_REPORT.getDisplayText());
 
-        // Test BACK_MAIN_MENU
+        //Test BACK_MAIN_MENU
         assertEquals(0, AdminMenuOption.BACK_MAIN_MENU.getOptionNumber());
         assertEquals("Back Main Menu", AdminMenuOption.BACK_MAIN_MENU.getDisplayText());
     }
@@ -40,15 +40,12 @@ class AdminMenuOptionTest {
     @Test
     @DisplayName("Test displayMenu - Runs without exception")
     void testDisplayMenu() {
-        // Since this method prints to System.out, we just verify it doesn't throw exceptions.
-        // This ensures the loop and formatting logic inside displayMenu() are executed.
         assertDoesNotThrow(() -> AdminMenuOption.displayMenu());
     }
 
     @Test
     @DisplayName("Test valueOf - Standard Enum method")
     void testValueOf() {
-        // Verify standard Java Enum functionality works (important for coverage)
         assertEquals(AdminMenuOption.FOOD_MANAGEMENT, AdminMenuOption.valueOf("FOOD_MANAGEMENT"));
     }
 }

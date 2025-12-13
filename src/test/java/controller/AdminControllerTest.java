@@ -13,11 +13,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-/**
- * Test class for AdminController
- * Tests controller logic and interaction with service layer
- * Target: >88% Code Coverage
- */
 @ExtendWith(MockitoExtension.class)
 public class AdminControllerTest {
     
@@ -28,14 +23,10 @@ public class AdminControllerTest {
     
     @BeforeEach
     void setUp() {
-        // Reset mocks before each test
         reset(adminService);
     }
     
-    // ==========================================
-    // Constructor Tests
-    // ==========================================
-    
+    //Constructor Tests
     @Test
     @DisplayName("Constructor with IAdminService - Should initialize correctly")
     void testConstructor_WithIAdminService_InitializesCorrectly() {
@@ -54,8 +45,6 @@ public class AdminControllerTest {
         adminController = new AdminController();
         
         assertNotNull(adminController);
-        // Default constructor creates AdminService with AdminRepository
-        // This tests the default constructor path
     }
     
     @Test
@@ -64,15 +53,9 @@ public class AdminControllerTest {
         adminController = new AdminController();
         
         assertNotNull(adminController);
-        // Test that default constructor creates a working controller
-        // Note: This will use real AdminService/AdminRepository, so it needs database
-        // But we're testing that the constructor works
     }
     
-    // ==========================================
-    // login() Method Tests
-    // ==========================================
-    
+    //Login Tests
     @Test
     @DisplayName("Login - Success - Should return true")
     void testLogin_Success_ReturnsTrue() {
@@ -296,8 +279,7 @@ public class AdminControllerTest {
         
         assertTrue(result1);
         assertFalse(result2);
-        
-        // Verify order of calls
+  
         verify(adminService).login("admin", "123");
         verify(adminService).login("user", "456");
     }

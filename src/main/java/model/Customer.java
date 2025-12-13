@@ -2,11 +2,6 @@ package model;
 
 import java.util.Objects;
 
-/**
- * Customer Model Class
- * Represents a customer entity in the system
- * Follows OOP principles: Encapsulation, Data Hiding
- */
 public class Customer {
     
     private int customerId;
@@ -16,22 +11,18 @@ public class Customer {
     private String gender;
     private String password;
     
-    // Default constructor
     public Customer() {
     }
     
-    // Constructor with ID only (for order processing)
     public Customer(int customerId) {
         this.customerId = customerId;
     }
     
-    // Full constructor
     public Customer(int customerId, String name) {
         this.customerId = customerId;
         this.name = name;
     }
     
-    // Complete constructor
     public Customer(int customerId, String name, int age, String phoneNumber, String gender, String password) {
         this.customerId = customerId;
         this.name = name;

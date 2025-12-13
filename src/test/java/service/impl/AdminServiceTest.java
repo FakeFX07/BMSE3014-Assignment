@@ -23,52 +23,48 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize Mocks
         MockitoAnnotations.openMocks(this);
     }
 
-    // ==========================================
-    // Test Logic: login()
-    // ==========================================
-
+    //test login
     @Test
-    @DisplayName("Login - Success (Repo returns true)")
+    @DisplayName("Login - Success")
     void testLogin_Success() {
-        // Mock behavior: Repo returns true for valid credentials
-        // AdminService hashes the password before calling repository
+        //repository returns true for valid credentials
+        //AdminService hashes the password before calling repository
         String hashedPassword = PasswordUtil.hashPassword("123");
         when(adminRepository.authenticate("admin", hashedPassword)).thenReturn(true);
 
-        // Execute
+        //Execute
         boolean result = adminService.login("admin", "123");
 
-        // Verify
+        //Verify
         assertTrue(result, "Login should succeed when repo returns true");
         verify(adminRepository).authenticate("admin", hashedPassword);
     }
 
     @Test
-    @DisplayName("Login - Failure (Repo returns false)")
+    @DisplayName("Login - Failure")
     void testLogin_Failure_WrongCredentials() {
-        // Mock behavior: Repo returns false for invalid credentials
-        // AdminService hashes the password before calling repository
+        //Repository returns false for invalid credentials
+        //AdminService hashes the password before calling repository
         String hashedPassword = PasswordUtil.hashPassword("wrong");
         when(adminRepository.authenticate("admin", hashedPassword)).thenReturn(false);
 
-        // Execute
+        //execute
         boolean result = adminService.login("admin", "wrong");
 
-        // Verify
+        //Verify
         assertFalse(result, "Login should fail when repo returns false");
     }
 
     @Test
     @DisplayName("Login - Failure (Null Name)")
     void testLogin_NullName() {
-        // Execute with null name
+        //Execute with null name
         boolean result = adminService.login(null, "123");
 
-        // Verify result is false and REPO WAS NEVER CALLED
+        // verify result is false
         assertFalse(result);
         verify(adminRepository, never()).authenticate(any(), any());
     }
@@ -79,7 +75,7 @@ class AdminServiceTest {
         // Execute with null password
         boolean result = adminService.login("admin", null);
 
-        // Verify result is false and REPO WAS NEVER CALLED
+        //Verify result is false
         assertFalse(result);
         verify(adminRepository, never()).authenticate(any(), any());
     }

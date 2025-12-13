@@ -33,12 +33,7 @@ public class CustomerController {
         return customerService.validateName(name);
     }
 
-    /**
-     * Check name validity
-     * 
-     * @param name Name to check
-     * @throws IllegalArgumentException if name is invalid
-     */
+    //Check name validity
     public void checkName(String name) throws IllegalArgumentException {
         customerService.checkName(name);
     }
@@ -47,12 +42,7 @@ public class CustomerController {
         return customerService.validateAge(age);
     }
 
-    /**
-     * Check age validity
-     * 
-     * @param age Age to check
-     * @throws IllegalArgumentException if age is invalid
-     */
+    //Check age validity
     public void checkAge(int age) throws IllegalArgumentException {
         customerService.checkAge(age);
     }
@@ -61,12 +51,7 @@ public class CustomerController {
         return customerService.validatePhoneNumber(phoneNumber);
     }
 
-    /**
-     * Check phone number validity and availability
-     * 
-     * @param phoneNumber Phone number to check
-     * @throws IllegalArgumentException if phone number is invalid or already registered
-     */
+    //check phone number validity
     public void checkPhoneNumber(String phoneNumber) throws IllegalArgumentException {
         customerService.checkPhoneNumber(phoneNumber);
     }
@@ -79,12 +64,7 @@ public class CustomerController {
         return customerService.validateGender(gender);
     }
 
-    /**
-     * Check gender validity
-     * 
-     * @param gender Gender to check
-     * @throws IllegalArgumentException if gender is invalid
-     */
+    //check gender validity
     public void checkGender(String gender) throws IllegalArgumentException {
         customerService.checkGender(gender);
     }
@@ -93,12 +73,7 @@ public class CustomerController {
         return customerService.validatePassword(password);
     }
 
-    /**
-     * Check password validity
-     * 
-     * @param password Password to check
-     * @throws IllegalArgumentException if password is invalid
-     */
+    //Check password validity
     public void checkPassword(String password) throws IllegalArgumentException {
         customerService.checkPassword(password);
     }
@@ -107,13 +82,7 @@ public class CustomerController {
         return customerService.validatePasswordConfirmation(password, confirmPassword);
     }
 
-    /**
-     * Check if password matches confirmation
-     * 
-     * @param password Password
-     * @param confirmPassword Confirmation password
-     * @throws IllegalArgumentException if passwords don't match
-     */
+    //Check password confirmation validity
     public void checkPasswordConfirmation(String password, String confirmPassword) throws IllegalArgumentException {
         customerService.checkPasswordConfirmation(password, confirmPassword);
     }

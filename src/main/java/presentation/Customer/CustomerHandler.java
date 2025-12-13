@@ -3,11 +3,9 @@ package presentation.Customer;
 import controller.CustomerController;
 import model.Customer;
 import presentation.General.UserInputHandler;
-import presentation.General.UserCancelledException; // 1. 记得导入这个异常类
+import presentation.General.UserCancelledException;
 
-/**
- * Handles customer-facing flows: login and register.
- */
+//handles login and registration
 public class CustomerHandler {
 
     private final CustomerController customerController;
@@ -25,7 +23,6 @@ public class CustomerHandler {
         System.out.println("=====================================================================================\n");
 
         try {
-            // 2. 这里的 readInt 或 readString 如果输入 X 会抛出异常
             int customerId = inputHandler.readInt("Customer ID (X to cancel) : ");
             String password = inputHandler.readPassword("Password : ");
 
@@ -55,7 +52,7 @@ public class CustomerHandler {
         Customer customer = new Customer();
 
         try { 
-            // Name validation
+            //Name validation
             String name;
             do {
                 name = inputHandler.readString("Enter your name : ");
@@ -68,7 +65,7 @@ public class CustomerHandler {
             } while (true);
             customer.setName(name);
 
-            // Age validation
+            //Age validation
             int age;
             do {
                 age = inputHandler.readInt("Enter your age (between 18 and 79) : ");
@@ -81,7 +78,7 @@ public class CustomerHandler {
             } while (true);
             customer.setAge(age);
 
-            // Phone number validation
+            //Phone number validation
             String phoneNumber;
             do {
                 phoneNumber = inputHandler.readString("Enter your phone number : ");
@@ -94,7 +91,7 @@ public class CustomerHandler {
             } while (true);
             customer.setPhoneNumber(phoneNumber);
 
-            // Gender validation
+            //Gender validation
             String gender;
             do {
                 gender = inputHandler.readString("Enter your gender (Male/Female) : ");
@@ -107,7 +104,7 @@ public class CustomerHandler {
             } while (true);
             customer.setGender(gender);
 
-            // Password validation
+            //Password validation
             String password;
             do {
                 password = inputHandler.readPassword("Enter your password : ");
@@ -119,7 +116,7 @@ public class CustomerHandler {
                 }
             } while (true);
 
-            // Password confirmation
+            //Password confirmation
             String confirmPassword;
             do {
                 confirmPassword = inputHandler.readPassword("Confirm your password again : ");
@@ -131,8 +128,8 @@ public class CustomerHandler {
                 }
             } while (true);
             customer.setPassword(password);
-
-            // Display customer information before confirmation
+            
+            //Display before confirm registration
             System.out.println("\n==============================");
             System.out.println("[]     Customer Details     []");
             System.out.println("==============================");
@@ -142,7 +139,6 @@ public class CustomerHandler {
             System.out.println("  Gender : " + customer.getGender());
             System.out.println("==============================\n");
 
-            // Final confirmation after displaying details
             if (inputHandler.readYesNo("Are you sure want to register (Y/N) : ")) {
                 Customer registeredCustomer = customerController.registerCustomer(customer);
                 if (registeredCustomer != null) {
@@ -167,13 +163,9 @@ public class CustomerHandler {
             }
 
         } catch (UserCancelledException e) {
-            // ==========================================
-            // 5. 捕获 X 操作 (Catch Block)
-            // ==========================================
             System.out.println("\n=============================================");
             System.out.println("|    Operation Cancelled by User (Exit)     |");
             System.out.println("=============================================\n");
-            // 这里方法结束，自动回到 Main Menu
         }
     }
 }

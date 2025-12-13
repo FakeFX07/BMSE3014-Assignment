@@ -4,58 +4,23 @@ import java.util.Optional;
 
 import model.Customer;
 
-/**
- * Customer Repository Interface
- * Defines contract for customer data access operations
- * Follows SOLID: Interface Segregation Principle, Dependency Inversion Principle
- */
 public interface ICustomerRepository {
     
-    /**
-     * Find customer by ID
-     * 
-     * @param customerId Customer ID
-     * @return Optional containing customer if found
-     */
+    //find customer by ID
     Optional<Customer> findById(int customerId);
     
-    /**
-     * Find customer by phone number
-     * 
-     * @param phoneNumber Phone number
-     * @return Optional containing customer if found
-     */
+    //find customer by phone number
     Optional<Customer> findByPhoneNumber(String phoneNumber);
     
-    /**
-     * Authenticate customer with ID and password
-     * 
-     * @param customerId Customer ID
-     * @param password Password
-     * @return Optional containing customer if authenticated
-     */
+    //authenticate customer
     Optional<Customer> authenticate(int customerId, String password);
     
-    /**
-     * Save customer (create or update)
-     * 
-     * @param customer Customer to save
-     * @return Saved customer with generated ID
-     */
+    //save customer
     Customer save(Customer customer);
     
-    /**
-     * Get next available customer ID
-     * 
-     * @return Next customer ID
-     */
+    //get next customer ID
     int getNextCustomerId();
     
-    /**
-     * Check if phone number exists
-     * 
-     * @param phoneNumber Phone number to check
-     * @return true if exists, false otherwise
-     */
+    //check phone number exists or not
     boolean existsByPhoneNumber(String phoneNumber);
 }

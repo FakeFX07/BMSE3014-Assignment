@@ -8,18 +8,15 @@ import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 import presentation.General.UserInputHandler;
 
-/**
- * Handles admin menu navigation and reporting.
- */
 public class AdminHandler {
 
-    // 1. Add the AdminService field
+    //Add the AdminService field
     private final AdminController adminController;
     private final FoodHandler foodHandler;
     private final OrderController orderController;
     private final UserInputHandler inputHandler;
 
-    // 2. Update Constructor to accept IAdminService
+    //Update Constructor to accept IAdminService
     public AdminHandler(AdminController adminController,
                         FoodHandler foodHandler,
                         OrderController orderController,
@@ -32,13 +29,13 @@ public class AdminHandler {
 
     public void handleAdminMenu(OrderHandler orderHandler, model.Customer currentCustomer) {
 
-        // 3. Check Login BEFORE showing the menu
+        //Check Login before showing the menu
         if (!performLogin()) {
             System.out.println("\n!!! Access Denied: Wrong Username or Password !!!\n");
-            return; // Exit this method immediately, returning to Main Menu
+            return; 
         }
 
-        // 4. If login passed, show the menu loop
+        //If login passed, show the menu
         boolean backMainMenu = true;
 
         do {
@@ -68,19 +65,15 @@ public class AdminHandler {
         } while (backMainMenu);
     }
 
-    /**
-     * Handles the login input and calls the service
-     */
     private boolean performLogin() {
         System.out.println("\n=======================");
         System.out.println("[]    ADMIN LOGIN    []");
         System.out.println("=======================\n");
 
-        // Make sure your UserInputHandler has a readString method!
         String name = inputHandler.readString("Username: ");
         String password = inputHandler.readPassword("Password: ");
 
-        // Call the service to check database
+        //Call the service to check database
         return adminController.login(name, password);
     }
 
