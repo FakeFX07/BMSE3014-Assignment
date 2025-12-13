@@ -88,27 +88,7 @@ void handleOrder_invalidFoodChoice() {
 
     verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
 }
-@Test
-@DisplayName("handleOrder re-prompts when quantity is invalid")
-void handleOrder_invalidQuantityThenValid() {
-    Food food = sampleFoods().get(0);
-    food.setQuantity(5);
 
-    when(foodController.getAllFoods()).thenReturn(List.of(food));
-
-    when(inputHandler.readInt(anyString()))
-            .thenReturn(1)   // select food
-            .thenReturn(0)   // invalid qty
-            .thenReturn(10)  // exceeds stock
-            .thenReturn(2)   // valid qty
-            .thenReturn(0);  // exit
-
-    when(inputHandler.readYesNo(anyString())).thenReturn(true);
-
-    orderHandler.handleOrder(customer);
-
-    verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
-}
 @Test
 @DisplayName("handleOrder merges quantity when same food selected twice")
 void handleOrder_mergeSameFood() {

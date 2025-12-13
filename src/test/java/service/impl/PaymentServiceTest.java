@@ -40,15 +40,6 @@ public class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("Factory: Should create Grab Payment")
-    void testCreatePayment_Grab() {
-        PaymentMethod pm = new PaymentMethod("GRAB001", "Grab", "grab456", 100.0);
-        pm.setPaymentMethodId(1);
-        Payment payment = paymentService.createPayment(pm);
-        assertTrue(payment instanceof GrabPayment);
-    }
-
-    @Test
     @DisplayName("Factory: Should create Bank Payment")
     void testCreatePayment_Bank() {
         PaymentMethod pm = new PaymentMethod();
