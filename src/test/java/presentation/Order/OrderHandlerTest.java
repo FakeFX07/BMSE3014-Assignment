@@ -12,10 +12,7 @@ import presentation.General.UserInputHandler;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,71 +30,133 @@ class OrderHandlerTest {
     @InjectMocks
     private OrderHandler orderHandler;
 
-    private Customer mockCustomer;
+    private Customer customer;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        mockCustomer = new Customer(1000, "John", 25, "0123456789", "M", "pass");
+        customer = new Customer(1000, "John", 25, "0123456789", "M", "pass");
     }
 
-    /// ---------- MOCK FOOD LIST ----------
-    private List<Food> mockFoodList() {
-        Food f1 = new Food(2000, "Chicken Rice", 10.50, "Set");
-        Food f2 = new Food(3000, "Nasi Lemak", 8.00, "Set");
-        return Arrays.asList(f1, f2);
+    // ---------- Helper: mock food list ----------
+    private List<Food> sampleFoods() {
+        return Arrays.asList(
+            new Food(2000, "Chicken Rice", 10.50, "Set"),
+            new Food(3000, "Nasi Lemak", 8.00, "Set")
+        );
     }
 
-    /// ---------- handleOrder: Customer null ----------
+    // ---------- handleOrder: customer null ----------
     @Test
-    void testHandleOrder_customerNull() {
+    void handleOrder_customerIsNull() {
         orderHandler.handleOrder(null);
         verify(foodController, never()).getAllFoods();
     }
 
-    /// ---------- handleOrder: food list empty ----------
+    // ---------- handleOrder: empty food list ----------
     @Test
-    void testHandleOrder_foodListEmpty() {
+    void handleOrder_foodListEmpty() {
         when(foodController.getAllFoods()).thenReturn(Collections.emptyList());
-        orderHandler.handleOrder(mockCustomer);
+
+        orderHandler.handleOrder(customer);
+
         verify(foodController, times(1)).getAllFoods();
+        // no orders should be created
+        verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
     }
 
-    /// ---------- handleOrder: user immediately stops ----------
+    // ---------- handleOrder: user exits immediately ----------
     @Test
-    void testHandleOrder_stopImmediately() {
-        when(foodController.getAllFoods()).thenReturn(mockFoodList());
-        when(inputHandler.readInt(anyString())).thenReturn(0);
+    void handleOrder_userStopsImmediately() {
+        when(foodController.getAllFoods()).thenReturn(sampleFoods());
+        when(inputHandler.readInt(anyString())).thenReturn(0); // user selects 'exit'
 
-        orderHandler.handleOrder(mockCustomer);
+        orderHandler.handleOrder(customer);
 
-        verify(orderController, never())
-                .createOrder(anyInt(), anyList(), any(), any(), any());
+        verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
     }
+@Test
+@DisplayName("handleOrder handles invalid food choice then exit")
+void handleOrder_invalidFoodChoice() {
+    when(foodController.getAllFoods()).thenReturn(sampleFoods());
 
-    /// ---------- displayReceipt: ensure no errors ----------
+    when(inputHandler.readInt(anyString()))
+            .thenReturn(99)  // invalid choice
+            .thenReturn(0);  // exit
+
+    orderHandler.handleOrder(customer);
+
+    verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
+}
+@Test
+@DisplayName("handleOrder re-prompts when quantity is invalid")
+void handleOrder_invalidQuantityThenValid() {
+    Food food = sampleFoods().get(0);
+    food.setQuantity(5);
+
+    when(foodController.getAllFoods()).thenReturn(List.of(food));
+
+    when(inputHandler.readInt(anyString()))
+            .thenReturn(1)   // select food
+            .thenReturn(0)   // invalid qty
+            .thenReturn(10)  // exceeds stock
+            .thenReturn(2)   // valid qty
+            .thenReturn(0);  // exit
+
+    when(inputHandler.readYesNo(anyString())).thenReturn(true);
+
+    orderHandler.handleOrder(customer);
+
+    verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
+}
+@Test
+@DisplayName("handleOrder merges quantity when same food selected twice")
+void handleOrder_mergeSameFood() {
+    Food food = sampleFoods().get(0);
+    food.setQuantity(10);
+
+    when(foodController.getAllFoods()).thenReturn(List.of(food));
+
+    when(inputHandler.readInt(anyString()))
+            .thenReturn(1) // select food
+            .thenReturn(2) // qty
+            .thenReturn(1) // select same food again
+            .thenReturn(3) // qty
+            .thenReturn(0); // exit
+
+    when(inputHandler.readYesNo(anyString())).thenReturn(true);
+    when(inputHandler.readString(anyString())).thenReturn("Y");
+
+    orderHandler.handleOrder(customer);
+
+    verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
+}
+@Test
+@DisplayName("processOrder does nothing when order list is empty")
+void processOrder_emptyOrderList() {
+    orderHandler.processOrder(customer, new ArrayList<>());
+
+    verify(orderController, never()).createOrder(anyInt(), anyList(), any(), any(), any());
+}
+
+    // ---------- displayReceipt: just runs ----------
     @Test
-    void testDisplayReceipt_runsWithoutError() {
-        OrderDetails detail = new OrderDetails(mockFoodList().get(0), 2);
+    void displayReceipt_runsWithoutException() {
+        Food food = sampleFoods().get(0);
+        OrderDetails detail = new OrderDetails(food, 2);
 
-        PaymentMethod pm = new PaymentMethod(
-                "GRAB001",  // wallet ID
-                "Grab",     // payment type
-                "grab456",  // password
-                21.00       // balance
-        );
+        PaymentMethod pm = new PaymentMethod("GRAB001", "Grab", "grab456", 21.00);
         pm.setPaymentMethodId(30);
 
         model.Order order = new model.Order.Builder()
-        .orderId(1234)
-        .orderDate(new Date())
-        .customer(mockCustomer)
-        .orderDetails(List.of(detail))
-        .totalPrice(new BigDecimal("21.00"))
-        .paymentMethod(pm)
-        .status("COMPLETED")
-        .build();
-
+            .orderId(1234)
+            .orderDate(new Date())
+            .customer(customer)
+            .orderDetails(List.of(detail))
+            .totalPrice(new BigDecimal("21.00"))
+            .paymentMethod(pm)
+            .status("COMPLETED")
+            .build();
 
         assertDoesNotThrow(() -> OrderHandler.displayReceipt(order));
     }
