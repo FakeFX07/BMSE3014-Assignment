@@ -14,11 +14,6 @@ import model.OrderDetails;
 import model.PaymentMethod;
 import repository.interfaces.IOrderRepository;
 
-/**
- * Order Repository Implementation
- * Handles database operations for Order entity
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class OrderRepository implements IOrderRepository {
     
     private static final String FIND_BY_ID = "SELECT * FROM orders WHERE order_id = ?";
@@ -35,11 +30,6 @@ public class OrderRepository implements IOrderRepository {
     
     private final ConnectionProvider connectionProvider;
     
-    /**
-     * Constructor with ConnectionProvider for dependency injection
-     * 
-     * @param connectionProvider Connection provider
-     */
     public OrderRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
@@ -207,7 +197,6 @@ public class OrderRepository implements IOrderRepository {
     
     /**
      * Map ResultSet to Order object
-     * Follows DRY principle - single method for mapping
      */
     private Order mapResultSetToOrder(ResultSet rs) throws SQLException {
         Order order = new Order();

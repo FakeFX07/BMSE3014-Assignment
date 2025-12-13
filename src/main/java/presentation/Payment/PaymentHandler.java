@@ -4,11 +4,6 @@ import controller.PaymentController;
 import model.Payment;
 import presentation.General.UserInputHandler;
 
-/**
- * Payment Handler
- * Manages UI interactions for the Payment Module.
- * Matches the pattern of FoodHandler.
- */
 public class PaymentHandler {
     
     private final PaymentController paymentController;

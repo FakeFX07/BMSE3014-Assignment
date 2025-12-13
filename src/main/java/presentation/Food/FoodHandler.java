@@ -1,34 +1,22 @@
 package presentation.Food;
 
-import controller.FoodController;
 import model.Food;
+import controller.FoodController;
 import presentation.General.UserInputHandler;
 import presentation.General.UserCancelledException;
 import java.util.List;
 
-/**
- * Food Handler Class
- * Handles all food CRUD operations (Create, Read, Update, Delete)
- */
 public class FoodHandler {
     
     private final FoodController foodController;
     private final UserInputHandler inputHandler;
     
-    /**
-     * Constructor
-     * 
-     * @param foodController Food controller instance
-     * @param inputHandler User input handler instance
-     */
     public FoodHandler(FoodController foodController, UserInputHandler inputHandler) {
         this.foodController = foodController;
         this.inputHandler = inputHandler;
     }
     
-    /**
-     * Handle food registration
-     */
+    //Handle food registration
     public void handleRegisterFood() {
         try {
             System.out.println("\n=== Register New Food ===");
@@ -51,13 +39,11 @@ public class FoodHandler {
         }
     }
     
-    /**
-     * Handle food editing
-     */
+    //Handle food editing
     public void handleEditFood() {
         try {
             Food food = null;
-            System.out.println("\n[]========= Edit Food =========[]");     
+            System.out.println("\n[]================ Edit Food ================[]");     
             do {
                 food = searchFoodByIdOrName("Enter the food id or name to edit (or X to cancel): ");
                 
@@ -95,7 +81,7 @@ public class FoodHandler {
                     System.out.println("\nFood updated successfully!\n");
                     System.out.println("Updated Food Details:");
                     printFoodDetails(updatedFood);
-                    food = updatedFood; // Update local reference
+                    food = updatedFood; 
                 }
             }
 
@@ -112,9 +98,7 @@ public class FoodHandler {
         }
     }
     
-    /**
-     * Handle food deletion
-     */
+    //Handle food deletion
     public void handleDeleteFood() {
         try {
             System.out.println("\n[]========= Delete Food =========[]");
@@ -143,22 +127,14 @@ public class FoodHandler {
         }
     }
     
-    /**
-     * Handle display all foods
-     */
+    //Handle display all foods
     public void handleDisplayAllFoods() {
         List<Food> foods = foodController.getAllFoods();
         MenuDisplay.displayAllFoods(foods);
         waitForExit();
     }
 
-     /**
-     * Read and validate food name from user input
-     * Validates format (letters only) and checks for duplicates
-     * 
-     * @param prompt The prompt message to display
-     * @return Valid and unique food name
-     */
+     //Read and validate food name from user input
     private String readValidFoodName(String prompt) {
         String foodName;
         do {
@@ -172,13 +148,7 @@ public class FoodHandler {
         return foodName;
     }
 
-    /**
-     * Read and validate food price from user input
-     * Ensures price is positive and greater than zero
-     * 
-     * @param prompt The prompt message to display
-     * @return Valid food price
-     */
+    //Read and validate food price from user input & ensures price is positive and greater than zero
     private double readValidFoodPrice(String prompt) {
         double foodPrice;
         do {
@@ -190,13 +160,10 @@ public class FoodHandler {
         return foodPrice;
     }
 
-    /**
+    /*
      * Read and validate food type from user input
      * Accepts shortcuts: S for Set, A for A la carte
-     * 
-     * @param prompt The prompt message to display
-     * @return Valid food type (Set or A la carte)
-     */
+    */
     private String readValidFoodType(String prompt) {
         String foodType;
         String convertedType;
@@ -210,13 +177,10 @@ public class FoodHandler {
         return convertedType;
     }
 
-    /**
+    /*
      * Convert food type shortcuts to full names
      * S or s -> Set
      * A or a -> A la carte
-     * 
-     * @param input User input string
-     * @return Converted food type or original input
      */
     private String convertFoodType(String input) {
         if (input == null || input.trim().isEmpty()) {
@@ -231,9 +195,6 @@ public class FoodHandler {
         return input;
     }
 
-    /**
-     * Wait for user to press X to exit
-     */
     private void waitForExit() {
         char input;
         do {
@@ -241,9 +202,7 @@ public class FoodHandler {
         } while (input != 'X' && input != 'x');
     }
 
-    /**
-     * Display the food edit menu options
-     */
+    //Display edit menu
     private void printEditMenu() {
         System.out.println("[]======================[]");
         System.out.println("[]         EDIT         []");
@@ -254,11 +213,7 @@ public class FoodHandler {
         System.out.println("[]======================[]");
     }
 
-    /**
-     * Display food details in formatted view
-     * 
-     * @param food The food object to display
-     */
+    //Display food details
     private void printFoodDetails(Food food) {
         System.out.println();
         System.out.println("[]========================================[]");
@@ -271,14 +226,7 @@ public class FoodHandler {
         System.out.println("[]========================================[]\n");
     }
 
-    /**
-     * Search food by ID or name
-     * Tries to parse input as integer (ID), otherwise searches by name
-     * 
-     * @param prompt The prompt message to display
-     * @return Food if found, null otherwise
-     * @throws UserCancelledException if user enters X to cancel
-     */
+    //Search food by ID or name
     private Food searchFoodByIdOrName(String prompt) throws UserCancelledException {
         String input = inputHandler.readString(prompt);
         
@@ -286,12 +234,10 @@ public class FoodHandler {
             throw new UserCancelledException();
         }
         
-        // Try to parse as integer (ID)
         try {
             int foodId = Integer.parseInt(input.trim());
             return foodController.getFoodById(foodId);
         } catch (NumberFormatException e) {
-            // Not a number, search by name
             return foodController.getFoodByName(input.trim());
         }
     }

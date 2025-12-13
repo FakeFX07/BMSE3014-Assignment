@@ -14,11 +14,6 @@ import repository.interfaces.IPaymentMethodRepository;
 import service.interfaces.IOrderService;
 import service.interfaces.IPaymentService;
 
-/**
- * Order Service Implementation
- * Contains business logic for order operations
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class OrderService implements IOrderService {
 
     private final IOrderRepository orderRepository;

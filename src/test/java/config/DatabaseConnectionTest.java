@@ -10,10 +10,6 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Database Connection Test
- * Tests database connection functionality
- */
 public class DatabaseConnectionTest {
     
     private DatabaseConnection dbConnection;

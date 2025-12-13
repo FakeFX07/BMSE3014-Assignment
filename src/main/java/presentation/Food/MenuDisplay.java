@@ -8,31 +8,19 @@ import model.Order;
 import presentation.Admin.AdminMenuOption;
 import presentation.General.MainMenuOption;
 
-
-/**
- * Menu Display Utility
- * Handles display of menus and formatted output
- * Follows SOLID: Single Responsibility Principle
- */
 public class MenuDisplay {
     
-    /**
-     * Display main menu
-     */
+    //Display main menu
     public static void displayMainMenu() {
         MainMenuOption.displayMenu();
     }
     
-    /**
-     * Display admin menu
-     */
+    //Display admin menu
     public static void displayAdminMenu() {
         AdminMenuOption.displayMenu();
     }
     
-    /**
-     * Display food admin submenu
-     */
+    //Display food admin sub menu
     public static void displayFoodAdminMenu() {
         System.out.println("\n[]===============================[]");
         System.out.println("[]        Food Management        []");
@@ -51,11 +39,7 @@ public class MenuDisplay {
         System.out.println("[]===============================[]\n");
     }
     
-    /**
-     * Display food menu
-     * 
-     * @param foods List of foods to display
-     */
+    //Display food menu
     public static void displayFoodMenu(List<Food> foods) {
         System.out.println("============================ []Menu[] ======================");
         System.out.printf("%-5s %-10s %-22s %-10s %-10s%n", "No.", "Food Id", "Food Name", "Price", "Available");
@@ -69,11 +53,7 @@ public class MenuDisplay {
         System.out.println("==============================================================");
     }
     
-    /**
-     * Display order report
-     * 
-     * @param orders List of orders to display
-     */
+    //Display order report
     public static void displayOrderReport(List<Order> orders) {
         System.out.println("=================================================================================");
         System.out.println("                                        Order Report                             ");
@@ -91,11 +71,7 @@ public class MenuDisplay {
         System.out.println("=================================================================================");
     }
     
-    /**
-     * Display all foods
-     * 
-     * @param foods List of foods to display
-     */
+    //Display all foods
     public static void displayAllFoods(List<Food> foods) {
         System.out.println("================================================================");
         System.out.println("                         All Food Details                      ");

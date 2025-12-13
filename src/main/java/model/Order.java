@@ -5,11 +5,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Order Model Class
- * Represents an order entity in the system
- * Follows OOP principles: Encapsulation, Composition
- */
 public class Order {
     
     private int orderId;
@@ -20,7 +15,6 @@ public class Order {
     private PaymentMethod paymentMethod;
     private String status;
     
-    // Default constructor
     public Order() {
         this.orderDate = new Date();
         this.status = "PENDING";
@@ -37,7 +31,6 @@ public class Order {
         this.status = "COMPLETED";
     }
     
-    // Getters
     public int getOrderId() {
         return orderId;
     }
@@ -70,7 +63,6 @@ public class Order {
         return status;
     }
     
-    // Setters
     public void setOrderId(int orderId) {
         this.orderId = orderId;
     }

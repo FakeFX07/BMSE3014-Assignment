@@ -1,8 +1,6 @@
 package presentation.Food;
 
-/**
- * Edit menu options for food.
- */
+//Edit menu options for food.
 public enum FoodEditOption {
     NAME(1, "Food Name"),
     PRICE(2, "Food Price"),

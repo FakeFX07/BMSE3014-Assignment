@@ -19,11 +19,6 @@ import presentation.Food.FoodHandler;
 import presentation.Food.MenuDisplay;
 import presentation.Order.OrderHandler;
 
-/**
- * Main Application Class
- * Entry point for the POS system
- * Follows N-Tier Architecture pattern
- */
 public class Application {
     
     private final Scanner scanner;
@@ -47,7 +42,7 @@ public class Application {
         this.scanner = new Scanner(System.in);
         this.inputHandler = new UserInputHandler(scanner);
         
-        // Initialize controllers (they handle their own dependency injection)
+        // Initialize controllers
         this.foodController = new FoodController();
         this.customerController = new CustomerController();
         this.orderController = new OrderController();
@@ -60,12 +55,9 @@ public class Application {
         this.adminHandler = new AdminHandler(adminController, foodHandler, orderController, inputHandler);
     }
         
-    
-    /**
-     * Run the application
-     */
+
     public void run() {
-        boolean isRunning = true; // Control flag for the loop
+        boolean isRunning = true; 
         
         do {
             MenuDisplay.displayMainMenu();
@@ -102,44 +94,32 @@ public class Application {
         scanner.close();
     }
 
-    /**
-     * Expose customer login for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void handleLogin() {
         customerHandler.handleLogin();
     }
 
-    /**
-     * Expose customer registration for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void handleRegister() {
         customerHandler.handleRegister();
     }
 
-    /**
-     * Expose admin menu for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void handleAdminMenu() {
         adminHandler.handleAdminMenu(orderHandler, currentCustomer);
     }
 
-    /**
-     * Expose order report for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void handleOrderReport() {
         adminHandler.handleOrderReport();
     }
 
-    /**
-     * Expose order handling for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void handleOrder() {
         orderHandler.handleOrder(currentCustomer);
     }
 
-    /**
-     * Expose process order for tests (delegates to handler)
-     */
+    // Expore handling for testing
     void processOrder(List<model.OrderDetails> details) {
         orderHandler.processOrder(currentCustomer, details);
     }

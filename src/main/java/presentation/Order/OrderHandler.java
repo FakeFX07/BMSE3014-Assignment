@@ -247,7 +247,7 @@ public class OrderHandler {
                 paymentSuccess = true;
             } else {
                 // Payment failed - allow user to try again
-                System.out.println("\n⚠️  Payment failed. Please try again with another payment method.\n");
+                System.out.println("\nPayment failed. Please try again with another payment method.\n");
             }
         }
     }
@@ -292,9 +292,7 @@ public class OrderHandler {
         System.out.println("\n                    Thank you for your order! 🙏\n");
     }
 
-        /**
-     * Display payment options
-     */
+    //Display payment options
     public static void displayPaymentOptions() {
         PaymentOption.displayMenu();
     }

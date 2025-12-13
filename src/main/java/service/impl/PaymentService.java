@@ -5,27 +5,14 @@ import repository.interfaces.IPaymentMethodRepository;
 import service.interfaces.IPaymentService;
 import util.PasswordUtil;
 
-/**
- * Payment Service Implementation
- * Contains business logic for payment operations
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle, Open/Closed Principle
- * SRP：Handles only business logic (validation, processing。
- * DIP： Depends on IPaymentMethodRepository abstraction。
- * Meaningful Names： Methods describe exactly what they verify。
- */
 public class PaymentService implements IPaymentService {
     
     private final IPaymentMethodRepository paymentMethodRepository;
     
-    // Constants for validation
     private static final String PAYMENT_TYPE_BANK = "BANK";
     private static final String PAYMENT_TYPE_TNG = "TNG";
-    private static final String PAYMENT_TYPE_GRAB = "GRAB";
+    private static final String PAYMENT_TYPE_GRAB = "GrabPay";
 
-    /**
-     * Constructor for Dependency Injection.
-     * * @param paymentMethodRepository The repository interface for data access
-     */
     public PaymentService(IPaymentMethodRepository paymentMethodRepository) {
         this.paymentMethodRepository = paymentMethodRepository;
     }

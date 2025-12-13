@@ -10,11 +10,6 @@ import config.DatabaseConnection;
 import model.Food;
 import repository.interfaces.IFoodRepository;
 
-/**
- * Food Repository Implementation
- * Handles database operations for Food entity
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class FoodRepository implements IFoodRepository {
     
     private static final String FIND_BY_ID = "SELECT * FROM foods WHERE food_id = ?";
@@ -30,29 +25,16 @@ public class FoodRepository implements IFoodRepository {
     
     private final ConnectionProvider connectionProvider;
     
-    /**
-     * Constructor with ConnectionProvider for dependency injection
-     * 
-     * @param connectionProvider Connection provider
-     */
+    public FoodRepository() {
+        this(DatabaseConnection.getInstance());
+    }
+
+    //Constructor with ConnectionProvider for dependency injection
     public FoodRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
     
-    /**
-     * Default constructor using singleton DatabaseConnection
-     * Maintains backward compatibility
-     */
-    public FoodRepository() {
-        this(DatabaseConnection.getInstance());
-    }
-    
-    /**
-     * Find food by ID
-     * 
-     * @param foodId Food ID to search for
-     * @return Optional containing food if found, empty otherwise
-     */
+    //Find food by ID
     @Override
     public Optional<Food> findById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -70,12 +52,7 @@ public class FoodRepository implements IFoodRepository {
         return Optional.empty();
     }
     
-    /**
-     * Find food by name (case-insensitive)
-     * 
-     * @param foodName Food name to search for
-     * @return Optional containing food if found, empty otherwise
-     */
+    //Find food by name
     @Override
     public Optional<Food> findByName(String foodName) {
         try (Connection conn = connectionProvider.getConnection();
@@ -93,11 +70,7 @@ public class FoodRepository implements IFoodRepository {
         return Optional.empty();
     }
     
-    /**
-     * Find all foods in the database
-     * 
-     * @return List of all foods, empty list if none found
-     */
+    //Find all foods in the database
     @Override
     public List<Food> findAll() {
         List<Food> foods = new ArrayList<>();
@@ -114,14 +87,7 @@ public class FoodRepository implements IFoodRepository {
         return foods;
     }
     
-    /**
-     * Save new food to database
-     * Generates and assigns a new food ID
-     * 
-     * @param food Food object to save
-     * @return Saved food with generated ID
-     * @throws RuntimeException if save operation fails
-     */
+    //Save new food to database
     @Override
     public Food save(Food food) {
         try (Connection conn = connectionProvider.getConnection();
@@ -147,13 +113,7 @@ public class FoodRepository implements IFoodRepository {
         return food;
     }
     
-    /**
-     * Update existing food in database
-     * 
-     * @param food Food object with updated values
-     * @return Updated food object
-     * @throws RuntimeException if update operation fails
-     */
+    //Update existing food in database
     @Override
     public Food update(Food food) {
         try (Connection conn = connectionProvider.getConnection();
@@ -173,12 +133,7 @@ public class FoodRepository implements IFoodRepository {
         return food;
     }
     
-    /**
-     * Delete food by ID
-     * 
-     * @param foodId Food ID to delete
-     * @return true if deleted successfully, false otherwise
-     */
+    //Delete food by ID    
     @Override
     public boolean deleteById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -192,12 +147,7 @@ public class FoodRepository implements IFoodRepository {
         }
     }
     
-    /**
-     * Get next available food ID
-     * Returns minimum of 2000 or max ID + 1
-     * 
-     * @return Next food ID to use
-     */
+    //Get next available food ID
     @Override
     public int getNextFoodId() {
         try (Connection conn = connectionProvider.getConnection();
@@ -214,12 +164,7 @@ public class FoodRepository implements IFoodRepository {
         return 2000;
     }
     
-    /**
-     * Check if food exists by ID
-     * 
-     * @param foodId Food ID to check
-     * @return true if exists, false otherwise
-     */
+    //Check if food exists by ID
     @Override
     public boolean existsById(int foodId) {
         try (Connection conn = connectionProvider.getConnection();
@@ -237,12 +182,7 @@ public class FoodRepository implements IFoodRepository {
         return false;
     }
     
-    /**
-     * Check if food exists by name (case-insensitive)
-     * 
-     * @param foodName Food name to check
-     * @return true if exists, false otherwise
-     */
+    //Check if food exists by name
     @Override
     public boolean existsByName(String foodName) {
         try (Connection conn = connectionProvider.getConnection();
@@ -260,13 +200,7 @@ public class FoodRepository implements IFoodRepository {
         return false;
     }
     
-    /**
-     * Decrement food quantity when order is placed
-     * 
-     * @param foodId Food ID
-     * @param quantityToDeduct Quantity to deduct
-     * @return true if quantity was sufficient and updated, false otherwise
-     */
+    //Decrement food quantity when order is placed
     public boolean decrementQuantity(int foodId, int quantityToDeduct) {
         try (Connection conn = connectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(UPDATE_QUANTITY)) {
@@ -283,10 +217,7 @@ public class FoodRepository implements IFoodRepository {
         }
     }
     
-    /**
-     * Map ResultSet to Food object
-     * Follows DRY principle - single method for mapping
-     */
+    //Map ResultSet to Food object
     private Food mapResultSetToFood(ResultSet rs) throws SQLException {
         Food food = new Food();
         food.setFoodId(rs.getInt("food_id"));

@@ -1,9 +1,5 @@
 package model;
 
-/**
- * TNG Payment Implementation
- * Follows SOLID: Open/Closed Principle, Liskov Substitution Principle
- */
 public class TNGPayment implements Payment {
     
     private double balance;

@@ -3,27 +3,21 @@ package model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * PaymentMethod Model Class
- * Represents a payment method entity in the system
- * Follows OOP principles: Encapsulation, Data Hiding
- */
 public class PaymentMethod {
     
     private int paymentMethodId;
-    private String password; // SHA256 hashed password
-    private String paymentType; // TNG, Grab, Bank
-    private String walletId; // For TNG/Grab e-wallets
+    private String password; 
+    private String paymentType;
+    private String walletId; 
     private BigDecimal balance;
-    private String cardNumber; // For Bank payments
-    private String expiryDate; // For Bank payments
+    private String cardNumber; 
+    private String expiryDate; 
     
-    // Default constructor
     public PaymentMethod() {
         this.balance = BigDecimal.ZERO;
     }
     
-    // Constructor for TNG/Grab (wallet-based)
+
     public PaymentMethod(String walletId, String paymentType, String password, double balance) {
         this.walletId = walletId;
         this.paymentType = paymentType;

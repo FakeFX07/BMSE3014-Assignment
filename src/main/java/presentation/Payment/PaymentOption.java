@@ -1,10 +1,5 @@
 package presentation.Payment;
 
-/**
- * Payment Option Enum
- * Represents payment method options with their display text
- * Follows OOP principles: Encapsulation
- */
 public enum PaymentOption {
     TNG(1, "TNG"),
     GRAB(2, "Grab"),
@@ -13,38 +8,22 @@ public enum PaymentOption {
     private final int optionNumber;
     private final String displayText;
     
-    /**
-     * Constructor for PaymentOption
-     * 
-     * @param optionNumber The option number
-     * @param displayText The display text for the option
-     */
     PaymentOption(int optionNumber, String displayText) {
         this.optionNumber = optionNumber;
         this.displayText = displayText;
     }
     
-    /**
-     * Get the option number
-     * 
-     * @return The option number
-     */
+    //Get the option number
     public int getOptionNumber() {
         return optionNumber;
     }
     
-    /**
-     * Get the display text
-     * 
-     * @return The display text
-     */
+    //Get the display text
     public String getDisplayText() {
         return displayText;
     }
     
-    /**
-     * Display the payment options menu using enum values
-     */
+    //Display the payment options menu using enum values
     public static void displayMenu() {
         System.out.println("===================");
         System.out.println("      Payment      ");
@@ -64,12 +43,7 @@ public enum PaymentOption {
         System.out.println("===================");
     }
     
-    /**
-     * Get PaymentOption by option number
-     * 
-     * @param optionNumber The option number
-     * @return PaymentOption or null if not found
-     */
+    //Get PaymentOption by option number
     public static PaymentOption getByOptionNumber(int optionNumber) {
         for (PaymentOption option : PaymentOption.values()) {
             if (option.getOptionNumber() == optionNumber) {

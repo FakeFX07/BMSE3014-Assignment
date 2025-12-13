@@ -1,9 +1,5 @@
 package model;
 
-/** 
- * Bank Payment Implementation
- * Follows SOLID: Open/Closed Principle, Liskov Substitution Principle
- */
 public class BankPayment implements Payment {
     
     private static final double TRANSACTION_FEE = 1.00;
@@ -36,11 +32,7 @@ public class BankPayment implements Payment {
         return "Bank";
     }
     
-    /**
-     * Get transaction fee
-     * 
-     * @return Transaction fee amount
-     */
+    //Get transaction fee
     public double getTransactionFee() {
         return TRANSACTION_FEE;
     }

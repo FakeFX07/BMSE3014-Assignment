@@ -1,9 +1,5 @@
 package model;
 
-/**
- * Grab Payment Implementation
- * Follows SOLID: Open/Closed Principle, Liskov Substitution Principle
- */
 public class GrabPayment implements Payment {
     
     private double balance;

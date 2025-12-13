@@ -3,11 +3,6 @@ package model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * OrderDetails Model Class
- * Represents order detail (line item) entity
- * Follows OOP principles: Encapsulation, Composition
- */
 public class OrderDetails {
     
     private int orderDetailId;
@@ -33,10 +28,7 @@ public class OrderDetails {
         calculateSubtotal();
     }
     
-    /**
-     * Calculate subtotal for this order detail
-     * Follows DRY principle - single method for calculation
-     */
+    // Calculate subtotal for this order detail
     public void calculateSubtotal() {
         if (food != null && quantity > 0) {
             this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
@@ -45,19 +37,14 @@ public class OrderDetails {
         }
     }
     
-    /**
-     * Get calculated total price
-     * 
-     * @return total price as double
-     */
+    //Get calculated total price
     public double calculateEachTotalPrice() {
         return subtotal.doubleValue();
     }
+    
     public void setSubtotal(BigDecimal subtotal) {
     this.subtotal = subtotal;
 }
-
-    // Getters
     public int getOrderDetailId() {
         return orderDetailId;
     }
@@ -86,7 +73,6 @@ public class OrderDetails {
         return subtotal;
     }
     
-    // Setters
     public void setOrderDetailId(int orderDetailId) {
         this.orderDetailId = orderDetailId;
     }

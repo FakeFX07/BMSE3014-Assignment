@@ -4,12 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Database Connection Utility
- * Implements Singleton pattern for database connection management
- * Also implements ConnectionProvider for dependency injection
- * Follows Single Responsibility Principle - only handles database connections
- */
 public class DatabaseConnection implements ConnectionProvider {
     
     private static final String DB_URL = "jdbc:mysql://localhost:3306/BMSE3014";
@@ -22,22 +16,11 @@ public class DatabaseConnection implements ConnectionProvider {
     private String user;
     private String password;
     
-    /**
-     * Private constructor to prevent instantiation
-     * Implements Singleton pattern
-     */
     private DatabaseConnection() {
         this(DB_URL, DB_USER, DB_PASSWORD);
     }
     
-    /**
-     * Constructor with connection parameters
-     * Allows dependency injection for testing
-     * 
-     * @param url Database URL
-     * @param user Database user
-     * @param password Database password
-     */
+    //Allows dependency injection for testing
     public DatabaseConnection(String url, String user, String password) {
         this.url = url;
         this.user = user;
@@ -45,9 +28,8 @@ public class DatabaseConnection implements ConnectionProvider {
         initializeConnection();
     }
     
-    /**
-     * Initialize database connection
-     */
+
+    //Initialize database connection
     private void initializeConnection() {
         try {
             if (url.contains("h2")) {
@@ -63,12 +45,6 @@ public class DatabaseConnection implements ConnectionProvider {
         }
     }
     
-    /**
-     * Get singleton instance of DatabaseConnection
-     * Thread-safe singleton implementation
-     * 
-     * @return DatabaseConnection instance
-     */
     public static synchronized DatabaseConnection getInstance() {
         if (instance == null) {
             instance = new DatabaseConnection();
@@ -76,24 +52,12 @@ public class DatabaseConnection implements ConnectionProvider {
         return instance;
     }
     
-    /**
-     * Create a new instance (for testing)
-     * 
-     * @param url Database URL
-     * @param user Database user
-     * @param password Database password
-     * @return New DatabaseConnection instance
-     */
+    //Create a new instance (for testing)
     public static DatabaseConnection createInstance(String url, String user, String password) {
         return new DatabaseConnection(url, user, password);
     }
     
-    /**
-     * Get database connection
-     * 
-     * @return Connection object
-     * @throws SQLException if connection fails
-     */
+    //Get database connection
     @Override
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
@@ -113,11 +77,7 @@ public class DatabaseConnection implements ConnectionProvider {
         return connection;
     }
     
-    /**
-     * Close database connection
-     * 
-     * @throws SQLException if closing fails
-     */
+    //Close database connection
     public void closeConnection() throws SQLException {
         if (connection != null && !connection.isClosed()) {
             connection.close();

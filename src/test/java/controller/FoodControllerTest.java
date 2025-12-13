@@ -13,19 +13,15 @@ import service.interfaces.IFoodService;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-/**
- * Test class for FoodController
- * Tests controller logic and interaction with service layer
- */
 @ExtendWith(MockitoExtension.class)
 public class FoodControllerTest {
     
@@ -33,289 +29,185 @@ public class FoodControllerTest {
     private IFoodService foodService;
     
     private FoodController foodController;
-    private ByteArrayOutputStream outputStream;
+    private final ByteArrayOutputStream outputCaptor = new ByteArrayOutputStream();
     
     @BeforeEach
     void setUp() {
+        System.setOut(new PrintStream(outputCaptor));
         foodController = new FoodController(foodService);
-        outputStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outputStream));
     }
     
-    // ============= registerFood Tests =============
-    
+    //Initialization Sanity Check
     @Test
-    @DisplayName("registerFood - Valid food - Should return registered food")
-    void testRegisterFood_ValidFood_ReturnsRegisteredFood() {
-        Food food = new Food("Chicken Rice", 10.50, "Set");
-        Food registeredFood = new Food(2000, "Chicken Rice", 10.50, "Set");
-        when(foodService.registerFood(any(Food.class))).thenReturn(registeredFood);
+    void shouldInitializeControllerCorrectly() {
+        assertNotNull(foodController, "Controller should be instantiated with service dependency");
+    }
+
+    // Registration Tests
+    @Test
+    @DisplayName("Should return registered food object when input is valid")
+    void shouldRegisterFoodSuccessfully() {
+        Food newFood = new Food("Nasi Lemak", 5.50, "A la carte");
+        Food savedFood = new Food(101, "Nasi Lemak", 5.50, "A la carte");
         
-        Food result = foodController.registerFood(food);
+        when(foodService.registerFood(any(Food.class))).thenReturn(savedFood);
+        
+        Food result = foodController.registerFood(newFood);
         
         assertNotNull(result);
-        assertEquals(2000, result.getFoodId());
-        verify(foodService).registerFood(food);
+        assertEquals(101, result.getFoodId());
+        verify(foodService).registerFood(newFood);
     }
     
     @Test
-    @DisplayName("registerFood - Invalid food - Should return null and print error")
-    void testRegisterFood_InvalidFood_ReturnsNullAndPrintsError() {
-        Food food = new Food("Food123", 10.50, "Set");
+    @DisplayName("Should handle invalid food registration gracefully")
+    void shouldFailRegistration_WhenServiceThrowsException() {
+        Food invalidFood = new Food("Food123", 10.50, "Set");
+        
         when(foodService.registerFood(any(Food.class)))
-                .thenThrow(new IllegalArgumentException("Food name must contain only letters"));
+                .thenThrow(new IllegalArgumentException("Invalid format"));
         
-        Food result = foodController.registerFood(food);
+        Food result = foodController.registerFood(invalidFood);
         
         assertNull(result);
-        String output = outputStream.toString();
-        assertTrue(output.contains("Registration failed"));
-        verify(foodService).registerFood(food);
+        assertTrue(outputCaptor.toString().contains("Registration failed"), "Should print failure message to console");
     }
-    
-    // ============= updateFood Tests =============
-    
+
+    // Update & Delete Operations
     @Test
-    @DisplayName("updateFood - Valid food - Should return updated food")
-    void testUpdateFood_ValidFood_ReturnsUpdatedFood() {
-        Food food = new Food(2000, "Chicken Rice", 12.00, "Set");
-        when(foodService.updateFood(any(Food.class))).thenReturn(food);
+    void shouldUpdateFoodSuccessfully() {
+        Food updateRequest = new Food(101, "Nasi Lemak Special", 12.00, "Set");
         
-        Food result = foodController.updateFood(food);
+        when(foodService.updateFood(any(Food.class))).thenReturn(updateRequest);
+        
+        Food result = foodController.updateFood(updateRequest);
         
         assertNotNull(result);
-        assertEquals(12.00, result.getFoodPrice(), 0.01);
-        verify(foodService).updateFood(food);
+        assertEquals(12.00, result.getFoodPrice());
+        verify(foodService).updateFood(updateRequest);
     }
     
     @Test
-    @DisplayName("updateFood - Non-existent food - Should return null and print error")
-    void testUpdateFood_NonExistentFood_ReturnsNullAndPrintsError() {
-        Food food = new Food(9999, "Non-existent", 10.50, "Set");
-        when(foodService.updateFood(any(Food.class)))
-                .thenThrow(new IllegalArgumentException("Food with ID 9999 not found"));
+    void shouldHandleUpdateForNonExistentFood() {
+        Food nonExistent = new Food(999, "Ghost Food", 10.50, "Set");
         
-        Food result = foodController.updateFood(food);
+        when(foodService.updateFood(any(Food.class)))
+                .thenThrow(new IllegalArgumentException("Not found"));
+        
+        Food result = foodController.updateFood(nonExistent);
         
         assertNull(result);
-        String output = outputStream.toString();
-        assertTrue(output.contains("Update failed"));
-        verify(foodService).updateFood(food);
-    }
-    
-    // ============= deleteFood Tests =============
-    
-    @Test
-    @DisplayName("deleteFood - Existing food - Should return true")
-    void testDeleteFood_ExistingFood_ReturnsTrue() {
-        when(foodService.deleteFood(anyInt())).thenReturn(true);
-        
-        boolean result = foodController.deleteFood(2000);
-        
-        assertTrue(result);
-        verify(foodService).deleteFood(2000);
+        assertTrue(outputCaptor.toString().contains("Update failed"));
     }
     
     @Test
-    @DisplayName("deleteFood - Non-existent food - Should return false and print error")
-    void testDeleteFood_NonExistentFood_ReturnsFalseAndPrintsError() {
+    void shouldDeleteExistingFood() {
+        when(foodService.deleteFood(101)).thenReturn(true);
+        
+        boolean isDeleted = foodController.deleteFood(101);
+        
+        assertTrue(isDeleted);
+        verify(foodService).deleteFood(101);
+    }
+    
+    @Test
+    void shouldFailDeleteForMissingFood() {
         when(foodService.deleteFood(anyInt())).thenReturn(false);
         
-        boolean result = foodController.deleteFood(9999);
+        boolean isDeleted = foodController.deleteFood(999);
         
-        assertFalse(result);
-        String output = outputStream.toString();
-        assertTrue(output.contains("not found") || output.contains("could not be deleted"));
-        verify(foodService).deleteFood(9999);
+        assertFalse(isDeleted);
+        // Verify console error output
+        String logs = outputCaptor.toString();
+        assertTrue(logs.contains("not found") || logs.contains("could not be deleted"));
     }
-    
-    // ============= getAllFoods Tests =============
-    
+
+    // Retrieval Tests (Get All, By ID, By Name)
     @Test
-    @DisplayName("getAllFoods - Multiple foods - Should return all foods")
-    void testGetAllFoods_MultipleFoods_ReturnsAllFoods() {
-        List<Food> foods = Arrays.asList(
-            new Food(2000, "Food 1", 10.00, "Set"),
-            new Food(2001, "Food 2", 15.00, "A la carte")
+    void shouldRetrieveAllFoods() {
+        List<Food> mockList = Arrays.asList(
+            new Food(1, "Fries", 5.00, "Side"),
+            new Food(2, "Burger", 15.00, "Main")
         );
-        when(foodService.getAllFoods()).thenReturn(foods);
+        
+        when(foodService.getAllFoods()).thenReturn(mockList);
         
         List<Food> result = foodController.getAllFoods();
-        
         assertEquals(2, result.size());
-        verify(foodService).getAllFoods();
     }
     
     @Test
-    @DisplayName("getAllFoods - Empty list - Should return empty list")
-    void testGetAllFoods_EmptyList_ReturnsEmptyList() {
-        when(foodService.getAllFoods()).thenReturn(Arrays.asList());
-        
-        List<Food> result = foodController.getAllFoods();
-        
-        assertTrue(result.isEmpty());
-        verify(foodService).getAllFoods();
+    void shouldReturnEmptyListExample() {
+        when(foodService.getAllFoods()).thenReturn(Collections.emptyList());
+        assertTrue(foodController.getAllFoods().isEmpty());
     }
     
-    // ============= getFoodById Tests =============
-    
     @Test
-    @DisplayName("getFoodById - Existing food - Should return food")
-    void testGetFoodById_ExistingFood_ReturnsFood() {
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        when(foodService.getFoodById(anyInt())).thenReturn(Optional.of(food));
+    void shouldFindFoodById() {
+        Food mockFood = new Food(50, "Steak", 55.00, "Set");
+        when(foodService.getFoodById(50)).thenReturn(Optional.of(mockFood));
         
-        Food result = foodController.getFoodById(2000);
+        Food result = foodController.getFoodById(50);
         
         assertNotNull(result);
-        assertEquals("Chicken Rice", result.getFoodName());
-        verify(foodService).getFoodById(2000);
+        assertEquals("Steak", result.getFoodName());
     }
     
     @Test
-    @DisplayName("getFoodById - Non-existent food - Should return null")
-    void testGetFoodById_NonExistentFood_ReturnsNull() {
+    void shouldReturnNull_WhenFoodIdNotFound() {
         when(foodService.getFoodById(anyInt())).thenReturn(Optional.empty());
-        
-        Food result = foodController.getFoodById(9999);
-        
-        assertNull(result);
-        verify(foodService).getFoodById(9999);
-    }
-    
-    // ============= getFoodByName Tests =============
-    
-    @Test
-    @DisplayName("getFoodByName - Existing food - Should return food")
-    void testGetFoodByName_ExistingFood_ReturnsFood() {
-        Food food = new Food(2000, "Chicken Rice", 10.50, "Set");
-        when(foodService.getFoodByName(anyString())).thenReturn(Optional.of(food));
-        
-        Food result = foodController.getFoodByName("Chicken Rice");
-        
-        assertNotNull(result);
-        assertEquals(2000, result.getFoodId());
-        verify(foodService).getFoodByName("Chicken Rice");
+        assertNull(foodController.getFoodById(404));
     }
     
     @Test
-    @DisplayName("getFoodByName - Non-existent food - Should return null")
-    void testGetFoodByName_NonExistentFood_ReturnsNull() {
-        when(foodService.getFoodByName(anyString())).thenReturn(Optional.empty());
+    void shouldFindFoodByName() {
+        Food mockFood = new Food(1, "Pasta", 18.00, "A la carte");
+        when(foodService.getFoodByName("Pasta")).thenReturn(Optional.of(mockFood));
         
-        Food result = foodController.getFoodByName("Non-existent");
-        
-        assertNull(result);
-        verify(foodService).getFoodByName("Non-existent");
+        Food result = foodController.getFoodByName("Pasta");
+        assertEquals(1, result.getFoodId());
     }
-    
-    // ============= Validation Tests =============
-    
+
     @Test
-    @DisplayName("validateFoodName - Valid name - Should return true")
-    void testValidateFoodName_ValidName_ReturnsTrue() {
-        when(foodService.validateFoodName(anyString())).thenReturn(true);
-        
-        boolean result = foodController.validateFoodName("Chicken Rice");
-        
-        assertTrue(result);
-        verify(foodService).validateFoodName("Chicken Rice");
+    void shouldReturnNull_WhenFoodNameNotFound() {
+        when(foodService.getFoodByName("Unknown")).thenReturn(Optional.empty());
+        assertNull(foodController.getFoodByName("Unknown"));
     }
-    
+
+    // Field Validations
     @Test
-    @DisplayName("validateFoodName - Invalid name - Should return false")
-    void testValidateFoodName_InvalidName_ReturnsFalse() {
-        when(foodService.validateFoodName(anyString())).thenReturn(false);
-        
-        boolean result = foodController.validateFoodName("Food123");
-        
-        assertFalse(result);
-        verify(foodService).validateFoodName("Food123");
+    void testNameValidation() {
+        when(foodService.validateFoodName("Valid Name")).thenReturn(true);
+        when(foodService.validateFoodName("Inv@lid")).thenReturn(false);
+
+        assertTrue(foodController.validateFoodName("Valid Name"));
+        assertFalse(foodController.validateFoodName("Inv@lid"));
     }
     
     @Test
-    @DisplayName("validateFoodPrice - Valid price - Should return true")
-    void testValidateFoodPrice_ValidPrice_ReturnsTrue() {
-        when(foodService.validateFoodPrice(anyDouble())).thenReturn(true);
-        
-        boolean result = foodController.validateFoodPrice(10.50);
-        
-        assertTrue(result);
-        verify(foodService).validateFoodPrice(10.50);
+    void testPriceValidation() {
+        when(foodService.validateFoodPrice(10.0)).thenReturn(true);
+        when(foodService.validateFoodPrice(-5.0)).thenReturn(false);
+
+        assertTrue(foodController.validateFoodPrice(10.0));
+        assertFalse(foodController.validateFoodPrice(-5.0));
     }
     
     @Test
-    @DisplayName("validateFoodPrice - Invalid price - Should return false")
-    void testValidateFoodPrice_InvalidPrice_ReturnsFalse() {
-        when(foodService.validateFoodPrice(anyDouble())).thenReturn(false);
-        
-        boolean result = foodController.validateFoodPrice(0.0);
-        
-        assertFalse(result);
-        verify(foodService).validateFoodPrice(0.0);
+    void testTypeValidation() {
+        when(foodService.validateFoodType("Set")).thenReturn(true);
+        when(foodService.validateFoodType("Junk")).thenReturn(false);
+
+        assertTrue(foodController.validateFoodType("Set"));
+        assertFalse(foodController.validateFoodType("Junk"));
     }
-    
+
     @Test
-    @DisplayName("validateFoodType - Valid type - Should return true")
-    void testValidateFoodType_ValidType_ReturnsTrue() {
-        when(foodService.validateFoodType(anyString())).thenReturn(true);
-        
-        boolean result = foodController.validateFoodType("Set");
-        
-        assertTrue(result);
-        verify(foodService).validateFoodType("Set");
-    }
-    
-    @Test
-    @DisplayName("validateFoodType - Invalid type - Should return false")
-    void testValidateFoodType_InvalidType_ReturnsFalse() {
-        when(foodService.validateFoodType(anyString())).thenReturn(false);
-        
-        boolean result = foodController.validateFoodType("Invalid");
-        
-        assertFalse(result);
-        verify(foodService).validateFoodType("Invalid");
-    }
-    
-    @Test
-    @DisplayName("isFoodNameUnique - Unique name - Should return true")
-    void testIsFoodNameUnique_UniqueName_ReturnsTrue() {
-        when(foodService.isFoodNameUnique(anyString())).thenReturn(true);
-        
-        boolean result = foodController.isFoodNameUnique("New Food");
-        
-        assertTrue(result);
-        verify(foodService).isFoodNameUnique("New Food");
-    }
-    
-    @Test
-    @DisplayName("isFoodNameUnique - Duplicate name - Should return false")
-    void testIsFoodNameUnique_DuplicateName_ReturnsFalse() {
-        when(foodService.isFoodNameUnique(anyString())).thenReturn(false);
-        
-        boolean result = foodController.isFoodNameUnique("Existing Food");
-        
-        assertFalse(result);
-        verify(foodService).isFoodNameUnique("Existing Food");
-    }
-    
-    // ============= Constructor Test =============
-    
-    @Test
-    @DisplayName("Constructor with dependency injection - Should create instance")
-    void testConstructor_WithDependencyInjection_ShouldCreateInstance() {
-        FoodController controller = new FoodController(foodService);
-        
-        assertNotNull(controller);
-    }
-    
-    @Test
-    @DisplayName("Constructor - Should accept IFoodService interface")
-    void testConstructor_ShouldAcceptIFoodServiceInterface() {
-        // Verify constructor accepts interface (not concrete class)
-        FoodController controller = new FoodController(foodService);
-        
-        assertNotNull(controller);
-        // This test verifies dependency inversion principle is followed
+    void testNameUniqueness() {
+        when(foodService.isFoodNameUnique("Unique")).thenReturn(true);
+        when(foodService.isFoodNameUnique("Duplicate")).thenReturn(false);
+
+        assertTrue(foodController.isFoodNameUnique("Unique"));
+        assertFalse(foodController.isFoodNameUnique("Duplicate"));
     }
 }

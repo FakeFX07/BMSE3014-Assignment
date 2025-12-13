@@ -9,11 +9,6 @@ import config.DatabaseConnection;
 import model.PaymentMethod;
 import repository.interfaces.IPaymentMethodRepository;
 
-/**
- * Payment Method Repository Implementation
- * Handles database operations for PaymentMethod entity
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     private static final String FIND_BY_ID = "SELECT * FROM payment_methods WHERE payment_method_id = ?";
@@ -30,19 +25,10 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     private final ConnectionProvider connectionProvider;
     
-    /**
-     * Constructor with ConnectionProvider for dependency injection
-     * 
-     * @param connectionProvider Connection provider
-     */
     public PaymentMethodRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
     
-    /**
-     * Default constructor using singleton DatabaseConnection
-     * Maintains backward compatibility
-     */
     public PaymentMethodRepository() {
         this(DatabaseConnection.getInstance());
     }
@@ -178,7 +164,6 @@ public class PaymentMethodRepository implements IPaymentMethodRepository {
     
     /**
      * Map ResultSet to PaymentMethod object
-     * Follows DRY principle - single method for mapping
      */
     private PaymentMethod mapResultSetToPaymentMethod(ResultSet rs) throws SQLException {
         PaymentMethod paymentMethod = new PaymentMethod();

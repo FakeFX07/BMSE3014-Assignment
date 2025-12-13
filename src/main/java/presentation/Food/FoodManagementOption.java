@@ -1,8 +1,6 @@
 package presentation.Food;
 
-/**
- * Admin menu options related to Food management.
- */
+//Food management (Admin) menu options.
 public enum FoodManagementOption {
     REGISTER_FOOD(1, "Register New Food"),
     EDIT_FOOD(2, "Edit Food"),

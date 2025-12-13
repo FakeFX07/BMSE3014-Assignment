@@ -1,4 +1,4 @@
-package presentation;
+package presentation.General;
 
 import model.*;
 import presentation.Food.MenuDisplay;

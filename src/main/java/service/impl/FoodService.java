@@ -7,11 +7,6 @@ import model.Food;
 import repository.interfaces.IFoodRepository;
 import service.interfaces.IFoodService;
 
-/**
- * Food Service Implementation
- * Contains business logic for food operations
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
 public class FoodService implements IFoodService {
     
     private final IFoodRepository foodRepository;
@@ -19,10 +14,12 @@ public class FoodService implements IFoodService {
     // Validation constants
     private static final double MIN_PRICE = 0.01;
     
+    // Initialize FoodService with repository dependency
     public FoodService(IFoodRepository foodRepository) {
         this.foodRepository = foodRepository;
     }
     
+    // Register a new food
     @Override
     public Food registerFood(Food food) throws IllegalArgumentException {
         validateAllFields(food);
@@ -34,6 +31,7 @@ public class FoodService implements IFoodService {
         return foodRepository.save(food);
     }
     
+    // Update existing food details
     @Override
     public Food updateFood(Food food) throws IllegalArgumentException {
         // Validate food exists
@@ -47,12 +45,7 @@ public class FoodService implements IFoodService {
         return foodRepository.update(food);
     }
 
-    /**
-     * Validate all food fields
-     * 
-     * @param food Food to validate
-     * @throws IllegalArgumentException if any field is invalid
-     */
+    // Validate all food fields
     private void validateAllFields(Food food) throws IllegalArgumentException {
         if (!validateFoodName(food.getFoodName())) {
             throw new IllegalArgumentException("Food name must contain only letters");
@@ -65,15 +58,16 @@ public class FoodService implements IFoodService {
         }
     }
 
+    // Generate unique food ID from repository
     private int generateUniqueFoodId() {
         int nextId = foodRepository.getNextFoodId();
-        // Ensure uniqueness in case of concurrent inserts
         while (foodRepository.existsById(nextId)) {
             nextId++;
         }
         return nextId;
     }
     
+    // Delete food by ID if it exists
     @Override
     public boolean deleteFood(int foodId) {
         if (!foodRepository.existsById(foodId)) {
@@ -82,21 +76,25 @@ public class FoodService implements IFoodService {
         return foodRepository.deleteById(foodId);
     }
     
+    // Retrieve all food records
     @Override
     public List<Food> getAllFoods() {
         return foodRepository.findAll();
     }
     
+     // Retrieve food by ID
     @Override
     public Optional<Food> getFoodById(int foodId) {
         return foodRepository.findById(foodId);
     }
     
+    // Retrieve food by name
     @Override
     public Optional<Food> getFoodByName(String foodName) {
         return foodRepository.findByName(foodName);
     }
     
+     // Validate food name format
     @Override
     public boolean validateFoodName(String foodName) {
         if (foodName == null || foodName.trim().isEmpty()) {
@@ -106,11 +104,13 @@ public class FoodService implements IFoodService {
         return foodName.matches("^[a-zA-Z\\s]+$");
     }
     
+     // Validate food price value
     @Override
     public boolean validateFoodPrice(double foodPrice) {
         return foodPrice >= MIN_PRICE;
     }
     
+    // Validate food type value
     @Override
     public boolean validateFoodType(String foodType) {
         if (foodType == null) {
@@ -119,6 +119,7 @@ public class FoodService implements IFoodService {
         return "Set".equalsIgnoreCase(foodType) || "A la carte".equalsIgnoreCase(foodType);
     }
     
+    // Check food name is unique or not
     @Override
     public boolean isFoodNameUnique(String foodName) {
         if (foodName == null || foodName.trim().isEmpty()) {

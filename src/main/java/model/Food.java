@@ -3,20 +3,14 @@ package model;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * Food Model Class
- * Represents a food item entity in the system
- * Follows OOP principles: Encapsulation, Data Hiding
- */
 public class Food {
     
     private int foodId;
     private String foodName;
     private BigDecimal foodPrice;
     private String foodType;
-    private int quantity; // Available quantity in stock
+    private int quantity; 
     
-    // Default constructor
     public Food() {
     }
     
@@ -25,7 +19,7 @@ public class Food {
         this.foodName = foodName;
         this.foodPrice = BigDecimal.valueOf(foodPrice);
         this.foodType = foodType;
-        this.quantity = 0; // Default quantity
+        this.quantity = 0; 
     }
     
     // Constructor with quantity
@@ -42,7 +36,7 @@ public class Food {
         this.foodName = foodName;
         this.foodPrice = BigDecimal.valueOf(foodPrice);
         this.foodType = foodType;
-        this.quantity = 0; // Default quantity
+        this.quantity = 0; 
     }
     
     // Full constructor with quantity

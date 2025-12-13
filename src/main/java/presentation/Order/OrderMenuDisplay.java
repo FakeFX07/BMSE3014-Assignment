@@ -5,10 +5,6 @@ import java.util.List;
 import model.Food;
 import model.OrderDetails;
 
-/**
- * Order menu display utilities
- * Provides simple, presentation-only methods used by order flows
- */
 public final class OrderMenuDisplay {
 
     private OrderMenuDisplay() {}

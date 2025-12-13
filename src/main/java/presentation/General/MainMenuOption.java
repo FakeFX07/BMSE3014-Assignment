@@ -1,8 +1,5 @@
 package presentation.General;
 
-/**
- * Main menu options.
- */
 public enum MainMenuOption {
     LOGIN(1, "Login"),
     REGISTER(2, "Register"),
@@ -25,9 +22,7 @@ public enum MainMenuOption {
         return displayText;
     }
     
-    /**
-     * Display the main menu using enum values
-     */
+    //Display main menu
     public static void displayMenu() {
         System.out.println("[]=====================================[]");
         System.out.println("[]       JB Food Ordering System       []");
@@ -40,12 +35,7 @@ public enum MainMenuOption {
         System.out.println("[]=====================================[]");
     }
     
-    /**
-     * Get MainMenuOption by option number
-     * 
-     * @param optionNumber The option number
-     * @return MainMenuOption or null if not found
-     */
+    //Get MainMenuOption
     public static MainMenuOption getByOptionNumber(int optionNumber) {
         for (MainMenuOption option : MainMenuOption.values()) {
             if (option.getOptionNumber() == optionNumber) {

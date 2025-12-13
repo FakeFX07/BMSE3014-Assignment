@@ -5,48 +5,20 @@ import java.util.Optional;
 
 import model.Order;
 
-/**
- * Order Repository Interface
- * Defines contract for order data access operations
- * Follows SOLID: Interface Segregation Principle, Dependency Inversion Principle
- */
 public interface IOrderRepository {
     
-    /**
-     * Find order by ID
-     * 
-     * @param orderId Order ID
-     * @return Optional containing order if found
-     */
+    //Find order by ID
     Optional<Order> findById(int orderId);
     
-    /**
-     * Find orders by customer ID
-     * 
-     * @param customerId Customer ID
-     * @return List of orders
-     */
+    //Find orders by customer ID
     List<Order> findByCustomerId(int customerId);
     
-    /**
-     * Find all orders
-     * 
-     * @return List of all orders
-     */
+    //Find all orders
     List<Order> findAll();
     
-    /**
-     * Save order (create)
-     * 
-     * @param order Order to save
-     * @return Saved order with generated ID
-     */
+    //Save order (create)
     Order save(Order order);
     
-    /**
-     * Get next available order ID
-     * 
-     * @return Next order ID
-     */
+    //Get next available order ID
     int getNextOrderId();
 }

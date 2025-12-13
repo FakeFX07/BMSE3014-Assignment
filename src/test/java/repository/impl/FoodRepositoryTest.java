@@ -4,27 +4,27 @@ import config.ConnectionProvider;
 import config.DatabaseConnection;
 import config.TestDatabaseSetup;
 import model.Food;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.function.Executable;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-/**
- * Food Repository Test
- * Tests food repository database operations
- */
 public class FoodRepositoryTest {
     
     private FoodRepository repository;
     private ConnectionProvider connectionProvider;
+    
+    // Use MySQL mode to simulate production environment
     private static final String H2_URL = "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL";
     
     @BeforeEach
@@ -41,1571 +41,591 @@ public class FoodRepositoryTest {
             ((DatabaseConnection) connectionProvider).closeConnection();
         }
     }
-    
-    @Test
-    @DisplayName("Test findById - existing food")
-    void testFindById_Existing() {
-        Optional<Food> food = repository.findById(2000);
-        assertTrue(food.isPresent());
-        assertEquals("Chicken Rice", food.get().getFoodName());
-        assertEquals(10.50, food.get().getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test findById - non-existing food")
-    void testFindById_NonExisting() {
-        Optional<Food> food = repository.findById(9999);
-        assertFalse(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test findAll - returns all foods")
-    void testFindAll() {
-        List<Food> foods = repository.findAll();
-        assertTrue(foods.size() >= 3);
-    }
-    
-    @Test
-    @DisplayName("Test save - new food")
-    void testSave_NewFood() {
-        Food food = new Food("Test Food", 15.00, "Set");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals("Test Food", saved.getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test update - existing food")
-    void testUpdate_ExistingFood() {
-        Food food = new Food(2000, "Updated Chicken Rice", 12.00, "Set");
-        Food updated = repository.update(food);
-        assertEquals(12.00, updated.getFoodPrice(), 0.01);
-        
-        Optional<Food> found = repository.findById(2000);
-        assertTrue(found.isPresent());
-        assertEquals("Updated Chicken Rice", found.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - existing food")
-    void testDeleteById_Existing() {
-        boolean deleted = repository.deleteById(2001);
-        assertTrue(deleted);
-        
-        Optional<Food> found = repository.findById(2001);
-        assertFalse(found.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - non-existing food")
-    void testDeleteById_NonExisting() {
-        boolean deleted = repository.deleteById(9999);
-        assertFalse(deleted);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - returns next ID")
-    void testGetNextFoodId() {
-        int nextId = repository.getNextFoodId();
-        assertTrue(nextId >= 2000);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - existing")
-    void testExistsById_Existing() {
-        assertTrue(repository.existsById(2000));
-    }
-    
-    @Test
-    @DisplayName("Test existsById - non-existing")
-    void testExistsById_NonExisting() {
-        assertFalse(repository.existsById(9999));
-    }
-    
-    @Test
-    @DisplayName("Test default constructor")
-    void testDefaultConstructor() {
-        FoodRepository repo = new FoodRepository();
-        assertNotNull(repo);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - when no foods exist")
-    void testGetNextFoodId_NoFoods() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        int nextId = repository.getNextFoodId();
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test save - food with all fields")
-    void testSave_AllFields() {
-        Food food = new Food("Complete Food", 25.50, "A la carte");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals("Complete Food", saved.getFoodName());
-        assertEquals(25.50, saved.getFoodPrice(), 0.01);
-        assertEquals("A la carte", saved.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test update - updates all fields")
-    void testUpdate_AllFields() {
-        Food food = new Food(2000, "Fully Updated", 15.75, "A la carte");
-        repository.update(food);
-        
-        Optional<Food> found = repository.findById(2000);
-        assertTrue(found.isPresent());
-        assertEquals("Fully Updated", found.get().getFoodName());
-        assertEquals(15.75, found.get().getFoodPrice(), 0.01);
-        assertEquals("A la carte", found.get().getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test save - food with generated ID")
-    void testSave_WithGeneratedId() {
-        Food food = new Food("Auto ID Food", 12.00, "Set");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        
-        Optional<Food> found = repository.findById(saved.getFoodId());
-        assertTrue(found.isPresent());
-        assertEquals("Auto ID Food", found.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test findAll - returns all foods including new ones")
-    void testFindAll_IncludesNewFoods() {
-        int initialCount = repository.findAll().size();
-        
-        Food newFood = new Food("New Food", 15.00, "A la carte");
-        repository.save(newFood);
-        
-        List<Food> allFoods = repository.findAll();
-        assertTrue(allFoods.size() > initialCount);
-    }
-    
-    @Test
-    @DisplayName("Test update - verify all fields updated")
-    void testUpdate_AllFieldsUpdated() {
-        Food original = repository.findById(2000).orElseThrow();
-        String originalName = original.getFoodName();
-        double originalPrice = original.getFoodPrice();
-        
-        Food updated = new Food(2000, "Updated Name", 20.00, "A la carte");
-        repository.update(updated);
-        
-        Food found = repository.findById(2000).orElseThrow();
-        assertNotEquals(originalName, found.getFoodName());
-        assertNotEquals(originalPrice, found.getFoodPrice(), 0.01);
-        assertEquals("Updated Name", found.getFoodName());
-        assertEquals(20.00, found.getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - verify order and content")
-    void testFindAll_OrderAndContent() {
-        List<Food> foods = repository.findAll();
-        assertTrue(foods.size() >= 3);
-        
-        // Verify foods are ordered by ID
-        for (int i = 1; i < foods.size(); i++) {
-            assertTrue(foods.get(i).getFoodId() >= foods.get(i-1).getFoodId());
-        }
-    }
-    
-    @Test
-    @DisplayName("Test existsById - verify for existing and non-existing")
-    void testExistsById_ExistingAndNonExisting() {
-        assertTrue(repository.existsById(2000));
-        assertTrue(repository.existsById(2001));
-        assertFalse(repository.existsById(9999));
-    }
-    
-    @Test
-    @DisplayName("Test save - multiple foods")
-    void testSave_MultipleFoods() {
-        Food food1 = new Food("Food One", 10.00, "Set");
-        Food food2 = new Food("Food Two", 15.00, "A la carte");
-        
-        Food saved1 = repository.save(food1);
-        Food saved2 = repository.save(food2);
-        
-        assertNotEquals(saved1.getFoodId(), saved2.getFoodId());
-        assertTrue(saved1.getFoodId() > 0);
-        assertTrue(saved2.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test findById - verify all food fields")
-    void testFindById_AllFields() {
-        Optional<Food> food = repository.findById(2000);
-        assertTrue(food.isPresent());
-        assertNotNull(food.get().getFoodName());
-        assertTrue(food.get().getFoodPrice() > 0);
-        assertNotNull(food.get().getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - with max ID less than 2000")
-    void testGetNextFoodId_MaxIdLessThan2000() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        int nextId = repository.getNextFoodId();
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - with max ID greater than 2000")
-    void testGetNextFoodId_MaxIdGreaterThan2000() {
-        // Create foods to ensure max ID > 2000
-        Food food = new Food("Test Food", 10.00, "Set");
-        repository.save(food);
-        
-        int nextId = repository.getNextFoodId();
-        assertTrue(nextId >= 2000);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - returns false when count is 0")
-    void testExistsById_CountZero() {
-        assertFalse(repository.existsById(99999));
-    }
-    
-    @Test
-    @DisplayName("Test save - verify generated keys path")
-    void testSave_GeneratedKeysPath() {
-        Food food = new Food("Gen Key Food", 12.00, "Set");
-        Food saved = repository.save(food);
-        // Verify ID was generated
-        assertTrue(saved.getFoodId() > 0);
-        assertTrue(saved.getFoodId() >= 2000);
-    }
-    
-    @Test
-    @DisplayName("Test findById - verify mapping all fields")
-    void testFindById_VerifyAllFields() {
-        Optional<Food> food = repository.findById(2000);
-        assertTrue(food.isPresent());
-        Food f = food.get();
-        assertEquals(2000, f.getFoodId());
-        assertEquals("Chicken Rice", f.getFoodName());
-        assertEquals(10.50, f.getFoodPrice(), 0.01);
-        assertEquals("Set", f.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test findAll - verify all foods have all fields")
-    void testFindAll_VerifyAllFields() {
-        List<Food> foods = repository.findAll();
-        assertTrue(foods.size() >= 3);
-        
-        for (Food food : foods) {
-            assertTrue(food.getFoodId() > 0);
-            assertNotNull(food.getFoodName());
-            assertTrue(food.getFoodPrice() > 0);
-            assertNotNull(food.getFoodType());
-        }
-    }
-    
-    @Test
-    @DisplayName("Test update - verify all fields are updated in database")
-    void testUpdate_VerifyDatabaseUpdate() {
-        Food original = repository.findById(2001).orElseThrow();
-        
-        Food updated = new Food(2001, "Completely New Name", 25.99, "A la carte");
-        repository.update(updated);
-        
-        Food found = repository.findById(2001).orElseThrow();
-        assertEquals("Completely New Name", found.getFoodName());
-        assertEquals(25.99, found.getFoodPrice(), 0.01);
-        assertEquals("A la carte", found.getFoodType());
-        assertNotEquals(original.getFoodName(), found.getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - verify food is actually deleted")
-    void testDeleteById_VerifyDeletion() {
-        // First create a food
-        Food food = new Food("To Delete", 10.00, "Set");
-        Food saved = repository.save(food);
-        int foodId = saved.getFoodId();
-        
-        // Verify it exists
-        assertTrue(repository.existsById(foodId));
-        
-        // Delete it
-        boolean deleted = repository.deleteById(foodId);
-        assertTrue(deleted);
-        
-        // Verify it no longer exists
-        assertFalse(repository.existsById(foodId));
-        assertFalse(repository.findById(foodId).isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test save - multiple saves verify unique IDs")
-    void testSave_MultipleSavesUniqueIds() {
-        Food f1 = new Food("Multi Food 1", 10.00, "Set");
-        Food f2 = new Food("Multi Food 2", 15.00, "A la carte");
-        
-        Food saved1 = repository.save(f1);
-        Food saved2 = repository.save(f2);
-        
-        assertNotEquals(saved1.getFoodId(), saved2.getFoodId());
-        assertTrue(saved1.getFoodId() > 0);
-        assertTrue(saved2.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - empty result set")
-    void testFindAll_EmptyResultSet() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        List<Food> foods = repository.findAll();
-        assertTrue(foods.isEmpty());
-    }
-    
-    @Test
-    @DisplayName("Test update - update with same values")
-    void testUpdate_WithSameValues() {
-        Food original = repository.findById(2000).orElseThrow();
-        String originalName = original.getFoodName();
-        double originalPrice = original.getFoodPrice();
-        String originalType = original.getFoodType();
-        
-        Food updated = new Food(2000, originalName, originalPrice, originalType);
-        repository.update(updated);
-        
-        Food found = repository.findById(2000).orElseThrow();
-        assertEquals(originalName, found.getFoodName());
-        assertEquals(originalPrice, found.getFoodPrice(), 0.01);
-        assertEquals(originalType, found.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test save - food with existing ID gets new generated ID")
-    void testSave_WithExistingId() {
-        Food food = new Food(9999, "Pre-set ID Food", 20.00, "Set");
-        // Save generates a new ID regardless of pre-set ID
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        // ID will be generated, not the pre-set value
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - delete non-existent food")
-    void testDeleteById_NonExistent() {
-        boolean deleted = repository.deleteById(99999);
-        assertFalse(deleted);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - multiple checks")
-    void testExistsById_MultipleChecks() {
-        assertTrue(repository.existsById(2000));
-        assertTrue(repository.existsById(2001));
-        assertTrue(repository.existsById(2002));
-        assertFalse(repository.existsById(9999));
-        assertFalse(repository.existsById(0));
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - after multiple saves")
-    void testGetNextFoodId_AfterMultipleSaves() {
-        int initialNextId = repository.getNextFoodId();
-        
-        Food f1 = new Food("Food A", 10.00, "Set");
-        Food f2 = new Food("Food B", 15.00, "A la carte");
-        Food f3 = new Food("Food C", 20.00, "Set");
-        
-        repository.save(f1);
-        repository.save(f2);
-        repository.save(f3);
-        
-        int finalNextId = repository.getNextFoodId();
-        assertTrue(finalNextId > initialNextId);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - verify no duplicates")
-    void testFindAll_NoDuplicates() {
-        List<Food> foods = repository.findAll();
-        long uniqueIds = foods.stream().mapToInt(Food::getFoodId).distinct().count();
-        assertEquals(foods.size(), uniqueIds);
-    }
-    
-    @Test
-    @DisplayName("Test save - verify BigDecimal conversion")
-    void testSave_BigDecimalConversion() {
-        Food food = new Food("Decimal Test", 12.345, "Set");
-        Food saved = repository.save(food);
-        
-        Optional<Food> found = repository.findById(saved.getFoodId());
-        assertTrue(found.isPresent());
-        // Database stores DECIMAL(10,2) so rounds to 2 decimal places
-        assertEquals(12.35, found.get().getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test update - verify BigDecimal conversion")
-    void testUpdate_BigDecimalConversion() {
-        Food food = new Food(2000, "Decimal Update", 33.456, "A la carte");
-        repository.update(food);
-        
-        Optional<Food> found = repository.findById(2000);
-        assertTrue(found.isPresent());
-        // Database stores DECIMAL(10,2) so rounds to 2 decimal places
-        assertEquals(33.46, found.get().getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test save - affectedRows path")
-    void testSave_AffectedRowsPath() {
-        Food food = new Food("Affected Rows Test", 15.00, "Set");
-        Food saved = repository.save(food);
-        // Verify save was successful (affectedRows > 0)
-        assertTrue(saved.getFoodId() > 0);
-        assertNotNull(saved.getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test save - verify generated keys next() path")
-    void testSave_GeneratedKeysNext() {
-        Food food = new Food("Gen Keys Test", 18.00, "A la carte");
-        Food saved = repository.save(food);
-        // This tests the generatedKeys.next() path
-        assertTrue(saved.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test update - executeUpdate path")
-    void testUpdate_ExecuteUpdatePath() {
-        Food food = new Food(2001, "Execute Update Test", 22.00, "Set");
-        Food updated = repository.update(food);
-        assertEquals(2001, updated.getFoodId());
-        assertEquals("Execute Update Test", updated.getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - executeUpdate returns 0")
-    void testDeleteById_ExecuteUpdateReturnsZero() {
-        // Delete non-existent food - executeUpdate returns 0
-        boolean deleted = repository.deleteById(99999);
-        assertFalse(deleted);
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - executeUpdate returns > 0")
-    void testDeleteById_ExecuteUpdateReturnsPositive() {
-        // Create a food first
-        Food food = new Food("To Delete", 10.00, "Set");
-        Food saved = repository.save(food);
-        
-        // Delete it - executeUpdate should return > 0
-        boolean deleted = repository.deleteById(saved.getFoodId());
-        assertTrue(deleted);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - rs.next() returns false")
-    void testGetNextFoodId_ResultSetNextFalse() throws SQLException {
-        // This tests the path where rs.next() returns false
-        TestDatabaseSetup.cleanup(connectionProvider);
-        int nextId = repository.getNextFoodId();
-        // Should return default 2000 when no rows
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - rs.next() returns false")
-    void testExistsById_ResultSetNextFalse() {
-        // Test with non-existent ID where rs.next() returns false
-        boolean exists = repository.existsById(99999);
-        assertFalse(exists);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - while loop with multiple rows")
-    void testFindAll_WhileLoopMultipleRows() {
-        // Add multiple foods
-        repository.save(new Food("Food A", 10.00, "Set"));
-        repository.save(new Food("Food B", 15.00, "A la carte"));
-        repository.save(new Food("Food C", 20.00, "Set"));
-        
-        List<Food> foods = repository.findAll();
-        // Should include original test data + new foods
-        assertTrue(foods.size() >= 6);
-    }
-    
-    @Test
-    @DisplayName("Test findById - rs.next() returns false")
-    void testFindById_ResultSetNextFalse() {
-        Optional<Food> food = repository.findById(99999);
-        assertFalse(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - max ID exactly 2000")
-    void testGetNextFoodId_MaxIdExactly2000() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID 2000
-        try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 2000);
-            stmt.setString(2, "ID 2000");
-            stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
-            stmt.setString(4, "Set");
-            stmt.executeUpdate();
-        }
-        
-        int nextId = repository.getNextFoodId();
-        assertEquals(2001, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - max ID less than 2000 returns 2000")
-    void testGetNextFoodId_MaxIdLessThan2000Returns2000() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID < 2000
-        try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 1999);
-            stmt.setString(2, "ID 1999");
-            stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
-            stmt.setString(4, "Set");
-            stmt.executeUpdate();
-        }
-        
-        int nextId = repository.getNextFoodId();
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - count greater than 0")
-    void testExistsById_CountGreaterThanZero() {
-        assertTrue(repository.existsById(2000));
-    }
-    
-    @Test
-    @DisplayName("Test existsById - count equals 0")
-    void testExistsById_CountEqualsZero() {
-        assertFalse(repository.existsById(0));
-    }
-    
-    @Test
-    @DisplayName("Test save - verify all food fields mapped correctly")
-    void testSave_VerifyAllFieldsMapped() {
-        Food food = new Food("Mapping Test", 19.99, "A la carte");
-        Food saved = repository.save(food);
-        Optional<Food> found = repository.findById(saved.getFoodId());
-        
-        assertTrue(found.isPresent());
-        Food f = found.get();
-        assertEquals("Mapping Test", f.getFoodName());
-        assertEquals(19.99, f.getFoodPrice(), 0.01);
-        assertEquals("A la carte", f.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test mapResultSetToFood - all fields from database")
-    void testMapResultSetToFood_AllFields() {
-        Optional<Food> food = repository.findById(2000);
-        assertTrue(food.isPresent());
-        Food f = food.get();
-        // Verify all fields are mapped
-        assertTrue(f.getFoodId() > 0);
-        assertNotNull(f.getFoodName());
-        assertTrue(f.getFoodPrice() > 0);
-        assertNotNull(f.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test findAll - with exactly one food")
-    void testFindAll_ExactlyOneFood() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        Food food = new Food("Single Food", 10.00, "Set");
-        repository.save(food);
-        
-        List<Food> foods = repository.findAll();
-        assertEquals(1, foods.size());
-        assertEquals("Single Food", foods.get(0).getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test update - update non-existent food")
-    void testUpdate_NonExistentFood() {
-        Food food = new Food(99999, "Non-existent", 10.00, "Set");
-        // Update should not throw, but won't affect anything
-        repository.update(food);
-        Optional<Food> found = repository.findById(99999);
-        assertFalse(found.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test save - affectedRows equals 0 path")
-    void testSave_AffectedRowsZeroPath() {
-        // This tests the affectedRows > 0 path (should always be > 0 for valid saves)
-        Food food = new Food("Affected Rows", 15.00, "Set");
-        Food saved = repository.save(food);
-        // Verify affectedRows > 0 path was taken
-        assertTrue(saved.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test save - generatedKeys.next() path")
-    void testSave_GeneratedKeysNextPath() {
-        Food food = new Food("Gen Keys Next", 18.00, "A la carte");
-        Food saved = repository.save(food);
-        // This tests the generatedKeys.next() path
-        assertTrue(saved.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - while loop termination")
-    void testFindAll_WhileLoopTermination() {
-        List<Food> foods = repository.findAll();
-        // Verify while loop processes all rows and terminates correctly
-        assertTrue(foods.size() >= 3);
-        // All foods should have valid data
-        for (Food food : foods) {
-            assertTrue(food.getFoodId() > 0);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test findById - rs.next() returns true path")
-    void testFindById_ResultSetNextTrue() {
-        Optional<Food> food = repository.findById(2000);
-        // This tests the rs.next() returns true path
-        assertTrue(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - max ID >= 2000 path")
-    void testGetNextFoodId_MaxIdGreaterOrEqual2000() {
-        // Create food to ensure max ID >= 2000
-        Food food = new Food("Max ID Test", 10.00, "Set");
-        repository.save(food);
-        
-        int nextId = repository.getNextFoodId();
-        assertTrue(nextId >= 2000);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - max ID condition >= 2000")
-    void testGetNextFoodId_MaxIdConditionGreaterOrEqual() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID exactly 2000
-        try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 2000);
-            stmt.setString(2, "Test");
-            stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
-            stmt.setString(4, "Set");
-            stmt.executeUpdate();
-        }
-        
-        int nextId = repository.getNextFoodId();
-        // Should return maxId + 1 = 2001 (since maxId >= 2000)
-        assertEquals(2001, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - max ID condition < 2000")
-    void testGetNextFoodId_MaxIdConditionLessThan() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID < 2000
-        try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 1500);
-            stmt.setString(2, "Test");
-            stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
-            stmt.setString(4, "Set");
-            stmt.executeUpdate();
-        }
-        
-        int nextId = repository.getNextFoodId();
-        // Should return 2000 (since maxId < 2000)
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - executeUpdate returns positive")
-    void testDeleteById_ExecuteUpdatePositive() {
-        // Create and then delete
-        Food food = new Food("To Delete Now", 10.00, "Set");
-        Food saved = repository.save(food);
-        boolean deleted = repository.deleteById(saved.getFoodId());
-        assertTrue(deleted);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - executeUpdate path with count > 0")
-    void testExistsById_CountGreaterThanZeroPath() {
-        // Test existing food
-        boolean exists = repository.existsById(2000);
-        assertTrue(exists);
-    }
-    
-    @Test
-    @DisplayName("Test findAll - multiple foods verify ordering")
-    void testFindAll_MultipleFoodsOrdering() {
-        // Add foods with different IDs
-        Food f1 = new Food("Food A", 10.00, "Set");
-        Food f2 = new Food("Food B", 15.00, "A la carte");
-        repository.save(f1);
-        repository.save(f2);
-        
-        List<Food> foods = repository.findAll();
-        // Verify foods are ordered by ID (ORDER BY food_id)
-        for (int i = 1; i < foods.size(); i++) {
-            assertTrue(foods.get(i).getFoodId() >= foods.get(i-1).getFoodId());
-        }
-    }
-    
-    @Test
-    @DisplayName("Test update - all fields updated simultaneously")
-    void testUpdate_AllFieldsSimultaneously() {
-        Food food = new Food(2001, "All New", 25.50, "A la carte");
-        repository.update(food);
-        
-        Optional<Food> found = repository.findById(2001);
-        assertTrue(found.isPresent());
-        assertEquals("All New", found.get().getFoodName());
-        assertEquals(25.50, found.get().getFoodPrice(), 0.01);
-        assertEquals("A la carte", found.get().getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test save - multiple sequential saves")
-    void testSave_MultipleSequentialSaves() {
-        Food f1 = new Food("Seq 1", 10.00, "Set");
-        Food f2 = new Food("Seq 2", 11.00, "Set");
-        Food f3 = new Food("Seq 3", 12.00, "A la carte");
-        
-        Food s1 = repository.save(f1);
-        Food s2 = repository.save(f2);
-        Food s3 = repository.save(f3);
-        
-        // Verify all have unique IDs
-        assertNotEquals(s1.getFoodId(), s2.getFoodId());
-        assertNotEquals(s2.getFoodId(), s3.getFoodId());
-        assertNotEquals(s1.getFoodId(), s3.getFoodId());
-    }
-    
-    @Test
-    @DisplayName("Test findById - verify BigDecimal conversion in mapping")
-    void testFindById_BigDecimalConversion() {
-        Optional<Food> food = repository.findById(2000);
-        assertTrue(food.isPresent());
-        // Verify BigDecimal was converted to double correctly
-        assertTrue(food.get().getFoodPrice() > 0);
-        assertEquals(10.50, food.get().getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - after deleting all foods")
-    void testGetNextFoodId_AfterDeletingAll() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Add a food and delete it
-        Food food = new Food("Temp", 10.00, "Set");
-        Food saved = repository.save(food);
-        repository.deleteById(saved.getFoodId());
-        
-        int nextId = repository.getNextFoodId();
-        // Should return 2000 since table is empty again
-        assertEquals(2000, nextId);
-    }
-    
-    // ==========================================
-    // findByName Tests
-    // ==========================================
-    
-    @Test
-    @DisplayName("Test findByName - existing food")
-    void testFindByName_Existing() {
-        Optional<Food> food = repository.findByName("Chicken Rice");
-        assertTrue(food.isPresent());
-        assertEquals("Chicken Rice", food.get().getFoodName());
-        assertEquals(10.50, food.get().getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test findByName - non-existing food")
-    void testFindByName_NonExisting() {
-        Optional<Food> food = repository.findByName("Non-existent Food");
-        assertFalse(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - case-insensitive search")
-    void testFindByName_CaseInsensitive() {
-        Optional<Food> food1 = repository.findByName("CHICKEN RICE");
-        assertTrue(food1.isPresent());
-        assertEquals("Chicken Rice", food1.get().getFoodName());
-        
-        Optional<Food> food2 = repository.findByName("chicken rice");
-        assertTrue(food2.isPresent());
-        assertEquals("Chicken Rice", food2.get().getFoodName());
-        
-        Optional<Food> food3 = repository.findByName("ChIcKeN rIcE");
-        assertTrue(food3.isPresent());
-        assertEquals("Chicken Rice", food3.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - verify all fields mapped")
-    void testFindByName_AllFieldsMapped() {
-        Optional<Food> food = repository.findByName("Nasi Lemak");
-        assertTrue(food.isPresent());
-        Food f = food.get();
-        assertTrue(f.getFoodId() > 0);
-        assertNotNull(f.getFoodName());
-        assertTrue(f.getFoodPrice() > 0);
-        assertNotNull(f.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - with newly saved food")
-    void testFindByName_WithNewlySavedFood() {
-        Food newFood = new Food("New Test Food", 15.00, "Set");
-        Food saved = repository.save(newFood);
-        
-        Optional<Food> found = repository.findByName("New Test Food");
-        assertTrue(found.isPresent());
-        assertEquals(saved.getFoodId(), found.get().getFoodId());
-        assertEquals("New Test Food", found.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - case-insensitive with new food")
-    void testFindByName_CaseInsensitiveNewFood() {
-        Food newFood = new Food("Case Test Food", 20.00, "A la carte");
-        repository.save(newFood);
-        
-        Optional<Food> found1 = repository.findByName("CASE TEST FOOD");
-        assertTrue(found1.isPresent());
-        assertEquals("Case Test Food", found1.get().getFoodName());
-        
-        Optional<Food> found2 = repository.findByName("case test food");
-        assertTrue(found2.isPresent());
-        assertEquals("Case Test Food", found2.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - empty string")
-    void testFindByName_EmptyString() {
-        Optional<Food> food = repository.findByName("");
-        assertFalse(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - null string")
-    void testFindByName_NullString() {
-        Optional<Food> food = repository.findByName(null);
-        assertFalse(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test findByName - rs.next() returns false")
-    void testFindByName_ResultSetNextFalse() {
-        Optional<Food> food = repository.findByName("Definitely Not Exists 12345");
-        assertFalse(food.isPresent());
-    }
-    
-    // ==========================================
-    // existsByName Tests
-    // ==========================================
-    
-    @Test
-    @DisplayName("Test existsByName - existing food")
-    void testExistsByName_Existing() {
-        assertTrue(repository.existsByName("Chicken Rice"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - non-existing food")
-    void testExistsByName_NonExisting() {
-        assertFalse(repository.existsByName("Non-existent Food Name"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - case-insensitive search")
-    void testExistsByName_CaseInsensitive() {
-        assertTrue(repository.existsByName("CHICKEN RICE"));
-        assertTrue(repository.existsByName("chicken rice"));
-        assertTrue(repository.existsByName("ChIcKeN rIcE"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - with newly saved food")
-    void testExistsByName_WithNewlySavedFood() {
-        Food newFood = new Food("Exists Test Food", 18.00, "Set");
-        repository.save(newFood);
-        
-        assertTrue(repository.existsByName("Exists Test Food"));
-        assertTrue(repository.existsByName("EXISTS TEST FOOD"));
-        assertTrue(repository.existsByName("exists test food"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - count greater than 0")
-    void testExistsByName_CountGreaterThanZero() {
-        assertTrue(repository.existsByName("Nasi Lemak"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - count equals 0")
-    void testExistsByName_CountEqualsZero() {
-        assertFalse(repository.existsByName("Definitely Does Not Exist 999"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - rs.next() returns false")
-    void testExistsByName_ResultSetNextFalse() {
-        boolean exists = repository.existsByName("Non Existent Food 12345");
-        assertFalse(exists);
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - empty string")
-    void testExistsByName_EmptyString() {
-        boolean exists = repository.existsByName("");
-        assertFalse(exists);
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - null string")
-    void testExistsByName_NullString() {
-        boolean exists = repository.existsByName(null);
-        assertFalse(exists);
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - after deleting food")
-    void testExistsByName_AfterDeletingFood() {
-        Food food = new Food("To Delete Test", 10.00, "Set");
-        Food saved = repository.save(food);
-        
-        assertTrue(repository.existsByName("To Delete Test"));
-        
-        repository.deleteById(saved.getFoodId());
-        
-        assertFalse(repository.existsByName("To Delete Test"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - multiple foods with similar names")
-    void testExistsByName_MultipleFoods() {
-        Food food1 = new Food("Test Food A", 10.00, "Set");
-        Food food2 = new Food("Test Food B", 15.00, "A la carte");
-        
-        repository.save(food1);
-        repository.save(food2);
-        
-        assertTrue(repository.existsByName("Test Food A"));
-        assertTrue(repository.existsByName("Test Food B"));
-        assertFalse(repository.existsByName("Test Food C"));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - verify case-insensitive after update")
-    void testExistsByName_CaseInsensitiveAfterUpdate() {
-        Food food = new Food("Original Name", 10.00, "Set");
-        Food saved = repository.save(food);
-        
-        assertTrue(repository.existsByName("Original Name"));
-        assertTrue(repository.existsByName("ORIGINAL NAME"));
-        
-        Food updated = new Food(saved.getFoodId(), "Updated Name", 15.00, "A la carte");
-        repository.update(updated);
-        
-        assertFalse(repository.existsByName("Original Name"));
-        assertTrue(repository.existsByName("Updated Name"));
-        assertTrue(repository.existsByName("UPDATED NAME"));
-    }
-    
-    // ==========================================
-    // Error Path Tests (SQLException handling)
-    // ==========================================
-    
-    @Test
-    @DisplayName("Test findById - SQLException handling returns empty")
-    void testFindById_SQLExceptionHandling() {
-        // This tests that SQLException is caught and returns Optional.empty()
-        // In normal operation, this shouldn't happen, but we test the catch block
-        Optional<Food> food = repository.findById(2000);
-        // If SQLException occurred, would return empty, but with valid connection should work
-        // This test verifies the catch block exists and handles gracefully
-        assertNotNull(food); // May be present or empty, but not null
-    }
-    
-    @Test
-    @DisplayName("Test findByName - SQLException handling returns empty")
-    void testFindByName_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns Optional.empty()
-        Optional<Food> food = repository.findByName("Chicken Rice");
-        assertNotNull(food); // May be present or empty, but not null
-    }
-    
-    @Test
-    @DisplayName("Test findAll - SQLException handling returns empty list")
-    void testFindAll_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns empty list
-        List<Food> foods = repository.findAll();
-        assertNotNull(foods); // Should not be null, even if exception occurred
-    }
-    
-    @Test
-    @DisplayName("Test existsById - SQLException handling returns false")
-    void testExistsById_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns false
-        boolean exists = repository.existsById(2000);
-        // Should work normally, but tests that exception handling exists
-        assertNotNull(Boolean.valueOf(exists));
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - SQLException handling returns false")
-    void testExistsByName_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns false
-        boolean exists = repository.existsByName("Chicken Rice");
-        // Should work normally, but tests that exception handling exists
-        assertNotNull(Boolean.valueOf(exists));
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - SQLException handling returns 2000")
-    void testGetNextFoodId_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns default 2000
-        int nextId = repository.getNextFoodId();
-        assertTrue(nextId >= 2000); // Should work normally or return 2000 on error
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - SQLException handling returns false")
-    void testDeleteById_SQLExceptionHandling() {
-        // Tests that SQLException is caught and returns false
-        boolean deleted = repository.deleteById(2001);
-        // Should work normally, but tests that exception handling exists
-        assertNotNull(Boolean.valueOf(deleted));
-    }
-    
-    // ==========================================
-    // Additional Coverage Tests
-    // ==========================================
-    
-    @Test
-    @DisplayName("Test default constructor - uses DatabaseConnection.getInstance()")
-    void testDefaultConstructor_UsesDatabaseConnection() {
-        // Suppress error output during this test (default constructor may try MySQL connection)
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+
+    @Test
+    @DisplayName("Sanity Check: Default constructor initialization")
+    void shouldInitializeWithDefaultConstructor() {
+        runWithSuppressedError(() -> {
             FoodRepository repo = new FoodRepository();
             assertNotNull(repo);
-            // Verify it can perform operations (uses default DatabaseConnection)
-            // This tests the default constructor path
-        } finally {
-            System.setErr(originalErr);
-        }
+        });
     }
-    
+
     @Test
-    @DisplayName("Test constructor with ConnectionProvider - stores provider")
-    void testConstructor_WithConnectionProvider_StoresProvider() {
+    @DisplayName("Sanity Check: Constructor with provider")
+    void shouldInitializeWithProvider() {
         FoodRepository repo = new FoodRepository(connectionProvider);
         assertNotNull(repo);
-        // Verify it works with the provided connection
-        Optional<Food> food = repo.findById(2000);
-        assertTrue(food.isPresent());
+        assertTrue(repo.findById(2000).isPresent());
     }
+
+    // =========================================================================
+    // Retrieval Operations (Find, Exists)
+    // =========================================================================
     
-    @Test
-    @DisplayName("Test save - multiple saves verify unique generated IDs")
-    void testSave_MultipleSavesUniqueGeneratedIds() {
-        Food f1 = new Food("Multi Save 1", 10.00, "Set");
-        Food f2 = new Food("Multi Save 2", 15.00, "A la carte");
-        Food f3 = new Food("Multi Save 3", 20.00, "Set");
-        
-        Food saved1 = repository.save(f1);
-        Food saved2 = repository.save(f2);
-        Food saved3 = repository.save(f3);
-        
-        // Verify all have unique IDs from generated keys
-        assertNotEquals(saved1.getFoodId(), saved2.getFoodId());
-        assertNotEquals(saved2.getFoodId(), saved3.getFoodId());
-        assertNotEquals(saved1.getFoodId(), saved3.getFoodId());
-        assertTrue(saved1.getFoodId() > 0);
-        assertTrue(saved2.getFoodId() > 0);
-        assertTrue(saved3.getFoodId() > 0);
-    }
-    
-    @Test
-    @DisplayName("Test save - food with very long name")
-    void testSave_VeryLongName() {
-        String longName = "A".repeat(100);
-        Food food = new Food(longName, 10.00, "Set");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals(longName, saved.getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test save - food with maximum price")
-    void testSave_MaximumPrice() {
-        Food food = new Food("Max Price Food", 999999.99, "A la carte");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals(999999.99, saved.getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test save - food with minimum price")
-    void testSave_MinimumPrice() {
-        Food food = new Food("Min Price Food", 0.01, "Set");
-        Food saved = repository.save(food);
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals(0.01, saved.getFoodPrice(), 0.01);
-    }
-    
-    @Test
-    @DisplayName("Test update - update with very long name")
-    void testUpdate_VeryLongName() {
-        String longName = "B".repeat(100);
-        Food food = new Food(2000, longName, 15.00, "A la carte");
-        repository.update(food);
-        
-        Optional<Food> found = repository.findById(2000);
-        assertTrue(found.isPresent());
-        assertEquals(longName, found.get().getFoodName());
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - when maxId is null (no rows)")
-    void testGetNextFoodId_MaxIdNull() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        int nextId = repository.getNextFoodId();
-        // When no rows, rs.next() returns false, should return default 2000
-        assertEquals(2000, nextId);
-    }
-    
-    @Test
-    @DisplayName("Test existsById - when count is exactly 1")
-    void testExistsById_CountExactlyOne() {
-        assertTrue(repository.existsById(2000));
-        // Verify rs.getInt(1) > 0 path
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - when count is exactly 1")
-    void testExistsByName_CountExactlyOne() {
-        assertTrue(repository.existsByName("Chicken Rice"));
-        // Verify rs.getInt(1) > 0 path
-    }
-    
-    @Test
-    @DisplayName("Test findAll - while loop with single row")
-    void testFindAll_WhileLoopSingleRow() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        Food food = new Food("Single Food", 10.00, "Set");
-        repository.save(food);
-        
-        List<Food> foods = repository.findAll();
-        assertEquals(1, foods.size());
-        // Verify while loop executes once
-    }
-    
-    @Test
-    @DisplayName("Test findByName - rs.next() returns true path")
-    void testFindByName_ResultSetNextTrue() {
-        Optional<Food> food = repository.findByName("Chicken Rice");
-        // This tests the rs.next() returns true path
-        assertTrue(food.isPresent());
-    }
-    
-    @Test
-    @DisplayName("Test save - verify all setter calls")
-    void testSave_VerifyAllSetterCalls() {
-        Food food = new Food("Setter Test", 19.99, "A la carte");
-        Food saved = repository.save(food);
-        
-        // Verify all setters were called correctly
-        assertTrue(saved.getFoodId() > 0);
-        assertEquals("Setter Test", saved.getFoodName());
-        assertEquals(19.99, saved.getFoodPrice(), 0.01);
-        assertEquals("A la carte", saved.getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test update - verify all setter calls")
-    void testUpdate_VerifyAllSetterCalls() {
-        Food food = new Food(2001, "Update Setter Test", 22.50, "Set");
-        repository.update(food);
-        
-        Optional<Food> found = repository.findById(2001);
-        assertTrue(found.isPresent());
-        // Verify all fields were updated
-        assertEquals("Update Setter Test", found.get().getFoodName());
-        assertEquals(22.50, found.get().getFoodPrice(), 0.01);
-        assertEquals("Set", found.get().getFoodType());
-    }
-    
-    // ==========================================
-    // SQLException Path Tests Using Mocks
-    // ==========================================
-    
-    @Test
-    @DisplayName("Test save - SQLException throws RuntimeException")
-    void testSave_SQLExceptionThrowsRuntimeException() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            // Create a mock ConnectionProvider that throws SQLException
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
+    @Nested
+    @DisplayName("Retrieval Operations")
+    class RetrievalTests {
+
+        @Test
+        @DisplayName("Find By ID: Should return valid food")
+        void shouldFindFoodById() {
+            Optional<Food> food = repository.findById(2000);
             
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS)))
-                .thenReturn(mockStmt);
-            when(mockStmt.executeUpdate()).thenThrow(new SQLException("Database error"));
+            assertTrue(food.isPresent());
+            Food f = food.get();
             
-            FoodRepository repo = new FoodRepository(mockProvider);
-            Food food = new Food("Test Food", 10.00, "Set");
+            assertAll("Food Content",
+                () -> assertEquals(2000, f.getFoodId()),
+                () -> assertEquals("Chicken Rice", f.getFoodName()),
+                () -> assertEquals(10.50, f.getFoodPrice(), 0.01),
+                () -> assertEquals("Set", f.getFoodType())
+            );
+        }
+
+        @Test
+        @DisplayName("Find By ID: Should return empty for non-existent ID")
+        void shouldReturnEmptyWhenIdNotFound() {
+            assertFalse(repository.findById(9999).isPresent());
+            assertFalse(repository.findById(99999).isPresent());
+        }
+
+        @Test
+        @DisplayName("Find All: Should return all records")
+        void shouldReturnAllFoods() {
+            List<Food> foods = repository.findAll();
             
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                repo.save(food);
+            assertTrue(foods.size() >= 3);
+            
+            // Verify content integrity
+            for (Food food : foods) {
+                assertTrue(food.getFoodId() > 0);
+                assertNotNull(food.getFoodName());
+                assertTrue(food.getFoodPrice() > 0);
+                assertNotNull(food.getFoodType());
+            }
+            
+            // Verify ordering (Food ID ascending)
+            for (int i = 1; i < foods.size(); i++) {
+                assertTrue(foods.get(i).getFoodId() >= foods.get(i-1).getFoodId());
+            }
+        }
+
+        @Test
+        @DisplayName("Find All: Should return empty list if DB is empty")
+        void shouldReturnEmptyListWhenNoRecords() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            assertTrue(repository.findAll().isEmpty());
+        }
+
+        @Test
+        @DisplayName("Find All: Should correctly handle single record")
+        void shouldReturnListWithSingleRecord() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            repository.save(new Food("Single Food", 10.00, "Set"));
+            
+            List<Food> foods = repository.findAll();
+            assertEquals(1, foods.size());
+            assertEquals("Single Food", foods.get(0).getFoodName());
+        }
+
+        @Test
+        @DisplayName("Find By Name: Should return exact match")
+        void shouldFindFoodByName() {
+            Optional<Food> food = repository.findByName("Chicken Rice");
+            assertTrue(food.isPresent());
+            assertEquals(10.50, food.get().getFoodPrice(), 0.01);
+        }
+
+        @Test
+        @DisplayName("Find By Name: Should be case-insensitive")
+        void shouldFindFoodByNameIgnoringCase() {
+            assertTrue(repository.findByName("CHICKEN RICE").isPresent());
+            assertTrue(repository.findByName("chicken rice").isPresent());
+            assertTrue(repository.findByName("ChIcKeN rIcE").isPresent());
+        }
+
+        @Test
+        @DisplayName("Find By Name: Should handle new records")
+        void shouldFindNewlySavedFoodByName() {
+            Food saved = repository.save(new Food("New Test Food", 15.00, "Set"));
+            
+            Optional<Food> found = repository.findByName("New Test Food");
+            assertTrue(found.isPresent());
+            assertEquals(saved.getFoodId(), found.get().getFoodId());
+        }
+
+        @Test
+        @DisplayName("Find By Name: Should return empty for unknown name")
+        void shouldReturnEmptyForUnknownName() {
+            assertFalse(repository.findByName("Non-existent Food").isPresent());
+            assertFalse(repository.findByName("").isPresent());
+            assertFalse(repository.findByName(null).isPresent());
+        }
+    }
+
+    @Nested
+    @DisplayName("Existence Checks")
+    class ExistenceTests {
+
+        @Test
+        @DisplayName("Exists By ID: Should return true for existing IDs")
+        void shouldReturnTrueIfIdExists() {
+            assertTrue(repository.existsById(2000));
+            assertTrue(repository.existsById(2001));
+            assertTrue(repository.existsById(2002));
+        }
+
+        @Test
+        @DisplayName("Exists By ID: Should return false for invalid IDs")
+        void shouldReturnFalseIfIdDoesNotExist() {
+            assertFalse(repository.existsById(9999));
+            assertFalse(repository.existsById(0));
+            assertFalse(repository.existsById(99999));
+        }
+
+        @Test
+        @DisplayName("Exists By Name: Should check name existence")
+        void shouldReturnTrueIfNameExists() {
+            assertTrue(repository.existsByName("Chicken Rice"));
+            assertTrue(repository.existsByName("Nasi Lemak"));
+        }
+
+        @Test
+        @DisplayName("Exists By Name: Should be case-insensitive")
+        void shouldCheckNameExistenceIgnoringCase() {
+            assertTrue(repository.existsByName("CHICKEN RICE"));
+            assertTrue(repository.existsByName("chicken rice"));
+        }
+
+        @Test
+        @DisplayName("Exists By Name: Should handle duplicates or similar names")
+        void shouldHandleSimilarNames() {
+            repository.save(new Food("Test Food A", 10.00, "Set"));
+            repository.save(new Food("Test Food B", 15.00, "A la carte"));
+            
+            assertTrue(repository.existsByName("Test Food A"));
+            assertTrue(repository.existsByName("Test Food B"));
+        }
+
+        @Test
+        @DisplayName("Exists By Name: Should return false for unknown names")
+        void shouldReturnFalseForUnknownNames() {
+            assertFalse(repository.existsByName("Ghost Food"));
+            assertFalse(repository.existsByName(""));
+            assertFalse(repository.existsByName(null));
+        }
+    }
+
+    // =========================================================================
+    // Persistence Operations (Save, Update, Delete)
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Persistence Operations")
+    class PersistenceTests {
+
+        @Test
+        @DisplayName("Save: Should persist new food and generate ID")
+        void shouldSaveNewFood() {
+            Food food = new Food("Test Food", 15.00, "Set");
+            Food saved = repository.save(food);
+            
+            assertTrue(saved.getFoodId() > 0);
+            assertEquals("Test Food", saved.getFoodName());
+            
+            // Verify DB state
+            assertTrue(repository.existsById(saved.getFoodId()));
+        }
+
+        @Test
+        @DisplayName("Save: Should handle all fields correctly")
+        void shouldSaveAllFields() {
+            Food food = new Food("Complete Food", 25.50, "A la carte");
+            Food saved = repository.save(food);
+            
+            Food found = repository.findById(saved.getFoodId()).orElseThrow();
+            assertEquals("Complete Food", found.getFoodName());
+            assertEquals(25.50, found.getFoodPrice(), 0.01);
+            assertEquals("A la carte", found.getFoodType());
+        }
+
+        @Test
+        @DisplayName("Save: Should generate new ID even if one is provided")
+        void shouldIgnorePreSetIdsOnSave() {
+            Food food = new Food(9999, "Auto ID Food", 12.00, "Set");
+            Food saved = repository.save(food);
+            
+            assertTrue(saved.getFoodId() > 0);
+            assertNotEquals(9999, saved.getFoodId()); // Should be a new generated key
+        }
+
+        @Test
+        @DisplayName("Save: Should generate unique IDs for multiple saves")
+        void shouldGenerateUniqueIds() {
+            Food s1 = repository.save(new Food("Food 1", 10.00, "Set"));
+            Food s2 = repository.save(new Food("Food 2", 15.00, "Set"));
+            Food s3 = repository.save(new Food("Food 3", 20.00, "Set"));
+            
+            assertNotEquals(s1.getFoodId(), s2.getFoodId());
+            assertNotEquals(s2.getFoodId(), s3.getFoodId());
+        }
+
+        @Test
+        @DisplayName("Save: Should handle edge cases (Long strings, Max values)")
+        void shouldHandleDataEdgeCases() {
+            // Long name
+            String longName = "A".repeat(100);
+            Food longFood = repository.save(new Food(longName, 10.00, "Set"));
+            assertEquals(longName, longFood.getFoodName());
+
+            // Max Price
+            Food maxPrice = repository.save(new Food("Expensive", 999999.99, "Set"));
+            assertEquals(999999.99, maxPrice.getFoodPrice(), 0.01);
+
+            // Min Price
+            Food minPrice = repository.save(new Food("Cheap", 0.01, "Set"));
+            assertEquals(0.01, minPrice.getFoodPrice(), 0.01);
+            
+            // Decimal precision (rounding)
+            Food decimal = repository.save(new Food("Rounding", 12.345, "Set"));
+            // Expect rounding to 2 decimal places by DB
+            assertEquals(12.35, repository.findById(decimal.getFoodId()).get().getFoodPrice(), 0.01);
+        }
+
+        @Test
+        @DisplayName("Update: Should modify existing food")
+        void shouldUpdateExistingFood() {
+            Food food = new Food(2000, "Updated Chicken Rice", 12.00, "Set");
+            Food updated = repository.update(food);
+            
+            assertEquals(12.00, updated.getFoodPrice(), 0.01);
+            
+            Food fromDb = repository.findById(2000).orElseThrow();
+            assertEquals("Updated Chicken Rice", fromDb.getFoodName());
+            assertEquals(12.00, fromDb.getFoodPrice(), 0.01);
+        }
+
+        @Test
+        @DisplayName("Update: Should handle full object updates")
+        void shouldUpdateAllFields() {
+            Food original = repository.findById(2001).orElseThrow();
+            
+            Food updateReq = new Food(2001, "Completely New", 25.99, "A la carte");
+            repository.update(updateReq);
+            
+            Food found = repository.findById(2001).orElseThrow();
+            assertNotEquals(original.getFoodName(), found.getFoodName());
+            assertEquals("Completely New", found.getFoodName());
+            assertEquals(25.99, found.getFoodPrice(), 0.01);
+            assertEquals("A la carte", found.getFoodType());
+        }
+
+        @Test
+        @DisplayName("Update: Should verify existence path")
+        void shouldUpdateIfFoodExists() {
+            Food food = new Food(2000, "Existing Name", 10.00, "Set");
+            repository.update(food);
+            assertEquals("Existing Name", repository.findById(2000).get().getFoodName());
+        }
+
+        @Test
+        @DisplayName("Update: Should do nothing for non-existent food")
+        void shouldNotFailOnNonExistentUpdate() {
+            Food food = new Food(99999, "Ghost", 10.00, "Set");
+            repository.update(food); // Should not throw
+            assertFalse(repository.findById(99999).isPresent());
+        }
+
+        @Test
+        @DisplayName("Delete: Should remove food by ID")
+        void shouldDeleteFoodById() {
+            boolean deleted = repository.deleteById(2001);
+            assertTrue(deleted);
+            assertFalse(repository.findById(2001).isPresent());
+        }
+
+        @Test
+        @DisplayName("Delete: Should return true if deletion successful")
+        void shouldReturnTrueOnSuccessfulDeletion() {
+            Food temp = repository.save(new Food("Temp", 10.0, "Set"));
+            assertTrue(repository.deleteById(temp.getFoodId()));
+        }
+
+        @Test
+        @DisplayName("Delete: Should return false for non-existent ID")
+        void shouldReturnFalseOnFailedDeletion() {
+            assertFalse(repository.deleteById(9999));
+            assertFalse(repository.deleteById(99999));
+        }
+    }
+
+    // =========================================================================
+    // ID Generation Tests
+    // =========================================================================
+
+    @Nested
+    @DisplayName("ID Generation Logic")
+    class IdGenerationTests {
+
+        @Test
+        @DisplayName("Should return next ID incremented from max")
+        void shouldCalculateNextId() {
+            // Initial state (2000, 2001, 2002) -> Next should be >= 2003 or at least >= 2000
+            int nextId = repository.getNextFoodId();
+            assertTrue(nextId >= 2000);
+        }
+
+        @Test
+        @DisplayName("Should default to 2000 if table is empty")
+        void shouldDefaultTo2000ForEmptyTable() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            assertEquals(2000, repository.getNextFoodId());
+        }
+        
+        @Test
+        @DisplayName("Should return 2000 if current max ID < 1999")
+        void shouldReturn2000IfMaxIdIsSmall() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            insertRawFood(1500, "Small ID"); // Max ID is 1500
+            
+            assertEquals(2000, repository.getNextFoodId());
+        }
+        
+        @Test
+        @DisplayName("Should return 2000 if current max ID is 1999")
+        void shouldReturn2000IfMaxIdIs1999() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            insertRawFood(1999, "Boundary");
+            
+            assertEquals(2000, repository.getNextFoodId());
+        }
+
+        @Test
+        @DisplayName("Should increment correctly from 2000")
+        void shouldIncrementFrom2000() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            insertRawFood(2000, "Boundary Start");
+            
+            assertEquals(2001, repository.getNextFoodId());
+        }
+
+        @Test
+        @DisplayName("Should increment correctly from 2001")
+        void shouldIncrementFrom2001() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            insertRawFood(2001, "Existing");
+            
+            assertEquals(2002, repository.getNextFoodId());
+        }
+
+        @Test
+        @DisplayName("Should handle database reset and refill")
+        void shouldHandleResetSequence() throws SQLException {
+            TestDatabaseSetup.cleanup(connectionProvider);
+            Food f = repository.save(new Food("Temp", 1.0, "Set"));
+            repository.deleteById(f.getFoodId());
+            
+            // Table empty again
+            assertEquals(2000, repository.getNextFoodId());
+        }
+    }
+
+    // =========================================================================
+    // Error Handling & Mock Tests (SQLException paths)
+    // =========================================================================
+
+    @Nested
+    @DisplayName("Exception Handling")
+    class ExceptionTests {
+
+        @Test
+        @DisplayName("Save: Should throw RuntimeException on DB error")
+        void shouldThrowRuntimeOnSaveError() {
+            runWithSuppressedError(() -> {
+                ConnectionProvider mockProvider = createMockProviderWithException();
+                FoodRepository repo = new FoodRepository(mockProvider);
+                Food food = new Food("Test", 10.0, "Set");
+
+                RuntimeException ex = assertThrows(RuntimeException.class, () -> repo.save(food));
+                assertTrue(ex.getMessage().contains("Failed to save food"));
             });
-            
-            assertTrue(exception.getMessage().contains("Failed to save food"));
-            assertNotNull(exception.getCause());
-        } finally {
-            System.setErr(originalErr);
         }
-    }
-    
-    @Test
-    @DisplayName("Test update - SQLException throws RuntimeException")
-    void testUpdate_SQLExceptionThrowsRuntimeException() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            // Create a mock ConnectionProvider that throws SQLException
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeUpdate()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            Food food = new Food(2000, "Test Food", 10.00, "Set");
-            
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                repo.update(food);
+        
+        @Test
+        @DisplayName("Save: Should handle connection error")
+        void shouldHandleConnectionErrorOnSave() {
+            runWithSuppressedError(() -> {
+                ConnectionProvider mockProvider = mock(ConnectionProvider.class);
+                when(mockProvider.getConnection()).thenThrow(new SQLException("Conn fail"));
+                
+                FoodRepository repo = new FoodRepository(mockProvider);
+                assertThrows(RuntimeException.class, () -> repo.save(new Food("F", 1.0, "S")));
             });
-            
-            assertTrue(exception.getMessage().contains("Failed to update food"));
-            assertNotNull(exception.getCause());
-        } finally {
-            System.setErr(originalErr);
         }
-    }
-    
-    @Test
-    @DisplayName("Test save - affectedRows > 0 but generatedKeys.next() returns false")
-    void testSave_AffectedRowsButNoGeneratedKeys() throws SQLException {
-        // Create a mock ConnectionProvider
-        ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-        Connection mockConnection = mock(Connection.class);
-        PreparedStatement mockStmt = mock(PreparedStatement.class);
-        ResultSet mockKeys = mock(ResultSet.class);
-        
-        when(mockProvider.getConnection()).thenReturn(mockConnection);
-        when(mockConnection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS)))
-            .thenReturn(mockStmt);
-        when(mockStmt.executeUpdate()).thenReturn(1); // affectedRows > 0
-        when(mockStmt.getGeneratedKeys()).thenReturn(mockKeys);
-        when(mockKeys.next()).thenReturn(false); // generatedKeys.next() returns false
-        
-        FoodRepository repo = new FoodRepository(mockProvider);
-        Food food = new Food("Test Food", 10.00, "Set");
-        
-        // Should not throw exception, but food ID won't be set
-        Food saved = repo.save(food);
-        assertEquals(0, saved.getFoodId()); // ID not set because generatedKeys.next() was false
-    }
-    
-    @Test
-    @DisplayName("Test findById - SQLException returns empty")
-    void testFindById_SQLExceptionReturnsEmpty() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            Optional<Food> result = repo.findById(2000);
-            
-            assertFalse(result.isPresent());
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test findByName - SQLException returns empty")
-    void testFindByName_SQLExceptionReturnsEmpty() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            Optional<Food> result = repo.findByName("Test Food");
-            
-            assertFalse(result.isPresent());
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test findAll - SQLException returns empty list")
-    void testFindAll_SQLExceptionReturnsEmptyList() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            List<Food> result = repo.findAll();
-            
-            assertNotNull(result);
-            assertTrue(result.isEmpty());
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test existsById - SQLException returns false")
-    void testExistsById_SQLExceptionReturnsFalse() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            boolean result = repo.existsById(2000);
-            
-            assertFalse(result);
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test existsByName - SQLException returns false")
-    void testExistsByName_SQLExceptionReturnsFalse() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            boolean result = repo.existsByName("Test Food");
-            
-            assertFalse(result);
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - SQLException returns 2000")
-    void testGetNextFoodId_SQLExceptionReturns2000() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeQuery()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            int result = repo.getNextFoodId();
-            
-            assertEquals(2000, result);
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test deleteById - SQLException returns false")
-    void testDeleteById_SQLExceptionReturnsFalse() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            Connection mockConnection = mock(Connection.class);
-            PreparedStatement mockStmt = mock(PreparedStatement.class);
-            
-            when(mockProvider.getConnection()).thenReturn(mockConnection);
-            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
-            when(mockStmt.executeUpdate()).thenThrow(new SQLException("Database error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            boolean result = repo.deleteById(2000);
-            
-            assertFalse(result);
-        } finally {
-            System.setErr(originalErr);
-        }
-    }
-    
-    @Test
-    @DisplayName("Test save - connection throws SQLException on getConnection")
-    void testSave_ConnectionThrowsSQLException() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            when(mockProvider.getConnection()).thenThrow(new SQLException("Connection error"));
-            
-            FoodRepository repo = new FoodRepository(mockProvider);
-            Food food = new Food("Test Food", 10.00, "Set");
-            
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                repo.save(food);
+
+        @Test
+        @DisplayName("Update: Should throw RuntimeException on DB error")
+        void shouldThrowRuntimeOnUpdateError() {
+            runWithSuppressedError(() -> {
+                ConnectionProvider mockProvider = createMockProviderWithException();
+                FoodRepository repo = new FoodRepository(mockProvider);
+                Food food = new Food(2000, "Test", 10.0, "Set");
+
+                RuntimeException ex = assertThrows(RuntimeException.class, () -> repo.update(food));
+                assertTrue(ex.getMessage().contains("Failed to update food"));
             });
-            
-            assertTrue(exception.getMessage().contains("Failed to save food"));
-        } finally {
-            System.setErr(originalErr);
         }
-    }
-    
-    @Test
-    @DisplayName("Test update - connection throws SQLException on getConnection")
-    void testUpdate_ConnectionThrowsSQLException() throws SQLException {
-        // Suppress error output during this test
-        java.io.PrintStream originalErr = System.err;
-        try {
-            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+        
+        @Test
+        @DisplayName("Update: Should handle connection error")
+        void shouldHandleConnectionErrorOnUpdate() {
+            runWithSuppressedError(() -> {
+                ConnectionProvider mockProvider = mock(ConnectionProvider.class);
+                when(mockProvider.getConnection()).thenThrow(new SQLException("Conn fail"));
+                
+                FoodRepository repo = new FoodRepository(mockProvider);
+                assertThrows(RuntimeException.class, () -> repo.update(new Food(2000, "F", 1.0, "S")));
+            });
+        }
+
+        @Test
+        @DisplayName("FindById: Should return empty on DB error")
+        void shouldReturnEmptyOnFindByIdError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertFalse(repo.findById(2000).isPresent());
+            });
+        }
+
+        @Test
+        @DisplayName("FindByName: Should return empty on DB error")
+        void shouldReturnEmptyOnFindByNameError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertFalse(repo.findByName("Test").isPresent());
+            });
+        }
+
+        @Test
+        @DisplayName("FindAll: Should return empty list on DB error")
+        void shouldReturnEmptyListOnFindAllError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertTrue(repo.findAll().isEmpty());
+            });
+        }
+
+        @Test
+        @DisplayName("ExistsById: Should return false on DB error")
+        void shouldReturnFalseOnExistsByIdError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertFalse(repo.existsById(2000));
+            });
+        }
+
+        @Test
+        @DisplayName("ExistsByName: Should return false on DB error")
+        void shouldReturnFalseOnExistsByNameError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertFalse(repo.existsByName("Test"));
+            });
+        }
+
+        @Test
+        @DisplayName("Delete: Should return false on DB error")
+        void shouldReturnFalseOnDeleteError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertFalse(repo.deleteById(2000));
+            });
+        }
+
+        @Test
+        @DisplayName("GetNextId: Should default to 2000 on DB error")
+        void shouldReturnDefaultIdOnError() {
+            runWithSuppressedError(() -> {
+                FoodRepository repo = new FoodRepository(createMockProviderWithException());
+                assertEquals(2000, repo.getNextFoodId());
+            });
+        }
+        
+        @Test
+        @DisplayName("Save: Should handle missing generated keys gracefully")
+        void shouldHandleMissingGeneratedKeys() throws SQLException {
+            // Setup mock that says "Success (1 row)" but returns no keys
             ConnectionProvider mockProvider = mock(ConnectionProvider.class);
-            when(mockProvider.getConnection()).thenThrow(new SQLException("Connection error"));
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockStmt = mock(PreparedStatement.class);
+            ResultSet mockKeys = mock(ResultSet.class);
+            
+            when(mockProvider.getConnection()).thenReturn(mockConnection);
+            when(mockConnection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(mockStmt);
+            when(mockStmt.executeUpdate()).thenReturn(1); // Rows affected > 0
+            when(mockStmt.getGeneratedKeys()).thenReturn(mockKeys);
+            when(mockKeys.next()).thenReturn(false); // No keys returned
             
             FoodRepository repo = new FoodRepository(mockProvider);
-            Food food = new Food(2000, "Test Food", 10.00, "Set");
+            Food result = repo.save(new Food("Test", 10.0, "Set"));
             
-            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                repo.update(food);
-            });
-            
-            assertTrue(exception.getMessage().contains("Failed to update food"));
-        } finally {
-            System.setErr(originalErr);
+            // Logic dictates ID is not set (0), but no exception thrown
+            assertEquals(0, result.getFoodId());
         }
     }
-    
-    @Test
-    @DisplayName("Test mapResultSetToFood - all field mappings with edge cases")
-    void testMapResultSetToFood_AllFieldMappings() throws SQLException {
-        // Test with different food types and prices
-        Food food1 = new Food(2000, "Chicken Rice", 10.50, "Set");
-        repository.update(food1);
-        Optional<Food> found1 = repository.findById(2000);
-        assertTrue(found1.isPresent());
-        assertEquals("Set", found1.get().getFoodType());
-        
-        Food food2 = new Food(2001, "Nasi Lemak", 8.00, "A la carte");
-        repository.update(food2);
-        Optional<Food> found2 = repository.findById(2001);
-        assertTrue(found2.isPresent());
-        assertEquals("A la carte", found2.get().getFoodType());
-    }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - maxId exactly 1999 returns 2000")
-    void testGetNextFoodId_MaxId1999Returns2000() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID exactly 1999
+
+    // =========================================================================
+    // Test Utilities
+    // =========================================================================
+    /**
+     * Helper to insert raw data directly into H2 to simulate pre-existing conditions
+     * without relying on the 'save' method of the class under test.
+     */
+    private void insertRawFood(int id, String name) throws SQLException {
         try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 1999);
-            stmt.setString(2, "ID 1999");
+             var stmt = conn.prepareStatement(
+                 "INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
+            stmt.setInt(1, id);
+            stmt.setString(2, name);
             stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
             stmt.setString(4, "Set");
             stmt.executeUpdate();
         }
-        
-        int nextId = repository.getNextFoodId();
-        // Should return 2000 (since maxId < 2000)
-        assertEquals(2000, nextId);
     }
-    
-    @Test
-    @DisplayName("Test getNextFoodId - maxId exactly 2001 returns 2002")
-    void testGetNextFoodId_MaxId2001Returns2002() throws SQLException {
-        TestDatabaseSetup.cleanup(connectionProvider);
-        // Insert food with ID exactly 2001
-        try (var conn = connectionProvider.getConnection();
-             var stmt = conn.prepareStatement("INSERT INTO foods (food_id, food_name, food_price, food_type) VALUES (?, ?, ?, ?)")) {
-            stmt.setInt(1, 2001);
-            stmt.setString(2, "ID 2001");
-            stmt.setBigDecimal(3, java.math.BigDecimal.valueOf(10.00));
-            stmt.setString(4, "Set");
-            stmt.executeUpdate();
+
+    //Creates a Mock ConnectionProvider that always throws SQLExceptions.
+    private ConnectionProvider createMockProviderWithException() throws RuntimeException {
+        try {
+            ConnectionProvider mockProvider = mock(ConnectionProvider.class);
+            Connection mockConnection = mock(Connection.class);
+            PreparedStatement mockStmt = mock(PreparedStatement.class);
+            
+            when(mockProvider.getConnection()).thenReturn(mockConnection);
+            when(mockConnection.prepareStatement(anyString())).thenReturn(mockStmt);
+            when(mockConnection.prepareStatement(anyString(), eq(Statement.RETURN_GENERATED_KEYS))).thenReturn(mockStmt);
+            
+            // Configure all execution methods to throw
+            when(mockStmt.executeUpdate()).thenThrow(new SQLException("Simulated DB Error"));
+            when(mockStmt.executeQuery()).thenThrow(new SQLException("Simulated DB Error"));
+            
+            return mockProvider;
+        } catch (SQLException e) {
+            throw new RuntimeException("Test setup failed", e);
         }
-        
-        int nextId = repository.getNextFoodId();
-        // Should return maxId + 1 = 2002 (since maxId >= 2000)
-        assertEquals(2002, nextId);
+    }
+
+    //Helper to suppress System.err output during tests that intentionally provoke stack traces.
+    private void runWithSuppressedError(Executable testLogic) {
+        PrintStream originalErr = System.err;
+        try {
+            System.setErr(new PrintStream(new ByteArrayOutputStream()));
+            testLogic.execute();
+        } catch (Throwable e) {
+            // Rethrow as unchecked to fail the test if something unexpected happened
+            throw new RuntimeException(e);
+        } finally {
+            System.setErr(originalErr);
+        }
     }
 }
