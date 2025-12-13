@@ -18,11 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Order Service Test
- * Tests order service business logic
- * Follows TDD principles
- */
+//Order Service Test
+
 public class OrderServiceTest {
     
     private OrderService orderService;

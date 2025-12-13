@@ -15,17 +15,8 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for OrderService
- *
- * This test suite focuses on:
- * - Order creation validation rules
- * - Price calculation correctness
- * - Payment authentication and balance deduction
- *
- * Mock repositories are used to isolate business logic
- * and avoid database dependency.
- */
+//Unit tests for OrderService
+ 
 class OrderServiceTest {
 
     private OrderService orderService;
@@ -54,9 +45,9 @@ class OrderServiceTest {
         );
     }
 
-    // ------------------------
+    
     // Price calculation
-    // ------------------------
+    
 
     @Test
     @DisplayName("Total price is calculated correctly for multiple items")
@@ -77,9 +68,9 @@ class OrderServiceTest {
         assertEquals(35.0, total, 0.01);
     }
 
-    // ------------------------
+    
     // Successful order creation
-    // ------------------------
+    
 
     @Test
     @DisplayName("Order is successfully created with valid customer, items and payment")
@@ -110,9 +101,9 @@ class OrderServiceTest {
         assertEquals(1, orderRepository.findAll().size());
     }
 
-    // ------------------------
+    
     // Validation: customer & order details
-    // ------------------------
+    
 
     @Test
     @DisplayName("Create order fails when customer does not exist")
@@ -142,9 +133,9 @@ class OrderServiceTest {
                 orderService.createOrder(1000, detailsWithNull, "TNG", "TNG001", "tng123"));
     }
 
-    // ------------------------
+    
     // Validation: quantity & subtotal
-    // ------------------------
+    
 
     @Test
     @DisplayName("Create order fails when item quantity is zero or exceeds limit")
@@ -210,9 +201,9 @@ class OrderServiceTest {
                 orderService.createOrder(1000, List.of(detail), "TNG", "TNG001", "tng123"));
     }
 
-    // ------------------------
+    
     // Validation: payment
-    // ------------------------
+    
 
     @Test
     @DisplayName("Create order fails when payment method does not exist")
@@ -248,13 +239,11 @@ class OrderServiceTest {
                 orderService.createOrder(1000, List.of(detail), "TNG", "TNG001", "tng123"));
     }
 
-    // =================================================================
+   
     // Mock repositories & services (in-memory implementations)
-    // =================================================================
+    
 
-    /**
-     * In-memory order repository for testing
-     */
+   
     private static class MockOrderRepository implements IOrderRepository {
         private final Map<Integer, Order> orders = new HashMap<>();
         private int nextId = 1;
@@ -293,9 +282,9 @@ class OrderServiceTest {
         }
     }
 
-    /**
-     * In-memory customer repository for testing
-     */
+    
+    //In-memory customer repository for testing
+
     private static class MockCustomerRepository implements ICustomerRepository {
         private final Map<Integer, Customer> customers = new HashMap<>();
 
@@ -456,9 +445,9 @@ void createOrder_shouldFail_whenDecrementQuantityFails() {
             orderService.createOrder(1000, List.of(detail), "TNG", "TNG001", "tng123"));
 }
 
-    /**
-     * In-memory payment method repository
-     */
+
+     // In-memory payment method repository
+     
     private static class MockPaymentMethodRepository implements IPaymentMethodRepository {
         private final Map<Integer, PaymentMethod> methods = new HashMap<>();
         private final Map<String, PaymentMethod> byWalletId = new HashMap<>();
@@ -522,9 +511,9 @@ void createOrder_shouldFail_whenDecrementQuantityFails() {
         }
     }
 
-    /**
-     * Simplified payment service used for testing
-     */
+    
+     // Simplified payment service used for testing
+    
     private static class MockPaymentService implements IPaymentService {
         private final IPaymentMethodRepository repository;
 
@@ -560,9 +549,8 @@ void createOrder_shouldFail_whenDecrementQuantityFails() {
         }
     }
 
-    /**
-     * In-memory food repository for testing
-     */
+    // In-memory food repository for testing
+     
     private static class MockFoodRepository implements IFoodRepository {
         private final Map<Integer, Food> foods = new HashMap<>();
 
