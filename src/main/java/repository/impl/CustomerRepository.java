@@ -8,11 +8,7 @@ import config.DatabaseConnection;
 import model.Customer;
 import repository.interfaces.ICustomerRepository;
 
-/**
- * Customer Repository Implementation
- * Handles database operations for Customer entity
- * Follows SOLID: Single Responsibility Principle, Dependency Inversion Principle
- */
+
 public class CustomerRepository implements ICustomerRepository {
     
     private static final String FIND_BY_ID = "SELECT * FROM customers WHERE customer_id = ?";
@@ -24,19 +20,12 @@ public class CustomerRepository implements ICustomerRepository {
     
     private final ConnectionProvider connectionProvider;
     
-    /**
-     * Constructor with ConnectionProvider for dependency injection
-     * 
-     * @param connectionProvider Connection provider
-     */
+    //constructor with dependency injection
     public CustomerRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
     
-    /**
-     * Default constructor using singleton DatabaseConnection
-     * Maintains backward compatibility
-     */
+    //default constructor
     public CustomerRepository() {
         this(DatabaseConnection.getInstance());
     }
@@ -152,10 +141,6 @@ public class CustomerRepository implements ICustomerRepository {
         return false;
     }
     
-    /**
-     * Map ResultSet to Customer object
-     * Follows DRY principle - single method for mapping
-     */
     private Customer mapResultSetToCustomer(ResultSet rs) throws SQLException {
         Customer customer = new Customer();
         customer.setCustomerId(rs.getInt("customer_id"));

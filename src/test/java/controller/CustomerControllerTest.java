@@ -10,26 +10,19 @@ import model.Customer;
 
 import java.util.Random;
 
-/**
- * JUnit 5 Test Class for CustomerController
- * Target: 100% Code Coverage
- */
 class CustomerControllerTest {
 
     private CustomerController controller;
-    private String uniquePhone; // Store a valid phone for reuse
+    private String uniquePhone;
 
     @BeforeEach
     void setUp() {
         controller = new CustomerController();
-        // Generate a random phone for every test to avoid conflicts
+        //Generate random phone number
         uniquePhone = "01" + (10000000 + new Random().nextInt(80000000));
     }
 
-    // ==========================================
-    // 1. Register Logic (Try/Catch & Duplicate)
-    // ==========================================
-
+    // Test registration features
     @Test
     @DisplayName("Register - Success")
     void testRegisterCustomer_Success() {
@@ -44,41 +37,35 @@ class CustomerControllerTest {
     @DisplayName("Register - Fail (Invalid Data)")
     void testRegisterCustomer_Fail_InvalidData() {
         Customer c = createValidCustomer(uniquePhone);
-        c.setAge(5); // Invalid Age
+        c.setAge(5); //invalid age
         
         Customer result = controller.registerCustomer(c);
-        assertNull(result, "Should return null because age is invalid");
+        assertNull(result, "Registration should fail due to invalid age");
     }
 
     @Test
     @DisplayName("Register - Fail (Duplicate Phone)")
     void testRegisterCustomer_Fail_DuplicatePhone() {
-        // 1. Register first time (Success)
+        //Register first user
         Customer c1 = createValidCustomer(uniquePhone);
         assertNotNull(controller.registerCustomer(c1));
 
-        // 2. Register second time with SAME phone (Fail)
+        //Try to register second user with same phone number
         Customer c2 = createValidCustomer(uniquePhone); 
         c2.setName("Clone User");
         
-        // This hits the specific "Phone already registered" exception in Service
         Customer result = controller.registerCustomer(c2);
-        assertNull(result, "Should return null because phone is duplicate");
+        assertNull(result, "Should return null for duplicate phone");
     }
 
-    // ==========================================
-    // 2. Login Logic (All Branches)
-    // ==========================================
-
+    //Test Login features
     @Test
     @DisplayName("Login - Success")
     void testLogin_Success() {
-        // Register first
         Customer c = createValidCustomer(uniquePhone);
         c.setPassword("mypass123");
         Customer registered = controller.registerCustomer(c);
 
-        // Login
         Customer loggedIn = controller.login(registered.getCustomerId(), "mypass123");
         assertNotNull(loggedIn);
         assertEquals(registered.getCustomerId(), loggedIn.getCustomerId());
@@ -94,22 +81,16 @@ class CustomerControllerTest {
     @Test
     @DisplayName("Login - Fail (Wrong Password)")
     void testLogin_Fail_WrongPassword() {
-        // Register first
         Customer c = createValidCustomer(uniquePhone);
         c.setPassword("correctPass");
         Customer registered = controller.registerCustomer(c);
 
-        // Try login with wrong password
+        // try login with wrong password
         Customer result = controller.login(registered.getCustomerId(), "wrongPass");
         assertNull(result);
     }
 
-    // ==========================================
-    // 3. Validation Logic (Logic & Exceptions)
-    // ==========================================
-
-    // --- Phone Number Checks (Crucial for Coverage) ---
-    
+    // Field Validation Tests
     @Test
     @DisplayName("Check Phone - Valid & Unique")
     void testCheckPhoneNumber_Success() {
@@ -123,40 +104,34 @@ class CustomerControllerTest {
     }
 
     @Test
-    @DisplayName("Check Phone - Duplicate (The Missing 5%)")
+    @DisplayName("Check Phone - Duplicate")
     void testCheckPhoneNumber_Duplicate() {
-        // 1. Register a number first
         Customer c = createValidCustomer(uniquePhone);
         controller.registerCustomer(c);
 
-        // 2. Try to check the SAME number again
-        // This forces the "if (exists)" branch to execute
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
             () -> controller.checkPhoneNumber(uniquePhone));
             
-        // Optional: verify message confirms it's a duplicate error
         assertTrue(ex.getMessage().contains("already registered"));
     }
 
-    // --- Is Phone Registered (True/False) ---
-
     @Test
     void testIsPhoneNumberRegistered() {
-        // Case 1: False
+        // Test when phone does not exist
         assertFalse(controller.isPhoneNumberRegistered(uniquePhone));
 
-        // Case 2: True
+        // Test when phone exists
         Customer c = createValidCustomer(uniquePhone);
         controller.registerCustomer(c);
         assertTrue(controller.isPhoneNumberRegistered(uniquePhone));
     }
 
-    // --- Other Validations (Standard) ---
-
     @Test
     void testName() {
+        //Validate name format
         assertTrue(controller.validateName("Ali Baba"));
-        assertFalse(controller.validateName("Ali123"));
+        assertFalse(controller.validateName("Ali123")); //no numbers allowed
+        
         assertDoesNotThrow(() -> controller.checkName("Ali"));
         assertThrows(IllegalArgumentException.class, () -> controller.checkName("Ali123"));
     }
@@ -164,7 +139,8 @@ class CustomerControllerTest {
     @Test
     void testAge() {
         assertTrue(controller.validateAge(20));
-        assertFalse(controller.validateAge(10));
+        assertFalse(controller.validateAge(10)); 
+        
         assertDoesNotThrow(() -> controller.checkAge(20));
         assertThrows(IllegalArgumentException.class, () -> controller.checkAge(10));
     }
@@ -172,8 +148,9 @@ class CustomerControllerTest {
     @Test
     void testGender() {
         assertTrue(controller.validateGender("Male"));
-        assertTrue(controller.validateGender("female")); // Case insensitive
+        assertTrue(controller.validateGender("female")); 
         assertFalse(controller.validateGender("Robot"));
+        
         assertDoesNotThrow(() -> controller.checkGender("Male"));
         assertThrows(IllegalArgumentException.class, () -> controller.checkGender("Robot"));
     }
@@ -181,7 +158,8 @@ class CustomerControllerTest {
     @Test
     void testPassword() {
         assertTrue(controller.validatePassword("123456"));
-        assertFalse(controller.validatePassword("123"));
+        assertFalse(controller.validatePassword("123")); 
+        
         assertDoesNotThrow(() -> controller.checkPassword("123456"));
         assertThrows(IllegalArgumentException.class, () -> controller.checkPassword("123"));
     }
@@ -189,14 +167,12 @@ class CustomerControllerTest {
     @Test
     void testPasswordConfirmation() {
         assertTrue(controller.validatePasswordConfirmation("abc", "abc"));
-        assertFalse(controller.validatePasswordConfirmation("abc", "def"));
+        assertFalse(controller.validatePasswordConfirmation("abc", "def")); 
+        
         assertDoesNotThrow(() -> controller.checkPasswordConfirmation("a", "a"));
         assertThrows(IllegalArgumentException.class, () -> controller.checkPasswordConfirmation("a", "b"));
     }
 
-    // ==========================================
-    // Helper Method (To keep code clean)
-    // ==========================================
     private Customer createValidCustomer(String phone) {
         Customer c = new Customer();
         c.setName("Test Unit");

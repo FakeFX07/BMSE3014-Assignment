@@ -17,7 +17,7 @@ public class AdminService implements IAdminService {
         if (name == null || password == null) {
             return false;
         }
-        // Hash the input password before authentication
+        //Hash the input password before authentication
         String hashedPassword = PasswordUtil.hashPassword(password);
         return adminRepository.authenticate(name, hashedPassword);
     }

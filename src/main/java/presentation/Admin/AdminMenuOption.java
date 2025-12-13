@@ -1,10 +1,6 @@
 package presentation.Admin;
 
-/**
- * Admin Menu Option Enum
- * Represents admin menu options with their display text
- * Follows OOP principles: Encapsulation
- */
+// Admin menu options using enum
 public enum AdminMenuOption {
     FOOD_MANAGEMENT(1, "Food Management"),
     ORDER_REPORT(2, "Order Report"),
@@ -13,38 +9,22 @@ public enum AdminMenuOption {
     private final int optionNumber;
     private final String displayText;
 
-    /**
-     * Constructor for AdminMenuOption
-     * 
-     * @param optionNumber The option number
-     * @param displayText  The display text for the option
-     */
     AdminMenuOption(int optionNumber, String displayText) {
         this.optionNumber = optionNumber;
         this.displayText = displayText;
     }
 
-    /**
-     * Get the option number
-     * 
-     * @return The option number
-     */
+    //Get the option number and return the option number
     public int getOptionNumber() {
         return optionNumber;
     }
-
-    /**
-     * Get the display text
-     * 
-     * @return The display text
-     */
+    
+    //Get the display text and return the display text
     public String getDisplayText() {
         return displayText;
     }
 
-    /**
-     * Display the admin menu using enum values
-     */
+    //Display the admin menu using enum values
     public static void displayMenu() {
         
         String exitOption = "0.Back Main Menu";
@@ -53,10 +33,8 @@ public enum AdminMenuOption {
         System.out.println("[]             Admin             []");
         System.out.println("[]===============================[]");
 
-        // Display options in order: 1-2, then 0
         for (AdminMenuOption option : AdminMenuOption.values()) {
             if (option.getOptionNumber() != 0) {
-                // Build option text
                 String optionText = option.getOptionNumber() + "." + option.getDisplayText();
                 String formattedLine = String.format("        %-25s", optionText);
                 System.out.println(formattedLine);
@@ -67,12 +45,7 @@ public enum AdminMenuOption {
         System.out.println("[]===============================[]\n");
     }
 
-    /**
-     * Get AdminMenuOption by option number
-     * 
-     * @param optionNumber The option number
-     * @return AdminMenuOption or null if not found
-     */
+    //Get AdminMenuOption by option number and return AdminMenuOption or null if not found
     public static AdminMenuOption getByOptionNumber(int optionNumber) {
         for (AdminMenuOption option : AdminMenuOption.values()) {
             if (option.getOptionNumber() == optionNumber) {
